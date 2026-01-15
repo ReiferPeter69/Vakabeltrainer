@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lernkarten Ultra Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #e0e7ff;
+            --secondary: #ec4899;
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius: 16px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --box-1: #ef4444;
+            --box-2: #f97316;
+            --box-3: #eab308;
+            --box-4: #84cc16;
+            --box-5: #10b981;
+            --nav-height: 65px;
+        }
+
+        [data-theme="dark"] {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #312e81;
+            --bg-body: #111827;
+            --bg-card: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border: #374151;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: calc(var(--nav-height) + 20px);
+            transition: background 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header */
+        header {
+            background: var(--bg-card);
+            padding: 1rem 0;
+            position: sticky; top: 0; z-index: 40;
+            box-shadow: var(--shadow);
+            border-bottom: 1px solid var(--border);
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; font-size: 1.3rem; color: var(--primary); display: flex; gap: 10px; align-items: center; }
+        
+        /* Streak Badge */
+        .streak-badge {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;
+            display: flex; align-items: center; gap: 5px;
+            box-shadow: 0 2px 5px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Content Areas */
+        .content-area { display: none; padding: 1.5rem 0; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .content-area.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card {
+            background: var(--bg-card); border-radius: var(--radius); padding: 1.5rem;
+            margin-bottom: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border);
+        }
+
+        /* Toolbar inside Card */
+        .toolbar-row {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+        }
+        .btn-select {
+            background: transparent; border: 1px solid var(--primary); color: var(--primary);
+            padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-select.active {
+            background: var(--primary); color: white;
+        }
+
+        /* Statistics Visuals */
+        .box-chart { display: flex; height: 120px; align-items: flex-end; gap: 8px; margin-top: 20px; }
+        .box-col {
+            flex: 1; background: var(--border); border-radius: 8px 8px 0 0; position: relative;
+            transition: height 0.5s; min-height: 5px;
+        }
+        .box-col[data-box="1"] { background: var(--box-1); }
+        .box-col[data-box="2"] { background: var(--box-2); }
+        .box-col[data-box="3"] { background: var(--box-3); }
+        .box-col[data-box="4"] { background: var(--box-4); }
+        .box-col[data-box="5"] { background: var(--box-5); }
+        .box-label { position: absolute; bottom: -25px; width: 100%; text-align: center; font-size: 0.7rem; color: var(--text-muted); }
+        .box-count { position: absolute; top: -20px; width: 100%; text-align: center; font-size: 0.8rem; font-weight: bold; }
+
+        /* List Items & Selection Logic */
+        .item-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .list-item {
+            background: var(--bg-card); padding: 1rem; border-radius: var(--radius);
+            display: flex; align-items: center; gap: 1rem; border: 1px solid var(--border);
+            cursor: pointer; transition: transform 0.2s, background 0.2s; position: relative;
+        }
+        .list-item:active { transform: scale(0.98); }
+        
+        /* Selection State */
+        .selection-checkbox {
+            display: none; width: 24px; height: 24px; border: 2px solid var(--text-muted);
+            border-radius: 50%; margin-right: 5px; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.2s;
+        }
+        .selection-mode-active .selection-checkbox { display: flex; }
+        .selection-mode-active .list-item { padding-left: 0.5rem; } /* adjust padding */
+        
+        .list-item.selected {
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+        [data-theme="dark"] .list-item.selected { background: var(--primary-light); border-color: var(--primary); }
+
+        .list-item.selected .selection-checkbox {
+            background: var(--primary); border-color: var(--primary); color: white;
+        }
+
+        .item-icon {
+            width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.2rem; flex-shrink: 0;
+        }
+        .icon-folder { background: rgba(79, 70, 229, 0.1); color: var(--primary); }
+        .icon-card { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .item-content { flex: 1; min-width: 0; }
+        .item-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Buttons */
+        .btn {
+            width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: transform 0.1s, filter 0.2s; font-size: 1rem;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
+        .btn-secondary { background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text-muted); }
+        .btn-outline.active { border-color: var(--primary); color: var(--primary); background: rgba(79, 70, 229, 0.05); }
+
+        .btn-float {
+            position: fixed; bottom: calc(var(--nav-height) + 20px); right: 20px; width: 60px; height: 60px; border-radius: 30px;
+            background: var(--primary); color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; box-shadow: 0 5px 20px rgba(79, 70, 229, 0.4); z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s, border-radius 0.3s;
+        }
+        .btn-float:hover { transform: scale(1.1) rotate(90deg); }
+        
+        /* FAB in Selection Mode */
+        .selection-mode-active .btn-float {
+            width: auto; padding: 0 20px; border-radius: 30px; gap: 10px;
+            font-size: 1rem; transform: scale(1);
+        }
+        .selection-mode-active .btn-float:hover { transform: translateY(-2px); }
+
+        /* Inputs */
+        .form-control {
+            width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--border);
+            background: var(--bg-body); color: var(--text-main); font-size: 1rem; transition: border-color 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); }
+        textarea.form-control.no-wrap { white-space: pre; overflow-x: auto; }
+
+        /* Active Learning & Animation */
+        .progress-container { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 1rem; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s; }
+
+        .learn-wrapper { perspective: 1000px; margin-top: 1rem; }
+        .flashcard {
+            background: var(--bg-card); height: 350px; border-radius: 24px; box-shadow: var(--shadow);
+            position: relative; cursor: pointer; transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d; border: 1px solid var(--border);
+        }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .flashcard.shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotateY(0); }
+            50% { transform: translateX(10px) rotateY(0); }
+            75% { transform: translateX(-10px) rotateY(0); }
+        }
+        .card-face {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            backface-visibility: hidden; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 2rem; border-radius: 24px;
+        }
+        .card-back { transform: rotateY(180deg); background: linear-gradient(to bottom right, var(--bg-card), rgba(16, 185, 129, 0.05)); border: 2px solid var(--success); }
+        .card-text { font-size: 1.6rem; font-weight: 700; text-align: center; margin-bottom: 1rem; }
+        .box-badge { position: absolute; top: 15px; left: 15px; font-size: 0.75rem; padding: 4px 8px; border-radius: 8px; background: var(--border); color: var(--text-muted); font-weight: bold; }
+
+        /* Confetti Canvas */
+        #confettiCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; }
+
+        /* Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height);
+            background: var(--bg-card); display: flex; justify-content: space-around; padding: 12px 0;
+            border-top: 1px solid var(--border); z-index: 50;
+        }
+        .nav-item { text-align: center; color: var(--text-muted); font-size: 0.75rem; flex: 1; transition: color 0.2s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-2px); }
+        .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+
+        /* Modals & Bottom Sheet */
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 150;
+            align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px);
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: var(--bg-card); padding: 2rem; border-radius: 24px; width: 100%; max-width: 500px;
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Bottom Sheet Style (Not covering Nav) */
+        .bottom-sheet {
+            position: fixed; left: 0; right: 0; bottom: calc(var(--nav-height) + 10px);
+            background: var(--bg-card); border-radius: 24px; margin: 0 20px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2); z-index: 140;
+            transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 60vh; overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+        .bottom-sheet.show { transform: translateY(0); }
+
+        .sheet-header {
+            padding: 15px 20px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .sheet-body { padding: 20px; }
+
+        /* Folder Selection in Sheet */
+        .folder-select-item {
+            padding: 12px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+            margin-bottom: 5px; transition: background 0.2s;
+        }
+        .folder-select-item:hover { background: var(--bg-body); }
+        .folder-select-item i { color: var(--primary); }
+
+        .typing-container { text-align: center; background: var(--bg-card); padding: 2rem; border-radius: 24px; box-shadow: var(--shadow); display: none; }
+        .hidden { display: none !important; }
+        
+        .hint-box {
+            background: #fffbeb; border: 1px solid #fcd34d; color: #92400e;
+            padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.9rem; display: none;
+        }
+        [data-theme="dark"] .hint-box { background: #451a03; border-color: #92400e; color: #fcd34d; }
+
+        .fab-menu {
+            position: fixed; bottom: 160px; right: 25px; display: flex; flex-direction: column; gap: 15px;
+            z-index: 99; pointer-events: none; opacity: 0; transform: translateY(20px); transition: 0.3s;
+        }
+        .fab-menu.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .fab-btn-small {
+            width: 45px; height: 45px; border-radius: 50%; border: none; color: white;
+            display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); cursor: pointer;
+        }
+        .fab-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+        .fab-label {
+            background: var(--bg-card); padding: 5px 10px; border-radius: 8px; font-size: 0.85rem; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body data-theme="light">
+    <canvas id="confettiCanvas"></canvas>
+
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-layer-group"></i> UltraCards
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="streak-badge" id="streakBadge" title="Lern-Serie">
+                    <i class="fas fa-fire"></i> <span id="streakCount">0</span>
+                </div>
+                <button class="btn-secondary" style="width: 40px; padding: 10px; border-radius:50%;" onclick="toggleTheme()">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- MANAGE VIEW -->
+        <div id="manageContent" class="content-area active">
+            <div class="card">
+                <div class="toolbar-row">
+                    <input type="text" id="searchBox" class="form-control" placeholder="🔍 Suchen..." style="flex:1;">
+                    <button id="btnSelectMode" class="btn-select" style="margin-left: 10px;" onclick="toggleSelectMode()">
+                        <i class="fas fa-check-square"></i> Auswählen
+                    </button>
+                </div>
+                <div id="breadcrumbContainer" style="margin-top: 10px; display: flex; gap: 5px; font-size: 0.9rem; color: var(--primary);"></div>
+                <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.85rem; color: var(--text-muted);">
+                    <span id="currentFolderTitle">Startseite</span>
+                    <span id="folderStats">0 Elemente</span>
+                </div>
+            </div>
+
+            <ul id="itemList" class="item-list"></ul>
+            <div id="emptyState" class="hidden" style="text-align: center; padding: 2rem; opacity: 0.6;">
+                <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                <p>Hier ist es noch leer.</p>
+            </div>
+
+            <!-- FAB (Changes based on mode) -->
+            <div class="fab-menu" id="fabMenu">
+                <div class="fab-row"><span class="fab-label">Import</span><button class="fab-btn-small" style="background: #f59e0b" onclick="showModal('importModal')"><i class="fas fa-file-import"></i></button></div>
+                <div class="fab-row"><span class="fab-label">Neue Karte</span><button class="fab-btn-small" style="background: #10b981" onclick="showModal('cardModal')"><i class="fas fa-plus"></i></button></div>
+                <div class="fab-row"><span class="fab-label">Neuer Ordner</span><button class="fab-btn-small" style="background: #ec4899" onclick="showModal('folderModal')"><i class="fas fa-folder-plus"></i></button></div>
+            </div>
+            
+            <!-- Main FAB Button -->
+            <button class="btn-float" id="mainFab" onclick="handleFabClick()">
+                <i class="fas fa-plus" id="fabIcon"></i>
+                <span id="fabText" style="display:none; font-weight:600;">Verschieben</span>
+            </button>
+        </div>
+
+        <!-- LEARN SETUP -->
+        <div id="learnContent" class="content-area">
+            <div class="card">
+                <h2>🎓 Lern-Cockpit</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Konfiguriere deine Sitzung.</p>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Quelle</label>
+                    <select id="learnSource" class="form-control"></select>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Strategie</label>
+                    <select id="learnStrategy" class="form-control">
+                        <option value="leitner">🧠 Smart (Leitner System)</option>
+                        <option value="random">🎲 Zufällige Auswahl (10 Stk.)</option>
+                        <option value="hardest">🔥 Die Schwierigsten zuerst</option>
+                        <option value="all">📚 Alle Karten durchgehen</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Modus</label>
+                    <select id="learnMethod" class="form-control">
+                        <option value="flip">Karteikarte (Umdrehen)</option>
+                        <option value="type">Schreiben (Eintippen)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Richtung</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-outline active" id="btnMix" onclick="setDirection('mixed')">🔀 Mix</button>
+                        <button class="btn btn-outline" id="btnFront" onclick="setDirection('front')">V → R</button>
+                        <button class="btn btn-outline" id="btnBack" onclick="setDirection('back')">R → V</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="startSession()">Session Starten</button>
+            </div>
+        </div>
+
+        <!-- STATS VIEW -->
+        <div id="statsContent" class="content-area">
+            <div class="card">
+                <h2>📊 Dein Fortschritt</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Verteilung nach Leitner-Boxen</p>
+
+                <div class="box-chart">
+                    <div class="box-col" data-box="1" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Neu</span></div>
+                    <div class="box-col" data-box="2" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Lernend</span></div>
+                    <div class="box-col" data-box="3" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Gut</span></div>
+                    <div class="box-col" data-box="4" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Sicher</span></div>
+                    <div class="box-col" data-box="5" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Meister</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Datenverwaltung</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="exportData('json')"><i class="fas fa-download"></i> Backup</button>
+                    <button class="btn btn-secondary" onclick="exportData('csv')"><i class="fas fa-file-csv"></i> Excel</button>
+                </div>
+                <button class="btn btn-outline" style="margin-top: 10px;" onclick="document.getElementById('importFile').click()">
+                    <i class="fas fa-upload"></i> Import
+                </button>
+                <input type="file" id="importFile" hidden accept=".json" onchange="importData(this)">
+                <button class="btn btn-danger" style="margin-top: 10px;" onclick="resetAll()">Alles löschen</button>
+            </div>
+        </div>
+
+        <!-- ACTIVE SESSION OVERLAY -->
+        <div id="activeSession" class="content-area" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <button class="btn-secondary" style="width: auto; padding: 5px 15px; font-size: 0.8rem; border-radius:12px;" onclick="endSession()">Beenden</button>
+                <div style="font-weight: bold; color: var(--primary);" id="sessionProgress">1 / 10</div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <!-- FLIP MODE -->
+            <div class="learn-wrapper" id="flipWrapper">
+                <div class="flashcard" id="flashcard" onclick="flipCard()">
+                    <div class="box-badge" id="boxBadge">Box 1</div>
+                    <!-- Front -->
+                    <div class="card-face card-front">
+                        <div style="position: absolute; top: 15px; right: 15px;">
+                            <i class="fas fa-volume-up" style="color: var(--primary); font-size: 1.2rem;" onclick="speak(event, 'q')"></i>
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px;" id="labelQ">Frage</div>
+                        <div class="card-text" id="textQ">?</div>
+                        <button id="btnHintFront" class="btn-outline hidden" style="width: auto; padding: 5px 10px; font-size: 0.8rem; margin-top: 20px;" onclick="toggleHint(event)">💡 Hinweis</button>
+                        <div id="hintFront" class="hint-box"></div>
+                        <div style="margin-top: auto; font-size: 0.8rem; color: var(--text-muted); opacity: 0.7;">(Tippen zum Umdrehen)</div>
+                    </div>
+                    <!-- Back -->
+                    <div class="card-face card-back">
+                        <div style="position: absolute; top: 15px; left: 15px;">
+                            <i class="fas fa-volume-up" style="color: var(--success); font-size: 1.2rem;" onclick="speak(event, 'a')"></i>
+                        </div>
+                        <div style="color: var(--success); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px;" id="labelA">Antwort</div>
+                        <div class="card-text" id="textA">!</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-danger" onclick="rate(false)">Wiederholen</button>
+                    <button class="btn btn-success" onclick="rate(true)">Gewusst</button>
+                </div>
+            </div>
+
+            <!-- TYPE MODE -->
+            <div class="typing-container" id="typingWrapper">
+                <div style="display: flex; justify-content: flex-end;"><i class="fas fa-volume-up" onclick="speak(event, 'q')"></i></div>
+                <div style="color: var(--text-muted); font-size: 0.8rem;" id="typeLabelQ">FRAGE</div>
+                <div class="card-text" id="typeTextQ" style="margin-bottom: 20px;">?</div>
+                <button id="btnHintType" class="btn-outline hidden" style="width: auto; margin: 0 auto 15px auto; padding: 5px 10px; font-size: 0.8rem;" onclick="toggleTypeHint()">💡 Hinweis</button>
+                <div id="hintType" class="hint-box" style="margin-bottom: 15px;"></div>
+                <input type="text" id="typeInput" class="form-control" style="text-align: center; font-size: 1.2rem;" placeholder="Antwort..." autocomplete="off">
+                <div id="typeFeedback" style="margin: 15px 0; display: none;"></div>
+                <button class="btn btn-primary" id="btnCheckType" onclick="checkType()" style="margin-top: 10px;">Prüfen</button>
+                <button class="btn btn-primary hidden" id="btnNextType" onclick="nextCard()" style="margin-top: 10px;">Weiter</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="nav('manageContent', this)"><i class="fas fa-folder"></i> Karten</div>
+        <div class="nav-item" onclick="nav('learnContent', this)"><i class="fas fa-graduation-cap"></i> Lernen</div>
+        <div class="nav-item" onclick="nav('statsContent', this)"><i class="fas fa-chart-bar"></i> Statistik</div>
+    </div>
+
+    <!-- MULTI SELECT BOTTOM SHEET -->
+    <div class="bottom-sheet" id="moveBottomSheet">
+        <div class="sheet-header">
+            <h3>📂 Ziel wählen</h3>
+            <button class="btn-secondary" style="width:auto; padding:5px 10px; border-radius:8px;" onclick="closeMoveSheet()">Abbrechen</button>
+        </div>
+        <div class="sheet-body" id="moveFolderList">
+            <!-- Folders generated here -->
+        </div>
+    </div>
+
+    <!-- Standard Modals -->
+    <div class="modal" id="folderModal">
+        <div class="modal-content">
+            <h3>📁 Neuer Ordner</h3>
+            <input type="text" id="inpFolder" class="form-control" style="margin: 15px 0;" placeholder="Name...">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="hideModal('folderModal')">Abbrechen</button>
+                <button class="btn btn-primary" onclick="addFolder()">Erstellen</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="cardModal">
+        <div class="modal-content">
+            <h3>📝 Neue Karte</h3>
+            <label>Vorderseite</label><textarea id="inpFront" class="form-control" style="margin-bottom: 10px;"></textarea>
+            <label>Rückseite</label><textarea id="inpBack" class="form-control" style="margin-bottom: 10px;"></textarea>
+            <label>Hinweis (Optional)</label><input type="text" id="inpHint" class="form-control" style="margin-bottom: 15px;">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="hideModal('cardModal')">Abbrechen</button>
+                <button class="btn btn-primary" onclick="addCard()">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <h3>📥 Massen-Import</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Vorderseite;Rückseite;Hinweis</p>
+            <textarea id="inpImport" class="form-control no-wrap" style="height: 150px; margin: 10px 0;"></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="hideModal('importModal')">Abbrechen</button>
+                <button class="btn btn-warning" onclick="runImport()">Importieren</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT -->
+    <script>
+        // --- STATE & DATA ---
+        let data = { folders: [], cards: [], lastLearnedDate: null, streak: 0 };
+        let curFolder = null;
+        let session = { queue: [], idx: 0, method: 'flip', dir: 'mixed', current: null, q: '', a: '' };
+        
+        // --- MULTI SELECT STATE ---
+        let isSelectMode = false;
+        let selectedIds = new Set();
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            applyTheme();
+            renderManage();
+            updateStatsUI();
+
+            document.getElementById('searchBox').addEventListener('input', (e) => renderManage(e.target.value));
+            document.getElementById('typeInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    if (document.getElementById('btnCheckType').classList.contains('hidden')) nextCard();
+                    else checkType();
+                }
+            });
+            window.onclick = (e) => { if (e.target.classList.contains('modal')) hideModal(e.target.id); };
+        });
+
+        // --- DATA CORE ---
+        function loadData() {
+            const s = localStorage.getItem('ultraData');
+            if (s) data = JSON.parse(s);
+            else {
+                const fid = Date.now().toString();
+                data.folders.push({ id: fid, name: 'Beispiel: Spanisch', parentId: null });
+                data.cards.push({ id: 'c1', front: 'Haus', back: 'Casa', hint: 'Gebäude', box: 1, folderId: fid });
+                save();
+            }
+            checkStreak();
+        }
+        function save() { localStorage.setItem('ultraData', JSON.stringify(data)); updateStatsUI(); }
+        function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
+        // --- STREAK LOGIC ---
+        function checkStreak() {
+            const today = new Date().toDateString();
+            if (data.lastLearnedDate !== today) {
+                const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+                // Logic to track streaks could go here
+            }
+            document.getElementById('streakCount').innerText = data.streak || 0;
+        }
+        function incrementStreak() {
+            const today = new Date().toDateString();
+            if (data.lastLearnedDate !== today) {
+                data.streak = (data.streak || 0) + 1;
+                data.lastLearnedDate = today;
+                save();
+                triggerConfetti(); 
+            }
+        }
+
+        // --- SELECTION MODE LOGIC ---
+        function toggleSelectMode() {
+            isSelectMode = !isSelectMode;
+            if (!isSelectMode) {
+                selectedIds.clear();
+                document.getElementById('manageContent').classList.remove('selection-mode-active');
+                document.getElementById('btnSelectMode').classList.remove('active');
+                document.getElementById('btnSelectMode').innerHTML = '<i class="fas fa-check-square"></i> Auswählen';
+            } else {
+                document.getElementById('manageContent').classList.add('selection-mode-active');
+                document.getElementById('btnSelectMode').classList.add('active');
+                document.getElementById('btnSelectMode').innerHTML = '<i class="fas fa-times"></i> Abbrechen';
+            }
+            updateFab();
+            renderManage();
+        }
+
+        function toggleSelection(id, e) {
+            if (!isSelectMode) return;
+            if (e) e.stopPropagation();
+            
+            if (selectedIds.has(id)) selectedIds.delete(id);
+            else selectedIds.add(id);
+            
+            updateFab();
+            renderManage(); // Re-render to show selection state
+        }
+
+        function updateFab() {
+            const fab = document.getElementById('mainFab');
+            const icon = document.getElementById('fabIcon');
+            const text = document.getElementById('fabText');
+            const menu = document.getElementById('fabMenu');
+
+            if (isSelectMode && selectedIds.size > 0) {
+                // SHOW MOVE FAB
+                icon.className = 'fas fa-arrows-alt';
+                text.innerText = `Verschieben (${selectedIds.size})`;
+                text.style.display = 'block';
+                menu.classList.remove('active'); // Hide add menu
+            } else {
+                // SHOW ADD MENU
+                icon.className = 'fas fa-plus';
+                text.style.display = 'none';
+                // Menu toggle is handled by click event, we just reset visual state if needed
+            }
+        }
+
+        function handleFabClick() {
+            if (isSelectMode && selectedIds.size > 0) {
+                openMoveSheet();
+            } else {
+                if(isSelectMode) {
+                    // If in select mode but nothing selected, maybe exit?
+                    // Let's keep it simple: Just toggle menu
+                }
+                toggleFab();
+            }
+        }
+
+        // --- MOVE BOTTOM SHEET ---
+        function openMoveSheet() {
+            const sheet = document.getElementById('moveBottomSheet');
+            const list = document.getElementById('moveFolderList');
+            list.innerHTML = '';
+
+            // Add Root Option
+            const optRoot = document.createElement('div');
+            optRoot.className = 'folder-select-item';
+            optRoot.innerHTML = '<i class="fas fa-home"></i> <strong>Startseite</strong>';
+            optRoot.onclick = () => executeMove(null);
+            list.appendChild(optRoot);
+
+            // Recursive folder list building
+            const renderFolderOptions = (parentId, level) => {
+                const children = data.folders.filter(f => f.parentId === parentId);
+                children.forEach(f => {
+                    // Prevent moving folder into itself (simple check: if it's selected, skip)
+                    if (selectedIds.has(f.id)) return;
+
+                    const div = document.createElement('div');
+                    div.className = 'folder-select-item';
+                    div.style.paddingLeft = (12 + level * 20) + 'px';
+                    div.innerHTML = `<i class="fas fa-folder"></i> ${f.name}`;
+                    div.onclick = () => executeMove(f.id);
+                    list.appendChild(div);
+
+                    renderFolderOptions(f.id, level + 1);
+                });
+            };
+            renderFolderOptions(null, 0);
+
+            sheet.classList.add('show');
+        }
+
+        function closeMoveSheet() {
+            document.getElementById('moveBottomSheet').classList.remove('show');
+        }
+
+        function executeMove(targetId) {
+            // Move selected Folders
+            data.folders.forEach(f => {
+                if (selectedIds.has(f.id)) {
+                    // Check for circular dependency prevention (targetId inside selectedIds?)
+                    // Basic check: don't move into self
+                    f.parentId = targetId;
+                }
+            });
+
+            // Move selected Cards
+            data.cards.forEach(c => {
+                if (selectedIds.has(c.id)) {
+                    c.folderId = targetId;
+                }
+            });
+
+            save();
+            selectedIds.clear();
+            isSelectMode = false; // Exit select mode after move
+            toggleSelectMode(); // Reset UI
+            renderManage();
+            closeMoveSheet();
+        }
+
+
+        // --- UI RENDERING ---
+        function renderManage(filter = '') {
+            const list = document.getElementById('itemList'); list.innerHTML = '';
+            const bc = document.getElementById('breadcrumbContainer'); bc.innerHTML = '';
+
+            // Breadcrumbs
+            if (curFolder) {
+                let path = [], curr = data.folders.find(f => f.id === curFolder);
+                while (curr) { path.unshift(curr); curr = data.folders.find(f => f.id === curr.parentId); }
+                const home = document.createElement('span'); home.innerHTML = '<i class="fas fa-home"></i>';
+                home.onclick = () => setFolder(null); home.style.cursor = 'pointer'; bc.appendChild(home);
+                path.forEach(f => {
+                    bc.innerHTML += ' <span style="color:var(--text-muted)">/</span> ';
+                    const sp = document.createElement('span'); sp.innerText = f.name;
+                    if (f.id !== curFolder) { sp.style.cursor = 'pointer'; sp.onclick = () => setFolder(f.id); }
+                    bc.appendChild(sp);
+                });
+                document.getElementById('currentFolderTitle').innerText = path[path.length - 1].name;
+
+                // Back Button List Item
+                const parentObj = data.folders.find(f => f.id === curFolder);
+                const parentId = parentObj ? parentObj.parentId : null;
+                const liBack = document.createElement('li'); 
+                liBack.className = 'list-item';
+                liBack.style.background = 'rgba(0,0,0,0.03)';
+                liBack.innerHTML = `
+                    <div class="item-icon" style="background:var(--text-muted); color:white"><i class="fas fa-level-up-alt"></i></div>
+                    <div class="item-content"><div class="item-title">.. (Ebene höher)</div></div>
+                `;
+                liBack.onclick = () => setFolder(parentId);
+                list.appendChild(liBack);
+
+            } else {
+                document.getElementById('currentFolderTitle').innerText = 'Startseite';
+            }
+
+            // Items filtern
+            const subs = data.folders.filter(f => f.parentId === curFolder && f.name.toLowerCase().includes(filter.toLowerCase()));
+            const cards = data.cards.filter(c => c.folderId === curFolder && (c.front.toLowerCase().includes(filter.toLowerCase()) || c.back.toLowerCase().includes(filter.toLowerCase())));
+
+            document.getElementById('folderStats').innerText = `${subs.length} Ordner, ${cards.length} Karten`;
+            document.getElementById('emptyState').classList.toggle('hidden', (subs.length > 0 || cards.length > 0) || curFolder !== null);
+
+            // Render Folders
+            subs.forEach(f => {
+                const isSelected = selectedIds.has(f.id);
+                const li = document.createElement('li'); li.className = `list-item ${isSelected ? 'selected' : ''}`;
+                
+                let actionsHtml = '';
+                if (!isSelectMode) {
+                    actionsHtml = `
+                        <i class="fas fa-ellipsis-v" style="color:var(--text-muted); padding:10px;" onclick="event.stopPropagation(); openSingleMove('${f.id}', '${f.name}')"></i>
+                        <i class="fas fa-trash" style="color:var(--danger); padding:10px;" onclick="event.stopPropagation(); delFolder(event, '${f.id}')"></i>
+                    `;
+                }
+
+                li.innerHTML = `
+                    <div class="selection-checkbox" onclick="toggleSelection('${f.id}', event)">
+                        ${isSelected ? '<i class="fas fa-check" style="font-size:0.7rem;"></i>' : ''}
+                    </div>
+                    <div class="item-icon icon-folder"><i class="fas fa-folder"></i></div>
+                    <div class="item-content"><div class="item-title">${f.name}</div></div>
+                    ${actionsHtml}
+                `;
+                li.onclick = (e) => {
+                    if (isSelectMode) toggleSelection(f.id, e);
+                    else setFolder(f.id);
+                };
+                list.appendChild(li);
+            });
+
+            // Render Cards
+            cards.forEach(c => {
+                const isSelected = selectedIds.has(c.id);
+                const li = document.createElement('li'); li.className = `list-item ${isSelected ? 'selected' : ''}`;
+                
+                let actionsHtml = '';
+                if (!isSelectMode) {
+                    actionsHtml = `<i class="fas fa-trash" style="color:var(--danger); padding:10px;" onclick="event.stopPropagation(); delCard('${c.id}')"></i>`;
+                }
+
+                li.innerHTML = `
+                    <div class="selection-checkbox" onclick="toggleSelection('${c.id}', event)">
+                        ${isSelected ? '<i class="fas fa-check" style="font-size:0.7rem;"></i>' : ''}
+                    </div>
+                    <div class="item-icon icon-card"><i class="fas fa-sticky-note"></i></div>
+                    <div class="item-content"><div class="item-title">${c.front}</div><div style="font-size:0.8rem; color:var(--text-muted)">Box ${c.box || 1}</div></div>
+                    ${actionsHtml}
+                `;
+                li.onclick = (e) => { if (isSelectMode) toggleSelection(c.id, e); };
+                list.appendChild(li);
+            });
+
+            updateLearnSource();
+        }
+
+        function setFolder(id) { curFolder = id; renderManage(); }
+
+        // --- ACTIONS ---
+        function addFolder() {
+            const n = document.getElementById('inpFolder').value.trim();
+            if (n) { data.folders.push({ id: genId(), name: n, parentId: curFolder }); save(); hideModal('folderModal'); document.getElementById('inpFolder').value = ''; renderManage(); }
+        }
+        
+        function addCard() {
+            const f = document.getElementById('inpFront').value.trim();
+            const b = document.getElementById('inpBack').value.trim();
+            const h = document.getElementById('inpHint').value.trim();
+            
+            const exists = data.cards.some(c => c.folderId === curFolder && c.front.toLowerCase() === f.toLowerCase() && c.back.toLowerCase() === b.toLowerCase());
+            
+            if (exists) { alert('Duplikat!'); return; }
+
+            if (f && b) { data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder }); save(); hideModal('cardModal'); renderManage(); document.getElementById('inpFront').value = ''; document.getElementById('inpBack').value = ''; document.getElementById('inpHint').value = '';}
+        }
+
+        function delCard(id) { if (confirm('Löschen?')) { data.cards = data.cards.filter(c => c.id !== id); save(); renderManage(); } }
+        
+        function delFolder(e, id) {
+            if (confirm('Ordner und Inhalt löschen?')) {
+                const rec = (fid) => {
+                    data.cards = data.cards.filter(c => c.folderId !== fid);
+                    data.folders.filter(f => f.parentId === fid).forEach(s => rec(s.id));
+                    data.folders = data.folders.filter(f => f.id !== fid);
+                };
+                rec(id); save(); renderManage();
+            }
+        }
+
+        // Single Move Modal (Fallback for non-multi select or quick actions)
+        let singleMoveId = null;
+        function openSingleMove(id, name) {
+            singleMoveId = id;
+            // Reuse the bottom sheet logic for consistency? Or use old modal?
+            // Let's use the bottom sheet for consistency as requested "nice design".
+            // We temporarily populate selectedIds with just this one ID to reuse logic.
+            selectedIds.clear();
+            selectedIds.add(id);
+            openMoveSheet();
+        }
+
+        function runImport() {
+            const lines = document.getElementById('inpImport').value.split('\n');
+            let addedCount = 0; let skipCount = 0;
+
+            lines.forEach(l => {
+                if (l.includes(';')) {
+                    const [fRaw, bRaw, hRaw] = l.split(';');
+                    const f = fRaw.trim(); const b = bRaw.trim();
+                    const h = hRaw ? hRaw.trim() : '';
+                    if (f && b) { 
+                        const exists = data.cards.some(c => c.folderId === curFolder && c.front.toLowerCase() === f.toLowerCase() && c.back.toLowerCase() === b.toLowerCase());
+                        if (!exists) {
+                            data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder }); addedCount++;
+                        } else { skipCount++; }
+                    }
+                }
+            });
+            save(); hideModal('importModal'); renderManage();
+            if(skipCount > 0) alert(`${addedCount} importiert. ${skipCount} Duplikate übersprungen.`);
+        }
+
+        // --- THEME ---
+        function toggleTheme() {
+            const b = document.body;
+            const t = b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            b.setAttribute('data-theme', t);
+            document.getElementById('themeIcon').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('ultraTheme', t);
+        }
+        function applyTheme() {
+            const savedTheme = localStorage.getItem('ultraTheme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeIcon').className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // --- LEARNING ENGINE ---
+        function updateLearnSource() {
+            const s = document.getElementById('learnSource'); s.innerHTML = '';
+            if (curFolder) s.innerHTML += `<option value="current">Aktueller Ordner (+Unterordner)</option>`;
+            s.innerHTML += `<option value="all">Alle Karten</option>`;
+        }
+        function setDirection(d) {
+            session.dir = d;
+            ['btnMix', 'btnFront', 'btnBack'].forEach(b => document.getElementById(b).classList.remove('active'));
+            if (d === 'mixed') document.getElementById('btnMix').classList.add('active');
+            if (d === 'front') document.getElementById('btnFront').classList.add('active');
+            if (d === 'back') document.getElementById('btnBack').classList.add('active');
+        }
+
+        function getFolderIdsRecursive(rootId) {
+            let ids = [rootId];
+            const children = data.folders.filter(f => f.parentId === rootId);
+            children.forEach(child => ids = ids.concat(getFolderIdsRecursive(child.id)));
+            return ids;
+        }
+
+        function startSession() {
+            const src = document.getElementById('learnSource').value;
+            const strat = document.getElementById('learnStrategy').value;
+            session.method = document.getElementById('learnMethod').value;
+            let pool = [];
+
+            if (src === 'all') pool = [...data.cards];
+            else {
+                if (curFolder) {
+                    const validFolderIds = getFolderIdsRecursive(curFolder);
+                    pool = data.cards.filter(c => validFolderIds.includes(c.folderId));
+                } else {
+                    pool = data.cards.filter(c => c.folderId === null); 
+                }
+            }
+
+            if(pool.length === 0) { alert("Keine Karten."); return; }
+
+            if (strat === 'leitner') {
+                pool.sort((a, b) => { const boxA = a.box || 1; const boxB = b.box || 1; if (boxA === boxB) return Math.random() - 0.5; return boxA - boxB; });
+                session.queue = pool.slice(0, 50); 
+            } else if (strat === 'hardest') {
+                pool.sort((a, b) => (a.box || 1) - (b.box || 1));
+                session.queue = pool.slice(0, 30);
+            } else if (strat === 'random') {
+                session.queue = pool.sort(() => Math.random() - 0.5).slice(0, 20);
+            } else {
+                session.queue = pool;
+            }
+
+            session.idx = 0;
+            document.getElementById('manageContent').classList.remove('active');
+            document.getElementById('learnContent').classList.remove('active');
+            document.querySelector('.bottom-nav').classList.add('hidden');
+            document.querySelector('header').classList.add('hidden');
+            document.getElementById('activeSession').style.display = 'block';
+
+            document.getElementById('flipWrapper').style.display = session.method === 'flip' ? 'block' : 'none';
+            document.getElementById('typingWrapper').style.display = session.method === 'type' ? 'block' : 'none';
+            loadCard();
+        }
+
+        function loadCard() {
+            if (session.idx >= session.queue.length) return finishSession();
+            const c = session.queue[session.idx];
+            session.current = c;
+            let isFront = true;
+            if (session.dir === 'back') isFront = false;
+            else if (session.dir === 'mixed') isFront = Math.random() > 0.5;
+
+            session.q = isFront ? c.front : c.back;
+            session.a = isFront ? c.back : c.front;
+            const lblQ = isFront ? 'Vorderseite' : 'Rückseite';
+            const lblA = isFront ? 'Rückseite' : 'Vorderseite';
+
+            document.getElementById('sessionProgress').innerText = `${session.idx + 1} / ${session.queue.length}`;
+            document.getElementById('progressBar').style.width = `${((session.idx) / session.queue.length) * 100}%`;
+
+            if (session.method === 'flip') {
+                const el = document.getElementById('flashcard');
+                el.classList.remove('flipped', 'shake');
+                setTimeout(() => {
+                    document.getElementById('labelQ').innerText = lblQ;
+                    document.getElementById('textQ').innerText = session.q;
+                    document.getElementById('labelA').innerText = lblA;
+                    document.getElementById('textA').innerText = session.a;
+                    document.getElementById('boxBadge').innerText = `Box ${c.box || 1}`;
+                    document.getElementById('boxBadge').style.background = `var(--box-${c.box || 1})`;
+                    const hBtn = document.getElementById('btnHintFront');
+                    const hBox = document.getElementById('hintFront');
+                    hBox.style.display = 'none';
+                    if (c.hint) { hBtn.classList.remove('hidden'); hBox.innerText = c.hint; }
+                    else hBtn.classList.add('hidden');
+                }, 200);
+            } else {
+                document.getElementById('typeLabelQ').innerText = lblQ;
+                document.getElementById('typeTextQ').innerText = session.q;
+                document.getElementById('typeInput').value = '';
+                document.getElementById('typeInput').disabled = false;
+                document.getElementById('typeInput').focus();
+                document.getElementById('typeFeedback').style.display = 'none';
+                document.getElementById('btnCheckType').classList.remove('hidden');
+                document.getElementById('btnNextType').classList.add('hidden');
+                const hBtn = document.getElementById('btnHintType');
+                const hBox = document.getElementById('hintType');
+                hBox.style.display = 'none';
+                if (c.hint) { hBtn.classList.remove('hidden'); hBox.innerText = c.hint; }
+                else hBtn.classList.add('hidden');
+            }
+        }
+
+        function rate(success) {
+            const c = session.current;
+            if (success) {
+                triggerConfetti();
+                c.box = Math.min((c.box || 1) + 1, 5);
+                incrementStreak();
+            } else {
+                c.box = 1;
+                if (session.method === 'flip') document.getElementById('flashcard').classList.add('shake');
+            }
+            save();
+            session.idx++;
+            setTimeout(loadCard, success ? 500 : 800); 
+        }
+
+        function checkType() {
+            const inp = document.getElementById('typeInput');
+            const val = inp.value.trim().toLowerCase();
+            const corr = session.a.trim().toLowerCase();
+            const isCorr = val === corr;
+            inp.disabled = true;
+            document.getElementById('btnCheckType').classList.add('hidden');
+            const fb = document.getElementById('typeFeedback');
+            fb.style.display = 'block';
+            if (isCorr) {
+                fb.innerHTML = `<div style="color:var(--success); font-weight:bold"><i class="fas fa-check"></i> Richtig!</div>`;
+                triggerConfetti();
+                session.current.box = Math.min((session.current.box || 1) + 1, 5);
+                incrementStreak();
+                save();
+                setTimeout(() => { session.idx++; loadCard(); }, 1200);
+            } else {
+                document.getElementById('btnNextType').classList.remove('hidden');
+                document.getElementById('btnNextType').focus();
+                fb.innerHTML = `<div style="color:var(--danger); font-weight:bold"><i class="fas fa-times"></i> Falsch</div><div style="color:var(--text-muted)">Lösung: ${session.a}</div>`;
+                session.current.box = 1; save();
+            }
+        }
+
+        function nextCard() { session.idx++; loadCard(); }
+        function finishSession() { endSession(); }
+        function endSession() {
+            document.getElementById('activeSession').style.display = 'none';
+            document.querySelector('.bottom-nav').classList.remove('hidden');
+            document.querySelector('header').classList.remove('hidden');
+            nav('statsContent', document.querySelectorAll('.nav-item')[2]);
+            updateStatsUI();
+        }
+        function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
+        function toggleHint(e) { e.stopPropagation(); document.getElementById('hintFront').style.display = 'block'; document.getElementById('btnHintFront').classList.add('hidden'); }
+        function toggleTypeHint() { document.getElementById('hintType').style.display = 'block'; document.getElementById('btnHintType').classList.add('hidden'); }
+
+        // --- STATS UI ---
+        function updateStatsUI() {
+            let boxes = [0, 0, 0, 0, 0, 0];
+            data.cards.forEach(c => boxes[c.box || 1]++);
+            let max = Math.max(...boxes.slice(1)) || 1;
+            for (let i = 1; i <= 5; i++) {
+                const h = (boxes[i] / max) * 100;
+                const col = document.querySelector(`.box-col[data-box="${i}"]`);
+                col.style.height = Math.max(h, 5) + '%';
+                col.querySelector('.box-count').innerText = boxes[i];
+            }
+        }
+
+        // --- UTILS ---
+        function nav(id, el) {
+            document.querySelectorAll('.content-area').forEach(d => d.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active');
+            document.getElementById('mainFab').style.display = id === 'manageContent' ? 'flex' : 'none';
+        }
+        function showModal(id) { document.getElementById(id).classList.add('show'); }
+        function hideModal(id) { document.getElementById(id).classList.remove('show'); }
+        function toggleFab() { document.getElementById('fabMenu').classList.toggle('active'); }
+
+        function speak(e, type) {
+            e.stopPropagation();
+            const txt = type === 'q' ? session.q : session.a;
+            const u = new SpeechSynthesisUtterance(txt);
+            u.lang = /[äöüß]/i.test(txt) ? 'de-DE' : 'en-US';
+            window.speechSynthesis.speak(u);
+        }
+
+        // --- CONFETTI ---
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const ctx = confettiCanvas.getContext('2d');
+        let particles = [];
+        function resizeCanvas() { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+        function triggerConfetti() {
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: window.innerWidth / 2, y: window.innerHeight / 2,
+                    vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20,
+                    life: 100, color: `hsl(${Math.random() * 360}, 100%, 50%)`, size: Math.random() * 10 + 5
+                });
+            }
+            if (particles.length <= 100) requestAnimationFrame(animateConfetti);
+        }
+        function animateConfetti() {
+            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life--;
+                ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size);
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+            if (particles.length > 0) requestAnimationFrame(animateConfetti);
+        }
+
+        // Export/Reset
+        function resetAll() { if (confirm('ALLES löschen?')) { localStorage.removeItem('ultraData'); location.reload(); } }
+        function exportData(type) {
+            const str = type === 'json' ? JSON.stringify(data) : "Front;Back;Box\n" + data.cards.map(c => `${c.front};${c.back};${c.box}`).join('\n');
+            const blob = new Blob([str], { type: type === 'json' ? 'application/json' : 'text/csv' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `cards.${type}`; a.click();
+        }
+        function importData(inp) {
+            const f = inp.files[0]; const r = new FileReader();
+            r.onload = e => {
+                try { const d = JSON.parse(e.target.result); if (d.cards) { data = d; save(); location.reload(); } }
+                catch (err) { alert('Ungültige Datei'); }
+            };
+            if (f) r.readAsText(f);
+        }
+    </script>
+</body>
+</html>
