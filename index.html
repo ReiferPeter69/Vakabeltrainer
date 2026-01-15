@@ -247,10 +247,7 @@
         }
         .bottom-sheet.show { transform: translateY(0); }
 
-        .sheet-header {
-            padding: 15px 20px; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
+    
         .sheet-body { padding: 20px; }
 
         /* Folder Selection in Sheet */
@@ -478,16 +475,7 @@
         <div class="nav-item" onclick="nav('statsContent', this)"><i class="fas fa-chart-bar"></i> Statistik</div>
     </div>
 
-    <!-- MULTI SELECT BOTTOM SHEET -->
-    <div class="bottom-sheet" id="moveBottomSheet">
-        <div class="sheet-header">
-            <h3>📂 Ziel wählen</h3>
-            <button class="btn-secondary" style="width:auto; padding:5px 10px; border-radius:8px;" onclick="closeMoveSheet()">Abbrechen</button>
-        </div>
-        <div class="sheet-body" id="moveFolderList">
-            <!-- Folders generated here -->
-        </div>
-    </div>
+  
 
     <!-- Standard Modals -->
     <div class="modal" id="folderModal">
