@@ -83,14 +83,14 @@
             margin-bottom: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border);
         }
 
-        /* Toolbar inside Card */
+        /* Toolbar */
         .toolbar-row {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px;
         }
         .btn-select {
             background: transparent; border: 1px solid var(--primary); color: var(--primary);
-            padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s;
+            padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
         }
         .btn-select.active {
             background: var(--primary); color: white;
@@ -110,7 +110,7 @@
         .box-label { position: absolute; bottom: -25px; width: 100%; text-align: center; font-size: 0.7rem; color: var(--text-muted); }
         .box-count { position: absolute; top: -20px; width: 100%; text-align: center; font-size: 0.8rem; font-weight: bold; }
 
-        /* List Items & Selection Logic */
+        /* List Items */
         .item-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
         .list-item {
             background: var(--bg-card); padding: 1rem; border-radius: var(--radius);
@@ -119,23 +119,23 @@
         }
         .list-item:active { transform: scale(0.98); }
         
-        /* Selection State */
+        /* Selection Checkbox Logic */
         .selection-checkbox {
             display: none; width: 24px; height: 24px; border: 2px solid var(--text-muted);
             border-radius: 50%; margin-right: 5px; align-items: center; justify-content: center;
-            flex-shrink: 0; transition: all 0.2s;
+            flex-shrink: 0; transition: all 0.2s; color: white;
         }
         .selection-mode-active .selection-checkbox { display: flex; }
-        .selection-mode-active .list-item { padding-left: 0.5rem; } /* adjust padding */
+        .selection-mode-active .list-item { padding-left: 0.5rem; } 
         
         .list-item.selected {
             background: var(--primary-light);
             border-color: var(--primary);
         }
-        [data-theme="dark"] .list-item.selected { background: var(--primary-light); border-color: var(--primary); }
+        [data-theme="dark"] .list-item.selected { background: rgba(99, 102, 241, 0.2); border-color: var(--primary); }
 
         .list-item.selected .selection-checkbox {
-            background: var(--primary); border-color: var(--primary); color: white;
+            background: var(--primary); border-color: var(--primary);
         }
 
         .item-icon {
@@ -146,6 +146,16 @@
         .icon-card { background: rgba(16, 185, 129, 0.1); color: var(--success); }
         .item-content { flex: 1; min-width: 0; }
         .item-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Action Icons (Edit, Delete) */
+        .item-actions { display: flex; gap: 5px; }
+        .action-icon { 
+            padding: 10px; border-radius: 8px; transition: background 0.2s; 
+        }
+        .action-edit { color: var(--primary); }
+        .action-edit:hover { background: var(--primary-light); }
+        .action-del { color: var(--danger); }
+        .action-del:hover { background: rgba(239, 68, 68, 0.1); }
 
         /* Buttons */
         .btn {
@@ -164,17 +174,16 @@
         .btn-float {
             position: fixed; bottom: calc(var(--nav-height) + 20px); right: 20px; width: 60px; height: 60px; border-radius: 30px;
             background: var(--primary); color: white; display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; box-shadow: 0 5px 20px rgba(79, 70, 229, 0.4); z-index: 100;
+            font-size: 1.5rem; box-shadow: 0 5px 20px rgba(79, 70, 229, 0.4); z-index: 90;
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s, border-radius 0.3s;
         }
-        .btn-float:hover { transform: scale(1.1) rotate(90deg); }
+        .btn-float:hover { transform: scale(1.1); }
         
         /* FAB in Selection Mode */
         .selection-mode-active .btn-float {
             width: auto; padding: 0 20px; border-radius: 30px; gap: 10px;
             font-size: 1rem; transform: scale(1);
         }
-        .selection-mode-active .btn-float:hover { transform: translateY(-2px); }
 
         /* Inputs */
         .form-control {
@@ -182,7 +191,7 @@
             background: var(--bg-body); color: var(--text-main); font-size: 1rem; transition: border-color 0.2s;
         }
         .form-control:focus { outline: none; border-color: var(--primary); }
-        textarea.form-control.no-wrap { white-space: pre; overflow-x: auto; }
+        textarea.form-control.no-wrap { white-space: pre; overflow-x: auto; font-family: monospace; font-size: 0.9rem; }
 
         /* Active Learning & Animation */
         .progress-container { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 1rem; overflow: hidden; }
@@ -219,8 +228,15 @@
             position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height);
             background: var(--bg-card); display: flex; justify-content: space-around; padding: 12px 0;
             border-top: 1px solid var(--border); z-index: 50;
+            transition: transform 0.3s ease-in-out;
         }
-        .nav-item { text-align: center; color: var(--text-muted); font-size: 0.75rem; flex: 1; transition: color 0.2s; }
+        
+        /* Klasse um Nav Leiste auszublenden */
+        .bottom-nav.hidden-nav {
+            transform: translateY(100%); /* Rutscht nach unten raus */
+        }
+
+        .nav-item { text-align: center; color: var(--text-muted); font-size: 0.75rem; flex: 1; transition: color 0.2s; cursor: pointer; }
         .nav-item.active { color: var(--primary); transform: translateY(-2px); }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
 
@@ -236,27 +252,36 @@
         }
         @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Bottom Sheet Style (Not covering Nav) */
+        /* Bottom Sheet Overlay Style (Vollbild-unten) */
         .bottom-sheet {
-            position: fixed; left: 0; right: 0; bottom: calc(var(--nav-height) + 10px);
-            background: var(--bg-card); border-radius: 24px; margin: 0 20px;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.2); z-index: 140;
-            transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            max-height: 60vh; overflow-y: auto;
+            position: fixed; left: 0; right: 0;
+            bottom: 0; /* Ganz unten */
+            height: 70vh; /* 70% der Bildschirmhöhe */
+            background: var(--bg-card); 
+            border-radius: 24px 24px 0 0; /* Oben abgerundet */
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2); z-index: 140; /* Über Nav (die ja weg ist) */
+            transform: translateY(100%); /* Startet unsichtbar */
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
             border: 1px solid var(--border);
+            display: flex; flex-direction: column;
         }
         .bottom-sheet.show { transform: translateY(0); }
 
-    
-        .sheet-body { padding: 20px; }
+        .sheet-header {
+            padding: 15px 20px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; background: var(--bg-card); z-index: 10;
+        }
+        .sheet-body { padding: 20px; padding-bottom: 40px; }
 
         /* Folder Selection in Sheet */
         .folder-select-item {
-            padding: 12px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px;
-            margin-bottom: 5px; transition: background 0.2s;
+            padding: 15px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+            margin-bottom: 5px; transition: background 0.2s; border: 1px solid transparent;
         }
-        .folder-select-item:hover { background: var(--bg-body); }
-        .folder-select-item i { color: var(--primary); }
+        .folder-select-item:hover { background: var(--bg-body); border-color: var(--border); }
+        .folder-select-item i { color: var(--primary); font-size: 1.1rem; }
 
         .typing-container { text-align: center; background: var(--bg-card); padding: 2rem; border-radius: 24px; box-shadow: var(--shadow); display: none; }
         .hidden { display: none !important; }
@@ -268,8 +293,8 @@
         [data-theme="dark"] .hint-box { background: #451a03; border-color: #92400e; color: #fcd34d; }
 
         .fab-menu {
-            position: fixed; bottom: 160px; right: 25px; display: flex; flex-direction: column; gap: 15px;
-            z-index: 99; pointer-events: none; opacity: 0; transform: translateY(20px); transition: 0.3s;
+            position: fixed; bottom: calc(var(--nav-height) + 90px); right: 25px; display: flex; flex-direction: column; gap: 15px;
+            z-index: 80; pointer-events: none; opacity: 0; transform: translateY(20px); transition: 0.3s;
         }
         .fab-menu.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
         .fab-btn-small {
@@ -309,7 +334,7 @@
             <div class="card">
                 <div class="toolbar-row">
                     <input type="text" id="searchBox" class="form-control" placeholder="🔍 Suchen..." style="flex:1;">
-                    <button id="btnSelectMode" class="btn-select" style="margin-left: 10px;" onclick="toggleSelectMode()">
+                    <button id="btnSelectMode" class="btn-select" onclick="toggleSelectMode()">
                         <i class="fas fa-check-square"></i> Auswählen
                     </button>
                 </div>
@@ -326,10 +351,10 @@
                 <p>Hier ist es noch leer.</p>
             </div>
 
-            <!-- FAB (Changes based on mode) -->
+            <!-- FAB Menu (Create) -->
             <div class="fab-menu" id="fabMenu">
                 <div class="fab-row"><span class="fab-label">Import</span><button class="fab-btn-small" style="background: #f59e0b" onclick="showModal('importModal')"><i class="fas fa-file-import"></i></button></div>
-                <div class="fab-row"><span class="fab-label">Neue Karte</span><button class="fab-btn-small" style="background: #10b981" onclick="showModal('cardModal')"><i class="fas fa-plus"></i></button></div>
+                <div class="fab-row"><span class="fab-label">Neue Karte</span><button class="fab-btn-small" style="background: #10b981" onclick="openNewCardModal()"><i class="fas fa-plus"></i></button></div>
                 <div class="fab-row"><span class="fab-label">Neuer Ordner</span><button class="fab-btn-small" style="background: #ec4899" onclick="showModal('folderModal')"><i class="fas fa-folder-plus"></i></button></div>
             </div>
             
@@ -404,7 +429,7 @@
                     <button class="btn btn-secondary" onclick="exportData('csv')"><i class="fas fa-file-csv"></i> Excel</button>
                 </div>
                 <button class="btn btn-outline" style="margin-top: 10px;" onclick="document.getElementById('importFile').click()">
-                    <i class="fas fa-upload"></i> Import
+                    <i class="fas fa-upload"></i> Backup wiederherstellen
                 </button>
                 <input type="file" id="importFile" hidden accept=".json" onchange="importData(this)">
                 <button class="btn btn-danger" style="margin-top: 10px;" onclick="resetAll()">Alles löschen</button>
@@ -469,13 +494,22 @@
     </div>
 
     <!-- Navigation -->
-    <div class="bottom-nav">
+    <div class="bottom-nav" id="bottomNav">
         <div class="nav-item active" onclick="nav('manageContent', this)"><i class="fas fa-folder"></i> Karten</div>
         <div class="nav-item" onclick="nav('learnContent', this)"><i class="fas fa-graduation-cap"></i> Lernen</div>
         <div class="nav-item" onclick="nav('statsContent', this)"><i class="fas fa-chart-bar"></i> Statistik</div>
     </div>
 
-  
+    <!-- MULTI SELECT BOTTOM SHEET (OVERLAY) -->
+    <div class="bottom-sheet" id="moveBottomSheet">
+        <div class="sheet-header">
+            <h3 style="flex:1; text-align:center;">📂 Wohin verschieben?</h3>
+            <button class="btn-secondary" style="width:auto; padding:5px 10px; border-radius:8px;" onclick="closeMoveSheet()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sheet-body" id="moveFolderList">
+            <!-- Folders generated here -->
+        </div>
+    </div>
 
     <!-- Standard Modals -->
     <div class="modal" id="folderModal">
@@ -491,13 +525,13 @@
 
     <div class="modal" id="cardModal">
         <div class="modal-content">
-            <h3>📝 Neue Karte</h3>
+            <h3 id="cardModalTitle">📝 Neue Karte</h3>
             <label>Vorderseite</label><textarea id="inpFront" class="form-control" style="margin-bottom: 10px;"></textarea>
             <label>Rückseite</label><textarea id="inpBack" class="form-control" style="margin-bottom: 10px;"></textarea>
             <label>Hinweis (Optional)</label><input type="text" id="inpHint" class="form-control" style="margin-bottom: 15px;">
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="hideModal('cardModal')">Abbrechen</button>
-                <button class="btn btn-primary" onclick="addCard()">Speichern</button>
+                <button class="btn btn-primary" id="btnSaveCard" onclick="saveCard()">Speichern</button>
             </div>
         </div>
     </div>
@@ -505,8 +539,11 @@
     <div class="modal" id="importModal">
         <div class="modal-content">
             <h3>📥 Massen-Import</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted);">Vorderseite;Rückseite;Hinweis</p>
-            <textarea id="inpImport" class="form-control no-wrap" style="height: 150px; margin: 10px 0;"></textarea>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom:10px;">Format: Vorderseite;Rückseite;Hinweis</p>
+            <textarea id="inpImport" class="form-control no-wrap" style="height: 150px; margin-bottom: 10px;" placeholder="Haus;Casa;Gebäude&#10;Auto;Coche;&#10;..."></textarea>
+            
+            <div id="importFeedback" style="background: var(--bg-body); padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:10px; display:none;"></div>
+
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="hideModal('importModal')">Abbrechen</button>
                 <button class="btn btn-warning" onclick="runImport()">Importieren</button>
@@ -524,6 +561,9 @@
         // --- MULTI SELECT STATE ---
         let isSelectMode = false;
         let selectedIds = new Set();
+        
+        // --- EDIT CARD STATE ---
+        let editingCardId = null;
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -562,7 +602,6 @@
             const today = new Date().toDateString();
             if (data.lastLearnedDate !== today) {
                 const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-                // Logic to track streaks could go here
             }
             document.getElementById('streakCount').innerText = data.streak || 0;
         }
@@ -601,7 +640,7 @@
             else selectedIds.add(id);
             
             updateFab();
-            renderManage(); // Re-render to show selection state
+            renderManage(); 
         }
 
         function updateFab() {
@@ -615,12 +654,13 @@
                 icon.className = 'fas fa-arrows-alt';
                 text.innerText = `Verschieben (${selectedIds.size})`;
                 text.style.display = 'block';
-                menu.classList.remove('active'); // Hide add menu
+                menu.classList.remove('active'); 
+                fab.style.transform = 'scale(1)'; 
             } else {
                 // SHOW ADD MENU
                 icon.className = 'fas fa-plus';
                 text.style.display = 'none';
-                // Menu toggle is handled by click event, we just reset visual state if needed
+                fab.style.transform = ''; 
             }
         }
 
@@ -628,20 +668,20 @@
             if (isSelectMode && selectedIds.size > 0) {
                 openMoveSheet();
             } else {
-                if(isSelectMode) {
-                    // If in select mode but nothing selected, maybe exit?
-                    // Let's keep it simple: Just toggle menu
-                }
                 toggleFab();
             }
         }
 
-        // --- MOVE BOTTOM SHEET ---
+        // --- MOVE BOTTOM SHEET (Overlay Logic) ---
         function openMoveSheet() {
             const sheet = document.getElementById('moveBottomSheet');
+            const nav = document.getElementById('bottomNav');
             const list = document.getElementById('moveFolderList');
             list.innerHTML = '';
 
+            // Hide Nav Bar
+            nav.classList.add('hidden-nav');
+            
             // Add Root Option
             const optRoot = document.createElement('div');
             optRoot.className = 'folder-select-item';
@@ -653,7 +693,7 @@
             const renderFolderOptions = (parentId, level) => {
                 const children = data.folders.filter(f => f.parentId === parentId);
                 children.forEach(f => {
-                    // Prevent moving folder into itself (simple check: if it's selected, skip)
+                    // Prevent moving folder into itself
                     if (selectedIds.has(f.id)) return;
 
                     const div = document.createElement('div');
@@ -672,15 +712,17 @@
         }
 
         function closeMoveSheet() {
-            document.getElementById('moveBottomSheet').classList.remove('show');
+            const sheet = document.getElementById('moveBottomSheet');
+            const nav = document.getElementById('bottomNav');
+            sheet.classList.remove('show');
+            // Show Nav Bar again
+            nav.classList.remove('hidden-nav');
         }
 
         function executeMove(targetId) {
             // Move selected Folders
             data.folders.forEach(f => {
                 if (selectedIds.has(f.id)) {
-                    // Check for circular dependency prevention (targetId inside selectedIds?)
-                    // Basic check: don't move into self
                     f.parentId = targetId;
                 }
             });
@@ -697,7 +739,69 @@
             isSelectMode = false; // Exit select mode after move
             toggleSelectMode(); // Reset UI
             renderManage();
-            closeMoveSheet();
+            closeMoveSheet(); // Hides sheet, shows nav
+        }
+
+        // --- CARD EDIT LOGIC ---
+        function openEditCard(id, e) {
+            if (e) e.stopPropagation();
+            const card = data.cards.find(c => c.id === id);
+            if(!card) return;
+
+            editingCardId = id;
+            document.getElementById('inpFront').value = card.front;
+            document.getElementById('inpBack').value = card.back;
+            document.getElementById('inpHint').value = card.hint || '';
+            
+            document.getElementById('cardModalTitle').innerText = "📝 Karte bearbeiten";
+            document.getElementById('btnSaveCard').innerText = "Änderungen speichern";
+            
+            showModal('cardModal');
+        }
+
+        function openNewCardModal() {
+            editingCardId = null;
+            document.getElementById('inpFront').value = '';
+            document.getElementById('inpBack').value = '';
+            document.getElementById('inpHint').value = '';
+            
+            document.getElementById('cardModalTitle').innerText = "📝 Neue Karte";
+            document.getElementById('btnSaveCard').innerText = "Speichern";
+            
+            showModal('cardModal');
+        }
+
+        function saveCard() {
+            const f = document.getElementById('inpFront').value.trim();
+            const b = document.getElementById('inpBack').value.trim();
+            const h = document.getElementById('inpHint').value.trim();
+
+            if (!f || !b) { alert('Bitte Vorder- und Rückseite ausfüllen!'); return; }
+
+            if (editingCardId) {
+                // Update existing
+                const card = data.cards.find(c => c.id === editingCardId);
+                if (card) {
+                    // Check for duplicate EXCEPT the card itself
+                    const exists = data.cards.some(c => 
+                        c.id !== editingCardId &&
+                        c.folderId === curFolder && 
+                        c.front.toLowerCase() === f.toLowerCase() && 
+                        c.back.toLowerCase() === b.toLowerCase()
+                    );
+                    if (exists) { alert('Eine Karte mit diesem Inhalt existiert bereits in diesem Ordner!'); return; }
+                    
+                    card.front = f; card.back = b; card.hint = h;
+                }
+                editingCardId = null;
+            } else {
+                // Create new
+                const exists = data.cards.some(c => c.folderId === curFolder && c.front.toLowerCase() === f.toLowerCase() && c.back.toLowerCase() === b.toLowerCase());
+                if (exists) { alert('Duplikat!'); return; }
+                data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder });
+            }
+
+            save(); hideModal('cardModal'); renderManage();
         }
 
 
@@ -751,10 +855,7 @@
                 
                 let actionsHtml = '';
                 if (!isSelectMode) {
-                    actionsHtml = `
-                        <i class="fas fa-ellipsis-v" style="color:var(--text-muted); padding:10px;" onclick="event.stopPropagation(); openSingleMove('${f.id}', '${f.name}')"></i>
-                        <i class="fas fa-trash" style="color:var(--danger); padding:10px;" onclick="event.stopPropagation(); delFolder(event, '${f.id}')"></i>
-                    `;
+                    actionsHtml = `<i class="fas fa-trash action-icon action-del" onclick="event.stopPropagation(); delFolder(event, '${f.id}')"></i>`;
                 }
 
                 li.innerHTML = `
@@ -779,7 +880,12 @@
                 
                 let actionsHtml = '';
                 if (!isSelectMode) {
-                    actionsHtml = `<i class="fas fa-trash" style="color:var(--danger); padding:10px;" onclick="event.stopPropagation(); delCard('${c.id}')"></i>`;
+                    actionsHtml = `
+                        <div class="item-actions">
+                            <i class="fas fa-pen action-icon action-edit" onclick="openEditCard('${c.id}', event)"></i>
+                            <i class="fas fa-trash action-icon action-del" onclick="event.stopPropagation(); delCard('${c.id}')"></i>
+                        </div>
+                    `;
                 }
 
                 li.innerHTML = `
@@ -804,18 +910,6 @@
             const n = document.getElementById('inpFolder').value.trim();
             if (n) { data.folders.push({ id: genId(), name: n, parentId: curFolder }); save(); hideModal('folderModal'); document.getElementById('inpFolder').value = ''; renderManage(); }
         }
-        
-        function addCard() {
-            const f = document.getElementById('inpFront').value.trim();
-            const b = document.getElementById('inpBack').value.trim();
-            const h = document.getElementById('inpHint').value.trim();
-            
-            const exists = data.cards.some(c => c.folderId === curFolder && c.front.toLowerCase() === f.toLowerCase() && c.back.toLowerCase() === b.toLowerCase());
-            
-            if (exists) { alert('Duplikat!'); return; }
-
-            if (f && b) { data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder }); save(); hideModal('cardModal'); renderManage(); document.getElementById('inpFront').value = ''; document.getElementById('inpBack').value = ''; document.getElementById('inpHint').value = '';}
-        }
 
         function delCard(id) { if (confirm('Löschen?')) { data.cards = data.cards.filter(c => c.id !== id); save(); renderManage(); } }
         
@@ -830,37 +924,56 @@
             }
         }
 
-        // Single Move Modal (Fallback for non-multi select or quick actions)
-        let singleMoveId = null;
-        function openSingleMove(id, name) {
-            singleMoveId = id;
-            // Reuse the bottom sheet logic for consistency? Or use old modal?
-            // Let's use the bottom sheet for consistency as requested "nice design".
-            // We temporarily populate selectedIds with just this one ID to reuse logic.
-            selectedIds.clear();
-            selectedIds.add(id);
-            openMoveSheet();
-        }
-
         function runImport() {
             const lines = document.getElementById('inpImport').value.split('\n');
-            let addedCount = 0; let skipCount = 0;
+            let addedCount = 0;
+            let skipCount = 0;
+            let errorCount = 0;
 
             lines.forEach(l => {
-                if (l.includes(';')) {
-                    const [fRaw, bRaw, hRaw] = l.split(';');
-                    const f = fRaw.trim(); const b = bRaw.trim();
+                let parts = l.split(';');
+                if (parts.length < 2) parts = l.split('\t');
+                
+                const fRaw = parts[0];
+                const bRaw = parts[1];
+                const hRaw = parts[2];
+
+                if (fRaw && bRaw) { 
+                    const f = fRaw.trim();
+                    const b = bRaw.trim();
                     const h = hRaw ? hRaw.trim() : '';
-                    if (f && b) { 
-                        const exists = data.cards.some(c => c.folderId === curFolder && c.front.toLowerCase() === f.toLowerCase() && c.back.toLowerCase() === b.toLowerCase());
-                        if (!exists) {
-                            data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder }); addedCount++;
-                        } else { skipCount++; }
+
+                    const exists = data.cards.some(c => 
+                        c.folderId === curFolder && 
+                        c.front.toLowerCase() === f.toLowerCase() && 
+                        c.back.toLowerCase() === b.toLowerCase()
+                    );
+
+                    if (!exists) {
+                        data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder }); 
+                        addedCount++;
+                    } else {
+                        skipCount++;
                     }
+                } else {
+                    if (l.trim() !== '') errorCount++;
                 }
             });
-            save(); hideModal('importModal'); renderManage();
-            if(skipCount > 0) alert(`${addedCount} importiert. ${skipCount} Duplikate übersprungen.`);
+            
+            save(); 
+            document.getElementById('inpImport').value = '';
+            
+            const fb = document.getElementById('importFeedback');
+            fb.style.display = 'block';
+            let msg = `<span style="color:var(--success)">✅ ${addedCount} importiert</span>`;
+            if (skipCount > 0) msg += `<br><span style="color:var(--warning)">⚠️ ${skipCount} Duplikate übersprungen</span>`;
+            if (errorCount > 0) msg += `<br><span style="color:var(--danger)">❌ ${errorCount} fehlerhafte Zeilen</span>`;
+            
+            fb.innerHTML = msg;
+
+            if (errorCount === 0 && addedCount > 0) {
+                setTimeout(() => { hideModal('importModal'); renderManage(); }, 2000);
+            }
         }
 
         // --- THEME ---
@@ -1062,7 +1175,10 @@
             el.classList.add('active');
             document.getElementById('mainFab').style.display = id === 'manageContent' ? 'flex' : 'none';
         }
-        function showModal(id) { document.getElementById(id).classList.add('show'); }
+        function showModal(id) { 
+            document.getElementById(id).classList.add('show'); 
+            if(id === 'importModal') document.getElementById('importFeedback').style.display='none';
+        }
         function hideModal(id) { document.getElementById(id).classList.remove('show'); }
         function toggleFab() { document.getElementById('fabMenu').classList.toggle('active'); }
 
