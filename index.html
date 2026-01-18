@@ -140,11 +140,13 @@
         }
         .list-item:active { transform: scale(0.98); }
         
-        /* Selection Checkbox Logic */
+        /* Selection Checkbox Logic (UPDATED DESIGN) */
         .selection-checkbox {
             display: none; width: 24px; height: 24px; border: 2px solid var(--text-muted);
-            border-radius: 50%; margin-right: 5px; align-items: center; justify-content: center;
-            flex-shrink: 0; transition: all 0.2s; color: white;
+            border-radius: 6px; /* Modern rounded square instead of circle */
+            margin-right: 12px; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white; position: relative;
         }
         .selection-mode-active .selection-checkbox { display: flex; }
         .selection-mode-active .list-item { padding-left: 0.5rem; } 
@@ -157,6 +159,16 @@
 
         .list-item.selected .selection-checkbox {
             background: var(--primary); border-color: var(--primary);
+            transform: scale(1.05); /* Subtle pop effect */
+        }
+        
+        /* Checkmark icon styling */
+        .selection-checkbox i {
+            font-size: 0.8rem; line-height: 1;
+            display: none; /* Hidden by default */
+        }
+        .list-item.selected .selection-checkbox i {
+            display: block;
         }
 
         .item-icon {
@@ -172,7 +184,7 @@
         .item-actions { display: flex; gap: 5px; }
         .action-icon { 
             padding: 10px; border-radius: 8px; transition: background 0.2s; 
-            cursor: pointer; /* Added cursor pointer */
+            cursor: pointer;
         }
         .action-edit { color: var(--primary); }
         .action-edit:hover { background: var(--primary-light); }
@@ -320,18 +332,19 @@
             position: fixed; bottom: calc(var(--nav-height) + 10px); left: 10px; right: 10px;
             background: var(--bg-card); padding: 12px 15px; border-radius: 12px;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.15); border: 1px solid var(--border);
-            display: none; /* Changed to none */
+            display: none;
             justify-content: space-between; align-items: center; z-index: 95;
             animation: slideUpToast 0.3s ease-out;
+            touch-action: none;
         }
         .undo-toast.show { display: flex; }
         @keyframes slideUpToast { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .undo-text { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+        .undo-text { font-size: 0.9rem; font-weight: 600; color: var(--text-main); pointer-events: none;}
         .btn-undo {
             background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main);
             padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;
-            cursor: pointer; margin-left: 10px; white-space: nowrap;
+            cursor: pointer; margin-left: 10px; white-space: nowrap; pointer-events: auto;
         }
 
         .fab-menu {
@@ -603,7 +616,7 @@
         </div>
     </div>
 
-    <!-- UNDO TOAST (FIXED) -->
+    <!-- UNDO TOAST -->
     <div class="undo-toast" id="undoToast">
         <span class="undo-text" id="undoMessage">Gelöscht</span>
         <button class="btn-undo" onclick="undoLastAction()">Rückgängig</button>
@@ -685,14 +698,17 @@
                 isSwiping = true;
             }, {passive: true});
 
+            // OPTIMIZED TOUCH HANDLING
             toast.addEventListener('touchmove', (e) => {
                 if(!isSwiping) return;
-                currentY = e.touches[0].clientY;
-                const diff = currentY - startY;
-                if(diff > 0) {
+                const diff = e.touches[0].clientY - startY;
+                
+                // Nur verhindern, wenn wirklich nach unten gewischt wird (Undo Aktion)
+                if (diff > 0) {
+                    e.preventDefault(); // Verhindert Scrollen der Seite
                     toast.style.transform = `translateY(${diff}px)`;
                 }
-            }, {passive: true});
+            }, {passive: false});
 
             toast.addEventListener('touchend', (e) => {
                 if(!isSwiping) return;
@@ -735,38 +751,82 @@
         function save() { localStorage.setItem('ultraData', JSON.stringify(data)); updateStatsUI(); }
         function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
 
-        // --- STREAK LOGIC ---
+        // --- STREAK LOGIC (KORRIGIERT) ---
         function checkStreak() {
             const today = new Date().toDateString();
-            if (data.lastLearnedDate !== today) {
-                const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+            // Wir müssen beim Laden prüfen, ob die Serie unterbrochen wurde.
+            if (data.lastLearnedDate) {
+                const lastDate = new Date(data.lastLearnedDate);
+                const todayDate = new Date(today);
+                
+                // Berechne Differenz in Tagen
+                const diffTime = Math.abs(todayDate - lastDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+                // Wenn das letzte Lernen länger als 1 Tag her ist (und nicht heute ist), Streak zurücksetzen auf 0
+                if (diffDays > 1 && data.lastLearnedDate !== today) {
+                    data.streak = 0;
+                    save();
+                }
             }
             document.getElementById('streakCount').innerText = data.streak || 0;
         }
+
         function incrementStreak() {
             const today = new Date().toDateString();
-            if (data.lastLearnedDate !== today) {
-                data.streak = (data.streak || 0) + 1;
-                data.lastLearnedDate = today;
-                save();
-                triggerConfetti(); 
+            
+            // Wenn heute schon gelernt wurde, nichts tun
+            if (data.lastLearnedDate === today) return;
+
+            let streakReset = false;
+            if (data.lastLearnedDate) {
+                const lastDate = new Date(data.lastLearnedDate);
+                const todayDate = new Date(today);
+                const diffTime = todayDate - lastDate;
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+                // Wenn genau 1 Tag vergangen war -> Serie erhöhen
+                if (diffDays === 1) {
+                    data.streak = (data.streak || 0) + 1;
+                } else {
+                    // Längere Pause -> Serie beginnt bei 1
+                    data.streak = 1;
+                }
+            } else {
+                // Erstes Mal überhaupt
+                data.streak = 1;
             }
+
+            data.lastLearnedDate = today;
+            save();
+            triggerConfetti(); 
         }
 
         // --- SELECTION MODE LOGIC ---
+        
+        // Hilfsfunktion: Nur UI updaten, State nicht ändern
+        function updateSelectionUI() {
+            const manageContent = document.getElementById('manageContent');
+            const btnSelectMode = document.getElementById('btnSelectMode');
+            
+            if (isSelectMode) {
+                manageContent.classList.add('selection-mode-active');
+                btnSelectMode.classList.add('active');
+                btnSelectMode.innerHTML = '<i class="fas fa-times"></i> Abbrechen';
+            } else {
+                manageContent.classList.remove('selection-mode-active');
+                btnSelectMode.classList.remove('active');
+                btnSelectMode.innerHTML = '<i class="fas fa-check-square"></i> Auswählen';
+            }
+            updateFab();
+        }
+
         function toggleSelectMode() {
             isSelectMode = !isSelectMode;
             if (!isSelectMode) {
                 selectedIds.clear();
-                document.getElementById('manageContent').classList.remove('selection-mode-active');
-                document.getElementById('btnSelectMode').classList.remove('active');
-                document.getElementById('btnSelectMode').innerHTML = '<i class="fas fa-check-square"></i> Auswählen';
-            } else {
-                document.getElementById('manageContent').classList.add('selection-mode-active');
-                document.getElementById('btnSelectMode').classList.add('active');
-                document.getElementById('btnSelectMode').innerHTML = '<i class="fas fa-times"></i> Abbrechen';
             }
-            updateFab();
+            updateSelectionUI();
             renderManage();
         }
 
@@ -788,7 +848,7 @@
 
             if (isSelectMode && selectedIds.size > 0) {
                 actions.classList.add('active');
-                fab.classList.add('hidden'); // Hide main fab
+                fab.classList.add('hidden'); 
                 menu.classList.remove('active');
             } else {
                 actions.classList.remove('active');
@@ -841,10 +901,14 @@
         }
 
         function restoreFolderRecursive(folder) {
+            // SICHERHEIT: ID Kollision prüfen
+            if (data.folders.find(f => f.id === folder.id)) {
+                folder.id = genId(); // Neue ID wenn Kollision
+            }
             data.folders.push(folder);
         }
 
-        // --- DELETE ACTIONS (FIXED) ---
+        // --- DELETE ACTIONS ---
         function delCard(id) {
             if (confirm('Löschen?')) {
                 const card = data.cards.find(c => c.id === id);
@@ -857,7 +921,7 @@
         }
         
         function delFolder(e, id) {
-            e.stopPropagation(); // Prevent clicking list item
+            e.stopPropagation(); 
             if (confirm('Ordner und Inhalt löschen?')) {
                 // Collect items for backup
                 const deletedItems = [];
@@ -880,7 +944,7 @@
             }
         }
 
-        // --- BULK ACTIONS ---
+        // --- BULK ACTIONS (UPDATED) ---
         function bulkDeleteSelected() {
             if (selectedIds.size === 0) return;
             if (confirm(`${selectedIds.size} Element(e) wirklich löschen?`)) {
@@ -902,9 +966,11 @@
                 triggerUndoToast(`${deletedItems.length} Element(e) gelöscht`, { type: 'bulk', items: deletedItems });
 
                 save();
+                
+                // FIX: Automatisch Auswahlmodus beenden
                 selectedIds.clear();
                 isSelectMode = false;
-                toggleSelectMode(); // Reset UI
+                updateSelectionUI(); 
                 renderManage();
             }
         }
@@ -959,7 +1025,7 @@
             save();
             selectedIds.clear();
             isSelectMode = false;
-            toggleSelectMode();
+            updateSelectionUI();
             renderManage();
             closeMoveSheet();
         }
@@ -1024,9 +1090,14 @@
         }
 
 
-        // --- UI RENDERING ---
+        // --- UI RENDERING (OPTIMIZED) ---
         function renderManage(filter = '') {
-            const list = document.getElementById('itemList'); list.innerHTML = '';
+            const list = document.getElementById('itemList'); 
+            list.innerHTML = '';
+            
+            // PERFORMANCE: DocumentFragment nutzen
+            const fragment = document.createDocumentFragment();
+
             const bc = document.getElementById('breadcrumbContainer'); bc.innerHTML = '';
 
             if (curFolder) {
@@ -1052,7 +1123,7 @@
                     <div class="item-content"><div class="item-title">.. (Ebene höher)</div></div>
                 `;
                 liBack.onclick = () => setFolder(parentId);
-                list.appendChild(liBack);
+                fragment.appendChild(liBack);
 
             } else {
                 document.getElementById('currentFolderTitle').innerText = 'Startseite';
@@ -1076,7 +1147,7 @@
 
                 li.innerHTML = `
                     <div class="selection-checkbox" onclick="toggleSelection('${f.id}', event)">
-                        ${isSelected ? '<i class="fas fa-check" style="font-size:0.7rem;"></i>' : ''}
+                        ${isSelected ? '<i class="fas fa-check"></i>' : ''}
                     </div>
                     <div class="item-icon icon-folder"><i class="fas fa-folder"></i></div>
                     <div class="item-content"><div class="item-title">${f.name}</div></div>
@@ -1086,7 +1157,7 @@
                     if (isSelectMode) toggleSelection(f.id, e);
                     else setFolder(f.id);
                 };
-                list.appendChild(li);
+                fragment.appendChild(li);
             });
 
             // Render Cards
@@ -1106,15 +1177,18 @@
 
                 li.innerHTML = `
                     <div class="selection-checkbox" onclick="toggleSelection('${c.id}', event)">
-                        ${isSelected ? '<i class="fas fa-check" style="font-size:0.7rem;"></i>' : ''}
+                        ${isSelected ? '<i class="fas fa-check"></i>' : ''}
                     </div>
                     <div class="item-icon icon-card"><i class="fas fa-sticky-note"></i></div>
                     <div class="item-content"><div class="item-title">${c.front}</div><div style="font-size:0.8rem; color:var(--text-muted)">Box ${c.box || 1}</div></div>
                     ${actionsHtml}
                 `;
                 li.onclick = (e) => { if (isSelectMode) toggleSelection(c.id, e); };
-                list.appendChild(li);
+                fragment.appendChild(li);
             });
+
+            // Einmaliges Hinzufügen für bessere Performance
+            list.appendChild(fragment);
 
             updateLearnSource();
         }
