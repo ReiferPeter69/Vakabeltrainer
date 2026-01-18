@@ -97,6 +97,15 @@
         }
 
         /* Statistics Visuals */
+        .stats-summary {
+            text-align: center; margin-bottom: 20px; padding: 15px;
+            background: var(--bg-body); border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .stats-big-number { font-size: 2rem; font-weight: 800; color: var(--primary); }
+        .stats-label { font-size: 0.9rem; color: var(--text-muted); }
+        .stats-sub { font-size: 0.85rem; color: var(--success); font-weight: bold; margin-top: 5px;}
+
         .box-chart { display: flex; height: 120px; align-items: flex-end; gap: 8px; margin-top: 20px; }
         .box-col {
             flex: 1; background: var(--border); border-radius: 8px 8px 0 0; position: relative;
@@ -109,6 +118,18 @@
         .box-col[data-box="5"] { background: var(--box-5); }
         .box-label { position: absolute; bottom: -25px; width: 100%; text-align: center; font-size: 0.7rem; color: var(--text-muted); }
         .box-count { position: absolute; top: -20px; width: 100%; text-align: center; font-size: 0.8rem; font-weight: bold; }
+
+        /* Performance Grid */
+        .performance-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;
+        }
+        .perf-card {
+            background: var(--bg-body); border-radius: 12px; padding: 15px;
+            border: 1px solid var(--border); text-align: center;
+        }
+        .perf-icon { font-size: 1.2rem; margin-bottom: 8px; color: var(--secondary); }
+        .perf-value { font-size: 1.1rem; font-weight: bold; color: var(--text-main); }
+        .perf-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 
         /* List Items */
         .item-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -151,6 +172,7 @@
         .item-actions { display: flex; gap: 5px; }
         .action-icon { 
             padding: 10px; border-radius: 8px; transition: background 0.2s; 
+            cursor: pointer; /* Added cursor pointer */
         }
         .action-edit { color: var(--primary); }
         .action-edit:hover { background: var(--primary-light); }
@@ -179,11 +201,23 @@
         }
         .btn-float:hover { transform: scale(1.1); }
         
-        /* FAB in Selection Mode */
-        .selection-mode-active .btn-float {
-            width: auto; padding: 0 20px; border-radius: 30px; gap: 10px;
-            font-size: 1rem; transform: scale(1);
+        /* Selection Mode Float Actions */
+        .selection-actions-wrapper {
+            position: fixed; bottom: calc(var(--nav-height) + 20px); right: 20px;
+            display: flex; gap: 10px; align-items: center; z-index: 90;
+            pointer-events: none; opacity: 0; transform: translateY(20px); transition: 0.3s;
         }
+        .selection-actions-wrapper.active { pointer-events: auto; opacity: 1; transform: translateY(0); }
+
+        .btn-float-sm {
+            width: 50px; height: 50px; border-radius: 25px; border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s; cursor: pointer;
+        }
+        .btn-float-sm:active { transform: scale(0.9); }
+        .btn-move { background: var(--primary); color: white; }
+        .btn-trash { background: var(--danger); color: white; }
 
         /* Inputs */
         .form-control {
@@ -230,12 +264,7 @@
             border-top: 1px solid var(--border); z-index: 50;
             transition: transform 0.3s ease-in-out;
         }
-        
-        /* Klasse um Nav Leiste auszublenden */
-        .bottom-nav.hidden-nav {
-            transform: translateY(100%); /* Rutscht nach unten raus */
-        }
-
+        .bottom-nav.hidden-nav { transform: translateY(100%); }
         .nav-item { text-align: center; color: var(--text-muted); font-size: 0.75rem; flex: 1; transition: color 0.2s; cursor: pointer; }
         .nav-item.active { color: var(--primary); transform: translateY(-2px); }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
@@ -252,18 +281,13 @@
         }
         @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Bottom Sheet Overlay Style (Vollbild-unten) */
+        /* Bottom Sheet Overlay Style */
         .bottom-sheet {
-            position: fixed; left: 0; right: 0;
-            bottom: 0; /* Ganz unten */
-            height: 70vh; /* 70% der Bildschirmhöhe */
-            background: var(--bg-card); 
-            border-radius: 24px 24px 0 0; /* Oben abgerundet */
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.2); z-index: 140; /* Über Nav (die ja weg ist) */
-            transform: translateY(100%); /* Startet unsichtbar */
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow-y: auto;
-            border: 1px solid var(--border);
+            position: fixed; left: 0; right: 0; bottom: 0; height: 70vh;
+            background: var(--bg-card); border-radius: 24px 24px 0 0;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2); z-index: 140;
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto; border: 1px solid var(--border);
             display: flex; flex-direction: column;
         }
         .bottom-sheet.show { transform: translateY(0); }
@@ -275,7 +299,6 @@
         }
         .sheet-body { padding: 20px; padding-bottom: 40px; }
 
-        /* Folder Selection in Sheet */
         .folder-select-item {
             padding: 15px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px;
             margin-bottom: 5px; transition: background 0.2s; border: 1px solid transparent;
@@ -291,6 +314,25 @@
             padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.9rem; display: none;
         }
         [data-theme="dark"] .hint-box { background: #451a03; border-color: #92400e; color: #fcd34d; }
+
+        /* Undo Toast (Updated) */
+        .undo-toast {
+            position: fixed; bottom: calc(var(--nav-height) + 10px); left: 10px; right: 10px;
+            background: var(--bg-card); padding: 12px 15px; border-radius: 12px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.15); border: 1px solid var(--border);
+            display: none; /* Changed to none */
+            justify-content: space-between; align-items: center; z-index: 95;
+            animation: slideUpToast 0.3s ease-out;
+        }
+        .undo-toast.show { display: flex; }
+        @keyframes slideUpToast { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .undo-text { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+        .btn-undo {
+            background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main);
+            padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;
+            cursor: pointer; margin-left: 10px; white-space: nowrap;
+        }
 
         .fab-menu {
             position: fixed; bottom: calc(var(--nav-height) + 90px); right: 25px; display: flex; flex-direction: column; gap: 15px;
@@ -358,11 +400,20 @@
                 <div class="fab-row"><span class="fab-label">Neuer Ordner</span><button class="fab-btn-small" style="background: #ec4899" onclick="showModal('folderModal')"><i class="fas fa-folder-plus"></i></button></div>
             </div>
             
-            <!-- Main FAB Button -->
+            <!-- Standard FAB Button -->
             <button class="btn-float" id="mainFab" onclick="handleFabClick()">
                 <i class="fas fa-plus" id="fabIcon"></i>
-                <span id="fabText" style="display:none; font-weight:600;">Verschieben</span>
             </button>
+
+            <!-- Selection Actions Wrapper (Move & Delete) -->
+            <div class="selection-actions-wrapper" id="selectionActions">
+                <button class="btn-float-sm btn-trash" onclick="bulkDeleteSelected()">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="btn-float-sm btn-move" onclick="openMoveSheet()">
+                    <i class="fas fa-arrows-alt"></i>
+                </button>
+            </div>
         </div>
 
         <!-- LEARN SETUP -->
@@ -410,8 +461,49 @@
         <!-- STATS VIEW -->
         <div id="statsContent" class="content-area">
             <div class="card">
-                <h2>📊 Dein Fortschritt</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Verteilung nach Leitner-Boxen</p>
+                <div class="toolbar-row" style="align-items: flex-end;">
+                    <div>
+                        <h2>📊 Dein Fortschritt</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -5px;">Verteilung nach Leitner-Boxen</p>
+                    </div>
+                    <div style="flex: 1; max-width: 200px;">
+                        <label style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 4px;">Filter:</label>
+                        <select id="statsScope" class="form-control" style="padding: 6px; font-size: 0.85rem;">
+                            <!-- JS fills this -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Summary Box -->
+                <div class="stats-summary">
+                    <div class="stats-big-number" id="statsTotal">0</div>
+                    <div class="stats-label">Karten in dieser Ansicht</div>
+                    <div class="stats-sub" id="statsMastered">0% gemeistert</div>
+                </div>
+
+                <!-- Performance Grid -->
+                <div class="performance-grid">
+                    <div class="perf-card">
+                        <div class="perf-icon"><i class="fas fa-stopwatch"></i></div>
+                        <div class="perf-value" id="perfLastSession">--:--</div>
+                        <div class="perf-desc">Letzte Session</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="perf-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="perf-value" id="perfAvgTime">--s</div>
+                        <div class="perf-desc">Durchschnitt / Karte</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="perf-icon"><i class="fas fa-hourglass-half"></i></div>
+                        <div class="perf-value" id="perfTimeToMaster">--</div>
+                        <div class="perf-desc">Zeit bis Meisterschaft</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="perf-icon"><i class="fas fa-fire"></i></div>
+                        <div class="perf-value" id="perfMasteredToday">0</div>
+                        <div class="perf-desc">Heute gemeistert</div>
+                    </div>
+                </div>
 
                 <div class="box-chart">
                     <div class="box-col" data-box="1" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Neu</span></div>
@@ -439,7 +531,7 @@
         <!-- ACTIVE SESSION OVERLAY -->
         <div id="activeSession" class="content-area" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <button class="btn-secondary" style="width: auto; padding: 5px 15px; font-size: 0.8rem; border-radius:12px;" onclick="endSession()">Beenden</button>
+                <button class="btn-secondary" style="width: auto; padding: 5px 15px; font-size: 0.8rem; border-radius: 12px;" onclick="endSession()">Beenden</button>
                 <div style="font-weight: bold; color: var(--primary);" id="sessionProgress">1 / 10</div>
             </div>
 
@@ -503,12 +595,18 @@
     <!-- MULTI SELECT BOTTOM SHEET (OVERLAY) -->
     <div class="bottom-sheet" id="moveBottomSheet">
         <div class="sheet-header">
-            <h3 style="flex:1; text-align:center;">📂 Wohin verschieben?</h3>
-            <button class="btn-secondary" style="width:auto; padding:5px 10px; border-radius:8px;" onclick="closeMoveSheet()"><i class="fas fa-times"></i></button>
+            <h3 style="flex: 1; text-align: center;">📂 Wohin verschieben?</h3>
+            <button class="btn-secondary" style="width: auto; padding: 5px 10px; border-radius: 8px;" onclick="closeMoveSheet()"><i class="fas fa-times"></i></button>
         </div>
         <div class="sheet-body" id="moveFolderList">
             <!-- Folders generated here -->
         </div>
+    </div>
+
+    <!-- UNDO TOAST (FIXED) -->
+    <div class="undo-toast" id="undoToast">
+        <span class="undo-text" id="undoMessage">Gelöscht</span>
+        <button class="btn-undo" onclick="undoLastAction()">Rückgängig</button>
     </div>
 
     <!-- Standard Modals -->
@@ -539,10 +637,10 @@
     <div class="modal" id="importModal">
         <div class="modal-content">
             <h3>📥 Massen-Import</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom:10px;">Format: Vorderseite;Rückseite;Hinweis</p>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Format: Vorderseite;Rückseite;Hinweis</p>
             <textarea id="inpImport" class="form-control no-wrap" style="height: 150px; margin-bottom: 10px;" placeholder="Haus;Casa;Gebäude&#10;Auto;Coche;&#10;..."></textarea>
             
-            <div id="importFeedback" style="background: var(--bg-body); padding:10px; border-radius:8px; font-size:0.85rem; margin-bottom:10px; display:none;"></div>
+            <div id="importFeedback" style="background: var(--bg-body); padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 10px; display: none;"></div>
 
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="hideModal('importModal')">Abbrechen</button>
@@ -554,9 +652,9 @@
     <!-- MAIN SCRIPT -->
     <script>
         // --- STATE & DATA ---
-        let data = { folders: [], cards: [], lastLearnedDate: null, streak: 0 };
+        let data = { folders: [], cards: [], lastLearnedDate: null, streak: 0, totalTimeSeconds: 0, totalReviews: 0, lastSessionDuration: 0 };
         let curFolder = null;
-        let session = { queue: [], idx: 0, method: 'flip', dir: 'mixed', current: null, q: '', a: '' };
+        let session = { queue: [], idx: 0, method: 'flip', dir: 'mixed', current: null, q: '', a: '', startTime: 0, cardStartTime: 0, timeSpent: 0 };
         
         // --- MULTI SELECT STATE ---
         let isSelectMode = false;
@@ -565,12 +663,49 @@
         // --- EDIT CARD STATE ---
         let editingCardId = null;
 
+        // --- UNDO STATE ---
+        let undoStack = null;
+        let undoTimer = null;
+
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
             applyTheme();
             renderManage();
             updateStatsUI();
+
+            // Swipe Logic Setup for Toast
+            const toast = document.getElementById('undoToast');
+            let startY = 0;
+            let currentY = 0;
+            let isSwiping = false;
+
+            toast.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                isSwiping = true;
+            }, {passive: true});
+
+            toast.addEventListener('touchmove', (e) => {
+                if(!isSwiping) return;
+                currentY = e.touches[0].clientY;
+                const diff = currentY - startY;
+                if(diff > 0) {
+                    toast.style.transform = `translateY(${diff}px)`;
+                }
+            }, {passive: true});
+
+            toast.addEventListener('touchend', (e) => {
+                if(!isSwiping) return;
+                isSwiping = false;
+                const diff = currentY - startY;
+                // Swipe down threshold
+                if (diff > 60) {
+                    undoLastAction();
+                } else {
+                    // Reset animation
+                    toast.style.transform = '';
+                }
+            });
 
             document.getElementById('searchBox').addEventListener('input', (e) => renderManage(e.target.value));
             document.getElementById('typeInput').addEventListener('keypress', (e) => {
@@ -589,9 +724,12 @@
             else {
                 const fid = Date.now().toString();
                 data.folders.push({ id: fid, name: 'Beispiel: Spanisch', parentId: null });
-                data.cards.push({ id: 'c1', front: 'Haus', back: 'Casa', hint: 'Gebäude', box: 1, folderId: fid });
+                data.cards.push({ id: 'c1', front: 'Haus', back: 'Casa', hint: 'Gebäude', box: 1, folderId: fid, createdAt: Date.now() });
                 save();
             }
+            if(!data.totalTimeSeconds) data.totalTimeSeconds = 0;
+            if(!data.totalReviews) data.totalReviews = 0;
+            if(!data.lastSessionDuration) data.lastSessionDuration = 0;
             checkStreak();
         }
         function save() { localStorage.setItem('ultraData', JSON.stringify(data)); updateStatsUI(); }
@@ -644,33 +782,133 @@
         }
 
         function updateFab() {
+            const actions = document.getElementById('selectionActions');
             const fab = document.getElementById('mainFab');
-            const icon = document.getElementById('fabIcon');
-            const text = document.getElementById('fabText');
             const menu = document.getElementById('fabMenu');
 
             if (isSelectMode && selectedIds.size > 0) {
-                // SHOW MOVE FAB
-                icon.className = 'fas fa-arrows-alt';
-                text.innerText = `Verschieben (${selectedIds.size})`;
-                text.style.display = 'block';
-                menu.classList.remove('active'); 
-                fab.style.transform = 'scale(1)'; 
+                actions.classList.add('active');
+                fab.classList.add('hidden'); // Hide main fab
+                menu.classList.remove('active');
             } else {
-                // SHOW ADD MENU
-                icon.className = 'fas fa-plus';
-                text.style.display = 'none';
-                fab.style.transform = ''; 
+                actions.classList.remove('active');
+                fab.classList.remove('hidden');
             }
         }
 
         function handleFabClick() {
-            if (isSelectMode && selectedIds.size > 0) {
-                openMoveSheet();
-            } else {
-                toggleFab();
+            if (!isSelectMode) toggleFab();
+        }
+
+        // --- UNDO LOGIC ---
+        function triggerUndoToast(msg, backupData) {
+            const toast = document.getElementById('undoToast');
+            document.getElementById('undoMessage').innerText = msg;
+            undoStack = backupData;
+            toast.classList.add('show');
+
+            // Clear existing timer and start new one
+            if (undoTimer) clearTimeout(undoTimer);
+            undoTimer = setTimeout(() => {
+                toast.classList.remove('show');
+                undoStack = null;
+            }, 5000);
+        }
+
+        function undoLastAction() {
+            if (!undoStack) return;
+
+            // Restore logic
+            if (undoStack.type === 'singleCard') {
+                data.cards.push(undoStack.item);
+            } else if (undoStack.type === 'singleFolder') {
+                restoreFolderRecursive(undoStack.item);
+            } else if (undoStack.type === 'bulk') {
+                undoStack.items.forEach(item => {
+                    if (item.folderId !== undefined) data.cards.push(item);
+                    else data.folders.push(item);
+                });
+            }
+
+            save();
+            renderManage();
+            
+            // Hide toast immediately
+            const toast = document.getElementById('undoToast');
+            toast.classList.remove('show');
+            if (undoTimer) clearTimeout(undoTimer);
+            undoStack = null;
+        }
+
+        function restoreFolderRecursive(folder) {
+            data.folders.push(folder);
+        }
+
+        // --- DELETE ACTIONS (FIXED) ---
+        function delCard(id) {
+            if (confirm('Löschen?')) {
+                const card = data.cards.find(c => c.id === id);
+                if(card) {
+                    triggerUndoToast("Karte gelöscht", { type: 'singleCard', item: card });
+                    data.cards = data.cards.filter(c => c.id !== id);
+                    save(); renderManage(); 
+                }
             }
         }
+        
+        function delFolder(e, id) {
+            e.stopPropagation(); // Prevent clicking list item
+            if (confirm('Ordner und Inhalt löschen?')) {
+                // Collect items for backup
+                const deletedItems = [];
+                const collectItems = (fid) => {
+                    const folder = data.folders.find(f => f.id === fid);
+                    if(folder) deletedItems.push(folder);
+                    data.cards.filter(c => c.folderId === fid).forEach(c => deletedItems.push(c));
+                    data.folders.filter(f => f.parentId === fid).forEach(s => collectItems(s.id));
+                };
+                collectItems(id);
+
+                triggerUndoToast("Ordner gelöscht", { type: 'bulk', items: deletedItems });
+
+                const rec = (fid) => {
+                    data.cards = data.cards.filter(c => c.folderId !== fid);
+                    data.folders.filter(f => f.parentId === fid).forEach(s => rec(s.id));
+                    data.folders = data.folders.filter(f => f.id !== fid);
+                };
+                rec(id); save(); renderManage();
+            }
+        }
+
+        // --- BULK ACTIONS ---
+        function bulkDeleteSelected() {
+            if (selectedIds.size === 0) return;
+            if (confirm(`${selectedIds.size} Element(e) wirklich löschen?`)) {
+                const deletedItems = [];
+                selectedIds.forEach(id => {
+                    const folder = data.folders.find(f => f.id === id);
+                    if (folder) {
+                        deletedItems.push(folder);
+                        // Simple shallow delete for bulk (deep delete complex to undo, keeping simple)
+                        data.cards = data.cards.filter(c => c.folderId !== id);
+                        data.folders = data.folders.filter(f => f.id !== id);
+                    } else {
+                        const card = data.cards.find(c => c.id === id);
+                        if (card) deletedItems.push(card);
+                        data.cards = data.cards.filter(c => c.id !== id);
+                    }
+                });
+
+                triggerUndoToast(`${deletedItems.length} Element(e) gelöscht`, { type: 'bulk', items: deletedItems });
+
+                save();
+                selectedIds.clear();
+                isSelectMode = false;
+                toggleSelectMode(); // Reset UI
+                renderManage();
+            }
+        }
+
 
         // --- MOVE BOTTOM SHEET (Overlay Logic) ---
         function openMoveSheet() {
@@ -679,21 +917,17 @@
             const list = document.getElementById('moveFolderList');
             list.innerHTML = '';
 
-            // Hide Nav Bar
             nav.classList.add('hidden-nav');
             
-            // Add Root Option
             const optRoot = document.createElement('div');
             optRoot.className = 'folder-select-item';
             optRoot.innerHTML = '<i class="fas fa-home"></i> <strong>Startseite</strong>';
             optRoot.onclick = () => executeMove(null);
             list.appendChild(optRoot);
 
-            // Recursive folder list building
             const renderFolderOptions = (parentId, level) => {
                 const children = data.folders.filter(f => f.parentId === parentId);
                 children.forEach(f => {
-                    // Prevent moving folder into itself
                     if (selectedIds.has(f.id)) return;
 
                     const div = document.createElement('div');
@@ -715,31 +949,19 @@
             const sheet = document.getElementById('moveBottomSheet');
             const nav = document.getElementById('bottomNav');
             sheet.classList.remove('show');
-            // Show Nav Bar again
             nav.classList.remove('hidden-nav');
         }
 
         function executeMove(targetId) {
-            // Move selected Folders
-            data.folders.forEach(f => {
-                if (selectedIds.has(f.id)) {
-                    f.parentId = targetId;
-                }
-            });
-
-            // Move selected Cards
-            data.cards.forEach(c => {
-                if (selectedIds.has(c.id)) {
-                    c.folderId = targetId;
-                }
-            });
+            data.folders.forEach(f => { if (selectedIds.has(f.id)) f.parentId = targetId; });
+            data.cards.forEach(c => { if (selectedIds.has(c.id)) c.folderId = targetId; });
 
             save();
             selectedIds.clear();
-            isSelectMode = false; // Exit select mode after move
-            toggleSelectMode(); // Reset UI
+            isSelectMode = false;
+            toggleSelectMode();
             renderManage();
-            closeMoveSheet(); // Hides sheet, shows nav
+            closeMoveSheet();
         }
 
         // --- CARD EDIT LOGIC ---
@@ -779,10 +1001,8 @@
             if (!f || !b) { alert('Bitte Vorder- und Rückseite ausfüllen!'); return; }
 
             if (editingCardId) {
-                // Update existing
                 const card = data.cards.find(c => c.id === editingCardId);
                 if (card) {
-                    // Check for duplicate EXCEPT the card itself
                     const exists = data.cards.some(c => 
                         c.id !== editingCardId &&
                         c.folderId === curFolder && 
@@ -795,10 +1015,9 @@
                 }
                 editingCardId = null;
             } else {
-                // Create new
                 const exists = data.cards.some(c => c.folderId === curFolder && c.front.toLowerCase() === f.toLowerCase() && c.back.toLowerCase() === b.toLowerCase());
                 if (exists) { alert('Duplikat!'); return; }
-                data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder });
+                data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder, createdAt: Date.now() });
             }
 
             save(); hideModal('cardModal'); renderManage();
@@ -810,7 +1029,6 @@
             const list = document.getElementById('itemList'); list.innerHTML = '';
             const bc = document.getElementById('breadcrumbContainer'); bc.innerHTML = '';
 
-            // Breadcrumbs
             if (curFolder) {
                 let path = [], curr = data.folders.find(f => f.id === curFolder);
                 while (curr) { path.unshift(curr); curr = data.folders.find(f => f.id === curr.parentId); }
@@ -824,7 +1042,6 @@
                 });
                 document.getElementById('currentFolderTitle').innerText = path[path.length - 1].name;
 
-                // Back Button List Item
                 const parentObj = data.folders.find(f => f.id === curFolder);
                 const parentId = parentObj ? parentObj.parentId : null;
                 const liBack = document.createElement('li'); 
@@ -841,7 +1058,6 @@
                 document.getElementById('currentFolderTitle').innerText = 'Startseite';
             }
 
-            // Items filtern
             const subs = data.folders.filter(f => f.parentId === curFolder && f.name.toLowerCase().includes(filter.toLowerCase()));
             const cards = data.cards.filter(c => c.folderId === curFolder && (c.front.toLowerCase().includes(filter.toLowerCase()) || c.back.toLowerCase().includes(filter.toLowerCase())));
 
@@ -911,69 +1127,32 @@
             if (n) { data.folders.push({ id: genId(), name: n, parentId: curFolder }); save(); hideModal('folderModal'); document.getElementById('inpFolder').value = ''; renderManage(); }
         }
 
-        function delCard(id) { if (confirm('Löschen?')) { data.cards = data.cards.filter(c => c.id !== id); save(); renderManage(); } }
-        
-        function delFolder(e, id) {
-            if (confirm('Ordner und Inhalt löschen?')) {
-                const rec = (fid) => {
-                    data.cards = data.cards.filter(c => c.folderId !== fid);
-                    data.folders.filter(f => f.parentId === fid).forEach(s => rec(s.id));
-                    data.folders = data.folders.filter(f => f.id !== fid);
-                };
-                rec(id); save(); renderManage();
-            }
-        }
-
         function runImport() {
             const lines = document.getElementById('inpImport').value.split('\n');
-            let addedCount = 0;
-            let skipCount = 0;
-            let errorCount = 0;
+            let addedCount = 0; let skipCount = 0; let errorCount = 0;
 
             lines.forEach(l => {
                 let parts = l.split(';');
                 if (parts.length < 2) parts = l.split('\t');
-                
-                const fRaw = parts[0];
-                const bRaw = parts[1];
-                const hRaw = parts[2];
+                const fRaw = parts[0]; const bRaw = parts[1]; const hRaw = parts[2];
 
                 if (fRaw && bRaw) { 
-                    const f = fRaw.trim();
-                    const b = bRaw.trim();
-                    const h = hRaw ? hRaw.trim() : '';
-
-                    const exists = data.cards.some(c => 
-                        c.folderId === curFolder && 
-                        c.front.toLowerCase() === f.toLowerCase() && 
-                        c.back.toLowerCase() === b.toLowerCase()
-                    );
-
+                    const f = fRaw.trim(); const b = bRaw.trim(); const h = hRaw ? hRaw.trim() : '';
+                    const exists = data.cards.some(c => c.folderId === curFolder && c.front.toLowerCase() === f.toLowerCase() && c.back.toLowerCase() === b.toLowerCase());
                     if (!exists) {
-                        data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder }); 
-                        addedCount++;
-                    } else {
-                        skipCount++;
-                    }
-                } else {
-                    if (l.trim() !== '') errorCount++;
-                }
+                        data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder, createdAt: Date.now() }); addedCount++;
+                    } else { skipCount++; }
+                } else { if (l.trim() !== '') errorCount++; }
             });
             
-            save(); 
-            document.getElementById('inpImport').value = '';
-            
+            save(); document.getElementById('inpImport').value = '';
             const fb = document.getElementById('importFeedback');
             fb.style.display = 'block';
             let msg = `<span style="color:var(--success)">✅ ${addedCount} importiert</span>`;
             if (skipCount > 0) msg += `<br><span style="color:var(--warning)">⚠️ ${skipCount} Duplikate übersprungen</span>`;
             if (errorCount > 0) msg += `<br><span style="color:var(--danger)">❌ ${errorCount} fehlerhafte Zeilen</span>`;
-            
             fb.innerHTML = msg;
-
-            if (errorCount === 0 && addedCount > 0) {
-                setTimeout(() => { hideModal('importModal'); renderManage(); }, 2000);
-            }
+            if (errorCount === 0 && addedCount > 0) { setTimeout(() => { hideModal('importModal'); renderManage(); }, 2000); }
         }
 
         // --- THEME ---
@@ -1042,6 +1221,9 @@
             }
 
             session.idx = 0;
+            session.startTime = Date.now();
+            session.timeSpent = 0; 
+            
             document.getElementById('manageContent').classList.remove('active');
             document.getElementById('learnContent').classList.remove('active');
             document.querySelector('.bottom-nav').classList.add('hidden');
@@ -1055,6 +1237,8 @@
 
         function loadCard() {
             if (session.idx >= session.queue.length) return finishSession();
+            session.cardStartTime = Date.now();
+
             const c = session.queue[session.idx];
             session.current = c;
             let isFront = true;
@@ -1104,9 +1288,14 @@
 
         function rate(success) {
             const c = session.current;
+            const now = Date.now();
+            const cardDuration = (now - session.cardStartTime) / 1000;
+            session.timeSpent += cardDuration;
+
             if (success) {
                 triggerConfetti();
                 c.box = Math.min((c.box || 1) + 1, 5);
+                if (c.box === 5) c.lastMasteredAt = now;
                 incrementStreak();
             } else {
                 c.box = 1;
@@ -1118,6 +1307,10 @@
         }
 
         function checkType() {
+            const now = Date.now();
+            const cardDuration = (now - session.cardStartTime) / 1000;
+            session.timeSpent += cardDuration;
+
             const inp = document.getElementById('typeInput');
             const val = inp.value.trim().toLowerCase();
             const corr = session.a.trim().toLowerCase();
@@ -1130,6 +1323,7 @@
                 fb.innerHTML = `<div style="color:var(--success); font-weight:bold"><i class="fas fa-check"></i> Richtig!</div>`;
                 triggerConfetti();
                 session.current.box = Math.min((session.current.box || 1) + 1, 5);
+                if (session.current.box === 5) session.current.lastMasteredAt = now;
                 incrementStreak();
                 save();
                 setTimeout(() => { session.idx++; loadCard(); }, 1200);
@@ -1144,6 +1338,12 @@
         function nextCard() { session.idx++; loadCard(); }
         function finishSession() { endSession(); }
         function endSession() {
+            const duration = (Date.now() - session.startTime) / 1000;
+            data.lastSessionDuration = duration;
+            data.totalTimeSeconds += duration;
+            data.totalReviews += session.queue.length;
+            save();
+            
             document.getElementById('activeSession').style.display = 'none';
             document.querySelector('.bottom-nav').classList.remove('hidden');
             document.querySelector('header').classList.remove('hidden');
@@ -1154,10 +1354,55 @@
         function toggleHint(e) { e.stopPropagation(); document.getElementById('hintFront').style.display = 'block'; document.getElementById('btnHintFront').classList.add('hidden'); }
         function toggleTypeHint() { document.getElementById('hintType').style.display = 'block'; document.getElementById('btnHintType').classList.add('hidden'); }
 
-        // --- STATS UI ---
+        // --- STATS UI (ENHANCED) ---
+        function formatTime(seconds) {
+            if(!seconds) return "--:--";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0'+s : s}`;
+        }
+
+        function updateStatsFilter() {
+            const sel = document.getElementById('statsScope');
+            sel.innerHTML = '';
+            const optAll = document.createElement('option');
+            optAll.value = 'all';
+            optAll.innerText = 'Alle Karten (Global)';
+            sel.appendChild(optAll);
+            if (curFolder) {
+                const folder = data.folders.find(f => f.id === curFolder);
+                if (folder) {
+                    const optCur = document.createElement('option');
+                    optCur.value = 'cur';
+                    optCur.innerText = `Akt. Ordner: ${folder.name}`;
+                    sel.appendChild(optCur);
+                    sel.value = 'cur';
+                }
+            } else {
+                sel.value = 'all';
+            }
+            sel.onchange = updateStatsUI;
+        }
+
         function updateStatsUI() {
+            const scope = document.getElementById('statsScope').value;
+            let pool = [];
+            if (scope === 'cur' && curFolder) {
+                const validIds = getFolderIdsRecursive(curFolder);
+                pool = data.cards.filter(c => validIds.includes(c.folderId));
+            } else {
+                pool = data.cards;
+            }
+
             let boxes = [0, 0, 0, 0, 0, 0];
-            data.cards.forEach(c => boxes[c.box || 1]++);
+            pool.forEach(c => boxes[Math.min(Math.max(c.box || 1, 1), 5)]++);
+            const total = pool.length;
+            const mastered = boxes[5];
+            const percent = total > 0 ? Math.round((mastered / total) * 100) : 0;
+
+            document.getElementById('statsTotal').innerText = total;
+            document.getElementById('statsMastered').innerText = `${mastered} (${percent}%) gemeistert`;
+
             let max = Math.max(...boxes.slice(1)) || 1;
             for (let i = 1; i <= 5; i++) {
                 const h = (boxes[i] / max) * 100;
@@ -1165,6 +1410,30 @@
                 col.style.height = Math.max(h, 5) + '%';
                 col.querySelector('.box-count').innerText = boxes[i];
             }
+
+            // Performance Stats
+            document.getElementById('perfLastSession').innerText = formatTime(data.lastSessionDuration);
+            const avgTime = data.totalReviews > 0 ? (data.totalTimeSeconds / data.totalReviews).toFixed(1) : "--";
+            document.getElementById('perfAvgTime').innerText = avgTime + "s";
+
+            const masteredCards = pool.filter(c => c.box === 5 && c.lastMasteredAt && c.createdAt);
+            if (masteredCards.length > 0) {
+                let totalDays = 0;
+                masteredCards.forEach(c => {
+                    const diffMs = c.lastMasteredAt - c.createdAt;
+                    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                    totalDays += diffDays;
+                });
+                const avgDays = (totalDays / masteredCards.length).toFixed(1);
+                document.getElementById('perfTimeToMaster').innerText = avgDays + " Tage";
+            } else {
+                document.getElementById('perfTimeToMaster').innerText = "--";
+            }
+
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            const masteredToday = pool.filter(c => c.lastMasteredAt && c.lastMasteredAt >= todayStart.getTime()).length;
+            document.getElementById('perfMasteredToday').innerText = masteredToday;
         }
 
         // --- UTILS ---
@@ -1174,10 +1443,14 @@
             document.getElementById(id).classList.add('active');
             el.classList.add('active');
             document.getElementById('mainFab').style.display = id === 'manageContent' ? 'flex' : 'none';
+            if(id === 'statsContent') {
+                updateStatsFilter();
+                updateStatsUI();
+            }
         }
         function showModal(id) { 
             document.getElementById(id).classList.add('show'); 
-            if(id === 'importModal') document.getElementById('importFeedback').style.display='none';
+            if(id === 'importModal') document.getElementById('importFeedback').style.display = 'none';
         }
         function hideModal(id) { document.getElementById(id).classList.remove('show'); }
         function toggleFab() { document.getElementById('fabMenu').classList.toggle('active'); }
