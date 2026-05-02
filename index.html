@@ -2,468 +2,14 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lernkarten Ultra Edition - mit Auto-Backup</title>
-    
-    <!-- PWA Meta-Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Vokabeltrainer Ultra Edition - Intelligente Lernkarten mit Leitner-System">
     <meta name="theme-color" content="#4f46e5">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Lernkarten">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="description" content="Lernkarten App mit Spaced Repetition und Auto-Backup">
-    
-    <!-- iOS Splash Screens -->
-    <link rel="apple-touch-startup-image" href="icons/icon-512.svg">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Fallback Icon -->
-    <link rel="icon" type="image/svg+xml" href="icons/icon-512.svg">
-    <link rel="apple-touch-icon" href="icons/icon-512.svg">
-    
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Vokabeltrainer Ultra Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --primary-light: #e0e7ff;
-            --secondary: #ec4899;
-            --bg-body: #f3f4f6;
-            --bg-card: #ffffff;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --radius: 16px;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --box-1: #ef4444;
-            --box-2: #f97316;
-            --box-3: #eab308;
-            --box-4: #84cc16;
-            --box-5: #10b981;
-            --nav-height: 65px;
-        }
-
-        [data-theme="dark"] {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #312e81;
-            --bg-body: #111827;
-            --bg-card: #1f2937;
-            --text-main: #f9fafb;
-            --text-muted: #9ca3af;
-            --border: #374151;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background: var(--bg-body);
-            color: var(--text-main);
-            min-height: 100vh;
-            padding-bottom: calc(var(--nav-height) + 20px);
-            transition: background 0.3s, color 0.3s;
-            overflow-x: hidden;
-        }
-
-        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
-
-        /* Header */
-        header {
-            background: var(--bg-card);
-            padding: 1rem 0;
-            position: sticky; top: 0; z-index: 40;
-            box-shadow: var(--shadow);
-            border-bottom: 1px solid var(--border);
-        }
-        .header-content { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-weight: 800; font-size: 1.3rem; color: var(--primary); display: flex; gap: 10px; align-items: center; }
-        
-        /* Offline Indicator */
-        .offline-indicator {
-            background: var(--danger);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            display: none;
-            align-items: center;
-            gap: 5px;
-            animation: pulse 2s infinite;
-        }
-        .offline-indicator.show { display: flex; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        /* Streak Badge */
-        .streak-badge {
-            background: linear-gradient(135deg, #f59e0b, #f97316);
-            color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;
-            display: flex; align-items: center; gap: 5px;
-            box-shadow: 0 2px 5px rgba(245, 158, 11, 0.4);
-        }
-
-        /* Backup Status Badge */
-        .backup-badge {
-            background: var(--success);
-            color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold;
-            display: flex; align-items: center; gap: 5px;
-        }
-        .backup-badge.warning { background: var(--warning); }
-        .backup-badge.error { background: var(--danger); }
-
-        /* Content Areas */
-        .content-area { display: none; padding: 1.5rem 0; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .content-area.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card {
-            background: var(--bg-card); border-radius: var(--radius); padding: 1.5rem;
-            margin-bottom: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border);
-        }
-
-        /* Toolbar */
-        .toolbar-row {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px;
-        }
-        .btn-select {
-            background: transparent; border: 1px solid var(--primary); color: var(--primary);
-            padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s; white-space: nowrap;
-        }
-        .btn-select.active {
-            background: var(--primary); color: white;
-        }
-
-        /* Statistics Visuals */
-        .stats-summary {
-            text-align: center; margin-bottom: 20px; padding: 15px;
-            background: var(--bg-body); border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-        .stats-big-number { font-size: 2rem; font-weight: 800; color: var(--primary); }
-        .stats-label { font-size: 0.9rem; color: var(--text-muted); }
-        .stats-sub { font-size: 0.85rem; color: var(--success); font-weight: bold; margin-top: 5px;}
-
-        .box-chart { display: flex; height: 120px; align-items: flex-end; gap: 8px; margin-top: 20px; }
-        .box-col {
-            flex: 1; background: var(--border); border-radius: 8px 8px 0 0; position: relative;
-            transition: height 0.5s; min-height: 5px;
-        }
-        .box-col[data-box="1"] { background: var(--box-1); }
-        .box-col[data-box="2"] { background: var(--box-2); }
-        .box-col[data-box="3"] { background: var(--box-3); }
-        .box-col[data-box="4"] { background: var(--box-4); }
-        .box-col[data-box="5"] { background: var(--box-5); }
-        .box-label { position: absolute; bottom: -25px; width: 100%; text-align: center; font-size: 0.7rem; color: var(--text-muted); }
-        .box-count { position: absolute; top: -20px; width: 100%; text-align: center; font-size: 0.8rem; font-weight: bold; }
-
-        /* Performance Grid */
-        .performance-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;
-        }
-        .perf-card {
-            background: var(--bg-body); border-radius: 12px; padding: 15px;
-            border: 1px solid var(--border); text-align: center;
-        }
-        .perf-icon { font-size: 1.2rem; margin-bottom: 8px; color: var(--secondary); }
-        .perf-value { font-size: 1.1rem; font-weight: bold; color: var(--text-main); }
-        .perf-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-
-        /* List Items */
-        .item-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-        .list-item {
-            background: var(--bg-card); padding: 1rem; border-radius: var(--radius);
-            display: flex; align-items: center; gap: 1rem; border: 1px solid var(--border);
-            cursor: pointer; transition: transform 0.2s, background 0.2s; position: relative;
-        }
-        .list-item:active { transform: scale(0.98); }
-        
-        /* Selection Checkbox Logic */
-        .selection-checkbox {
-            display: none; width: 24px; height: 24px; border: 2px solid var(--text-muted);
-            border-radius: 6px;
-            margin-right: 12px; align-items: center; justify-content: center;
-            flex-shrink: 0; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            color: white; position: relative;
-        }
-        .selection-mode-active .selection-checkbox { display: flex; }
-        .selection-mode-active .list-item { padding-left: 0.5rem; } 
-        
-        .list-item.selected {
-            background: var(--primary-light);
-            border-color: var(--primary);
-        }
-        [data-theme="dark"] .list-item.selected { background: rgba(99, 102, 241, 0.2); border-color: var(--primary); }
-
-        .list-item.selected .selection-checkbox {
-            background: var(--primary); border-color: var(--primary);
-            transform: scale(1.05);
-        }
-        
-        .selection-checkbox i {
-            font-size: 0.8rem; line-height: 1;
-            display: none;
-        }
-        .list-item.selected .selection-checkbox i {
-            display: block;
-        }
-
-        .item-icon {
-            width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center;
-            justify-content: center; font-size: 1.2rem; flex-shrink: 0;
-        }
-        .icon-folder { background: rgba(79, 70, 229, 0.1); color: var(--primary); }
-        .icon-card { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-        .item-content { flex: 1; min-width: 0; }
-        .item-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        /* Color-coded Icons */
-        .color-indicator {
-            width: 8px; height: 8px; border-radius: 50%; position: absolute; bottom: 8px; right: 8px;
-        }
-
-        /* Action Icons */
-        .item-actions { display: flex; gap: 5px; }
-        .action-icon { 
-            padding: 10px; border-radius: 8px; transition: background 0.2s; 
-            cursor: pointer;
-        }
-        .action-edit { color: var(--primary); }
-        .action-edit:hover { background: rgba(79, 70, 229, 0.1); }
-        .action-del { color: var(--danger); }
-        .action-del:hover { background: rgba(239, 68, 68, 0.1); }
-        .action-design { color: var(--secondary); }
-        .action-design:hover { background: rgba(236, 72, 153, 0.1); }
-
-        /* Color Palette */
-        .color-option {
-            width: 100%; aspect-ratio: 1; border-radius: 12px; cursor: pointer;
-            border: 3px solid transparent; transition: all 0.2s; position: relative;
-        }
-        .color-option:hover { transform: scale(1.1); }
-        .color-option.selected { border-color: var(--text-main); box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-muted); }
-        .color-option.selected::after {
-            content: '✓'; position: absolute; inset: 0; display: flex; align-items: center;
-            justify-content: center; color: white; font-size: 1.2rem; font-weight: bold;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-
-        /* Buttons */
-        .btn {
-            width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 600;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-            transition: transform 0.1s, filter 0.2s; font-size: 1rem;
-        }
-        .btn:active { transform: scale(0.96); }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
-        .btn-secondary { background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text-muted); }
-        .btn-outline.active { border-color: var(--primary); color: var(--primary); background: rgba(79, 70, 229, 0.05); }
-
-        .btn-float {
-            position: fixed; bottom: calc(var(--nav-height) + 20px); right: 20px; width: 60px; height: 60px; border-radius: 30px;
-            background: var(--primary); color: white; display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; box-shadow: 0 5px 20px rgba(79, 70, 229, 0.4); z-index: 90;
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.3s, border-radius 0.3s;
-        }
-        .btn-float:hover { transform: scale(1.1); }
-        
-        /* Selection Mode Float Actions */
-        .selection-actions-wrapper {
-            position: fixed; bottom: calc(var(--nav-height) + 20px); right: 20px;
-            display: flex; gap: 10px; align-items: center; z-index: 90;
-            pointer-events: none; opacity: 0; transform: translateY(20px); transition: 0.3s;
-        }
-        .selection-actions-wrapper.active { pointer-events: auto; opacity: 1; transform: translateY(0); }
-
-        .btn-float-sm {
-            width: 50px; height: 50px; border-radius: 25px; border: none;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: transform 0.2s; cursor: pointer;
-        }
-        .btn-float-sm:active { transform: scale(0.9); }
-        .btn-move { background: var(--primary); color: white; }
-        .btn-trash { background: var(--danger); color: white; }
-
-        /* Inputs */
-        .form-control {
-            width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--border);
-            background: var(--bg-body); color: var(--text-main); font-size: 1rem; transition: border-color 0.2s;
-        }
-        .form-control:focus { outline: none; border-color: var(--primary); }
-        textarea.form-control.no-wrap { white-space: pre; overflow-x: auto; font-family: monospace; font-size: 0.9rem; }
-
-        /* Active Learning & Animation */
-        .progress-container { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 1rem; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s; }
-
-        .learn-wrapper { perspective: 1000px; margin-top: 1rem; }
-        .flashcard {
-            background: var(--bg-card); height: 350px; border-radius: 24px; box-shadow: var(--shadow);
-            position: relative; cursor: pointer; transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
-            transform-style: preserve-3d; border: 1px solid var(--border);
-        }
-        .flashcard.flipped { transform: rotateY(180deg); }
-        .flashcard.shake { animation: shake 0.5s; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px) rotateY(0); }
-            50% { transform: translateX(10px) rotateY(0); }
-            75% { transform: translateX(-10px) rotateY(0); }
-        }
-        .card-face {
-            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
-            backface-visibility: hidden; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 2rem; border-radius: 24px;
-        }
-        .card-back { transform: rotateY(180deg); background: linear-gradient(to bottom right, var(--bg-card), rgba(16, 185, 129, 0.05)); border: 2px solid var(--success); }
-        .card-text { font-size: 1.6rem; font-weight: 700; text-align: center; margin-bottom: 1rem; word-wrap: break-word; max-width: 100%; }
-        .box-badge { position: absolute; top: 15px; left: 15px; font-size: 0.75rem; padding: 4px 8px; border-radius: 8px; background: var(--border); color: var(--text-muted); font-weight: bold; }
-
-        /* Confetti Canvas */
-        #confettiCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; }
-
-        /* Nav */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height);
-            background: var(--bg-card); display: flex; justify-content: space-around; padding: 12px 0;
-            border-top: 1px solid var(--border); z-index: 50;
-            transition: transform 0.3s ease-in-out;
-        }
-        .bottom-nav.hidden-nav { transform: translateY(100%); }
-        .nav-item { text-align: center; color: var(--text-muted); font-size: 0.75rem; flex: 1; transition: color 0.2s; cursor: pointer; }
-        .nav-item.active { color: var(--primary); transform: translateY(-2px); }
-        .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
-
-        /* Modals & Bottom Sheet */
-        .modal {
-            display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 150;
-            align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px);
-        }
-        .modal.show { display: flex; }
-        .modal-content {
-            background: var(--bg-card); padding: 2rem; border-radius: 24px; width: 100%; max-width: 500px;
-            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        /* Bottom Sheet Overlay Style */
-        .bottom-sheet {
-            position: fixed; left: 0; right: 0; bottom: 0; height: 70vh;
-            background: var(--bg-card); border-radius: 24px 24px 0 0;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.2); z-index: 140;
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow-y: auto; border: 1px solid var(--border);
-            display: flex; flex-direction: column;
-        }
-        .bottom-sheet.show { transform: translateY(0); }
-
-        .sheet-header {
-            padding: 15px 20px; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; background: var(--bg-card); z-index: 10;
-        }
-        .sheet-body { padding: 20px; padding-bottom: 40px; }
-
-        .folder-select-item {
-            padding: 15px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px;
-            margin-bottom: 5px; transition: background 0.2s; border: 1px solid transparent;
-        }
-        .folder-select-item:hover { background: var(--bg-body); border-color: var(--border); }
-        .folder-select-item i { color: var(--primary); font-size: 1.1rem; }
-
-        .typing-container { text-align: center; background: var(--bg-card); padding: 2rem; border-radius: 24px; box-shadow: var(--shadow); display: none; }
-        .hidden { display: none !important; }
-        
-        .hint-box {
-            background: #fffbeb; border: 1px solid #fcd34d; color: #92400e;
-            padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.9rem; display: none;
-        }
-        [data-theme="dark"] .hint-box { background: #451a03; border-color: #92400e; color: #fcd34d; }
-
-        /* Undo Toast */
-        .undo-toast {
-            position: fixed; bottom: calc(var(--nav-height) + 10px); left: 10px; right: 10px;
-            background: var(--bg-card); padding: 12px 15px; border-radius: 12px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.15); border: 1px solid var(--border);
-            display: none;
-            justify-content: space-between; align-items: center; z-index: 95;
-            animation: slideUpToast 0.3s ease-out;
-            touch-action: none;
-        }
-        .undo-toast.show { display: flex; }
-        @keyframes slideUpToast { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        .undo-text { font-size: 0.9rem; font-weight: 600; color: var(--text-main); pointer-events: none;}
-        .btn-undo {
-            background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main);
-            padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;
-            cursor: pointer; margin-left: 10px; white-space: nowrap; pointer-events: auto;
-        }
-
-        /* Notification Toast */
-        .notification-toast {
-            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-            background: var(--bg-card); padding: 12px 20px; border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2); border: 1px solid var(--border);
-            z-index: 200; opacity: 0; transition: opacity 0.3s;
-            max-width: 90%; text-align: center;
-        }
-        .notification-toast.show { opacity: 1; }
-        .notification-toast.success { border-color: var(--success); }
-        .notification-toast.error { border-color: var(--danger); }
-        .notification-toast.warning { border-color: var(--warning); }
-
-        .fab-menu {
-            position: fixed; bottom: calc(var(--nav-height) + 90px); right: 25px; display: flex; flex-direction: column; gap: 15px;
-            z-index: 80; pointer-events: none; opacity: 0; transform: translateY(20px); transition: 0.3s;
-        }
-        .fab-menu.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
-        .fab-btn-small {
-            width: 45px; height: 45px; border-radius: 50%; border: none; color: white;
-            display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); cursor: pointer;
-        }
-        .fab-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
-        .fab-label {
-            background: var(--bg-card); padding: 5px 10px; border-radius: 8px; font-size: 0.85rem; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Backup Info Section */
-        .backup-info {
-            background: var(--bg-body); border-radius: 12px; padding: 15px;
-            margin-top: 15px; border: 1px solid var(--border);
-        }
-        .backup-info-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 0; border-bottom: 1px solid var(--border);
-        }
-        .backup-info-row:last-child { border-bottom: none; }
-        .backup-info-label { color: var(--text-muted); font-size: 0.85rem; }
-        .backup-info-value { font-weight: bold; font-size: 0.85rem; }
-
-        /* Storage Warning */
-        .storage-warning {
-            background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger);
-            border-radius: 12px; padding: 15px; margin-bottom: 15px;
-            display: none; align-items: center; gap: 10px;
-        }
-        .storage-warning.show { display: flex; }
-        .storage-warning i { color: var(--danger); font-size: 1.5rem; }
-        .storage-warning-text { flex: 1; }
-        .storage-warning-text strong { color: var(--danger); }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body data-theme="light">
@@ -475,12 +21,9 @@
     <header>
         <div class="container header-content">
             <div class="logo">
-                <i class="fas fa-layer-group"></i> UltraCards
+                <i class="fas fa-layer-group"></i> Vokabeltrainer
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="offline-indicator" id="offlineIndicator">
-                    <i class="fas fa-wifi-slash"></i> Offline
-                </div>
                 <div class="backup-badge" id="backupBadge" title="Backup-Status">
                     <i class="fas fa-cloud-upload-alt"></i> <span id="backupStatus">OK</span>
                 </div>
@@ -498,18 +41,9 @@
 
         <!-- MANAGE VIEW -->
         <div id="manageContent" class="content-area active">
-            <!-- Storage Warning -->
-            <div class="storage-warning" id="storageWarning">
-                <i class="fas fa-exclamation-triangle"></i>
-                <div class="storage-warning-text">
-                    <strong>Speicher fast voll!</strong>
-                    <div style="font-size: 0.85rem;">Exportiere deine Daten und räume auf.</div>
-                </div>
-            </div>
-
             <div class="card">
                 <div class="toolbar-row">
-                    <input type="text" id="searchBox" class="form-control" placeholder="🔍 Suchen..." style="flex:1;">
+                    <input type="text" id="searchBox" class="form-control" placeholder="Suchen..." style="flex:1;">
                     <button id="btnSelectMode" class="btn-select" onclick="toggleSelectMode()">
                         <i class="fas fa-check-square"></i> Auswählen
                     </button>
@@ -553,7 +87,7 @@
         <!-- LEARN SETUP -->
         <div id="learnContent" class="content-area">
             <div class="card">
-                <h2>🎓 Lern-Cockpit</h2>
+                <h2>Lern-Cockpit</h2>
                 <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Konfiguriere deine Sitzung.</p>
 
                 <div style="margin-bottom: 1rem;">
@@ -564,10 +98,10 @@
                 <div style="margin-bottom: 1rem;">
                     <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Strategie</label>
                     <select id="learnStrategy" class="form-control">
-                        <option value="leitner">🧠 Smart (Leitner System)</option>
-                        <option value="random">🎲 Zufällige Auswahl (10 Stk.)</option>
-                        <option value="hardest">🔥 Die Schwierigsten zuerst</option>
-                        <option value="all">📚 Alle Karten durchgehen</option>
+                        <option value="leitner">Smart (Leitner System)</option>
+                        <option value="random">Zufaellige Auswahl (10 Stk.)</option>
+                        <option value="hardest">Die Schwierigsten zuerst</option>
+                        <option value="all">Alle Karten durchgehen</option>
                     </select>
                 </div>
 
@@ -582,9 +116,9 @@
                 <div style="margin-bottom: 1.5rem;">
                     <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Richtung</label>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-outline active" id="btnMix" onclick="setDirection('mixed')">🔀 Mix</button>
-                        <button class="btn btn-outline" id="btnFront" onclick="setDirection('front')">V → R</button>
-                        <button class="btn btn-outline" id="btnBack" onclick="setDirection('back')">R → V</button>
+                        <button class="btn btn-outline active" id="btnMix" onclick="setDirection('mixed')">Mix</button>
+                        <button class="btn btn-outline" id="btnFront" onclick="setDirection('front')">V - R</button>
+                        <button class="btn btn-outline" id="btnBack" onclick="setDirection('back')">R - V</button>
                     </div>
                 </div>
 
@@ -597,7 +131,7 @@
             <div class="card">
                 <div class="toolbar-row" style="align-items: flex-end;">
                     <div>
-                        <h2>📊 Dein Fortschritt</h2>
+                        <h2>Dein Fortschritt</h2>
                         <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -5px;">Verteilung nach Leitner-Boxen</p>
                     </div>
                     <div style="flex: 1; max-width: 200px;">
@@ -638,17 +172,98 @@
                     </div>
                 </div>
 
-                <div class="box-chart">
-                    <div class="box-col" data-box="1" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Neu</span></div>
-                    <div class="box-col" data-box="2" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Lernend</span></div>
-                    <div class="box-col" data-box="3" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Gut</span></div>
-                    <div class="box-col" data-box="4" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Sicher</span></div>
-                    <div class="box-col" data-box="5" style="height: 5px;"><span class="box-count">0</span><span class="box-label">Meister</span></div>
+                <!-- Mobile-friendly Box Chart - Redesign -->
+                <div class="box-chart-redesign">
+                    <div class="box-row" data-box="1">
+                        <div class="box-header">
+                            <div class="box-icon" style="--box-color: var(--box-1)">
+                                <span class="box-number">1</span>
+                            </div>
+                            <div class="box-details">
+                                <div class="box-name">Box 1 <span class="box-interval">• 1 Tag</span></div>
+                                <div class="box-progress-container">
+                                    <div class="box-progress-fill" style="width: 0%; background: var(--box-1)"></div>
+                                </div>
+                            </div>
+                            <div class="box-stat">
+                                <span class="box-value" data-count="0">0</span>
+                                <span class="box-unit">Karten</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-row" data-box="2">
+                        <div class="box-header">
+                            <div class="box-icon" style="--box-color: var(--box-2)">
+                                <span class="box-number">2</span>
+                            </div>
+                            <div class="box-details">
+                                <div class="box-name">Box 2 <span class="box-interval">• 3 Tage</span></div>
+                                <div class="box-progress-container">
+                                    <div class="box-progress-fill" style="width: 0%; background: var(--box-2)"></div>
+                                </div>
+                            </div>
+                            <div class="box-stat">
+                                <span class="box-value" data-count="0">0</span>
+                                <span class="box-unit">Karten</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-row" data-box="3">
+                        <div class="box-header">
+                            <div class="box-icon" style="--box-color: var(--box-3)">
+                                <span class="box-number">3</span>
+                            </div>
+                            <div class="box-details">
+                                <div class="box-name">Box 3 <span class="box-interval">• 7 Tage</span></div>
+                                <div class="box-progress-container">
+                                    <div class="box-progress-fill" style="width: 0%; background: var(--box-3)"></div>
+                                </div>
+                            </div>
+                            <div class="box-stat">
+                                <span class="box-value" data-count="0">0</span>
+                                <span class="box-unit">Karten</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-row" data-box="4">
+                        <div class="box-header">
+                            <div class="box-icon" style="--box-color: var(--box-4)">
+                                <span class="box-number">4</span>
+                            </div>
+                            <div class="box-details">
+                                <div class="box-name">Box 4 <span class="box-interval">• 14 Tage</span></div>
+                                <div class="box-progress-container">
+                                    <div class="box-progress-fill" style="width: 0%; background: var(--box-4)"></div>
+                                </div>
+                            </div>
+                            <div class="box-stat">
+                                <span class="box-value" data-count="0">0</span>
+                                <span class="box-unit">Karten</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-row" data-box="5">
+                        <div class="box-header">
+                            <div class="box-icon" style="--box-color: var(--box-5)">
+                                <span class="box-number">5</span>
+                            </div>
+                            <div class="box-details">
+                                <div class="box-name">Box 5 <span class="box-interval">• Meister</span></div>
+                                <div class="box-progress-container">
+                                    <div class="box-progress-fill" style="width: 0%; background: var(--box-5)"></div>
+                                </div>
+                            </div>
+                            <div class="box-stat">
+                                <span class="box-value" data-count="0">0</span>
+                                <span class="box-unit">Karten</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
-                <h3>💾 Datenverwaltung & Backup</h3>
+                <h3>Datenverwaltung & Backup</h3>
                 
                 <!-- Backup Info Section -->
                 <div class="backup-info">
@@ -668,10 +283,6 @@
                         <span class="backup-info-label">Datenbank-Version:</span>
                         <span class="backup-info-value" id="dbVersion">1</span>
                     </div>
-                    <div class="backup-info-row">
-                        <span class="backup-info-label">Speicher verwendet:</span>
-                        <span class="backup-info-value" id="storageUsed">--</span>
-                    </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
@@ -682,7 +293,7 @@
                     <i class="fas fa-upload"></i> Backup wiederherstellen
                 </button>
                 <input type="file" id="importFile" hidden accept=".json" onchange="importData(this)">
-                <button class="btn btn-danger" style="margin-top: 10px;" onclick="resetAll()">Alles löschen</button>
+                <button class="btn btn-danger" style="margin-top: 10px;" onclick="resetAll()">Alles loeschen</button>
             </div>
         </div>
 
@@ -708,7 +319,7 @@
                         </div>
                         <div style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px;" id="labelQ">Frage</div>
                         <div class="card-text" id="textQ">?</div>
-                        <button id="btnHintFront" class="btn-outline hidden" style="width: auto; padding: 5px 10px; font-size: 0.8rem; margin-top: 20px;" onclick="toggleHint(event)">💡 Hinweis</button>
+                        <button id="btnHintFront" class="btn-outline hidden" style="width: auto; padding: 5px 10px; font-size: 0.8rem; margin-top: 20px;" onclick="toggleHint(event)">Hinweis</button>
                         <div id="hintFront" class="hint-box"></div>
                         <div style="margin-top: auto; font-size: 0.8rem; color: var(--text-muted); opacity: 0.7;">(Tippen zum Umdrehen)</div>
                     </div>
@@ -729,14 +340,60 @@
 
             <!-- TYPE MODE -->
             <div class="typing-container" id="typingWrapper">
-                <div style="display: flex; justify-content: flex-end;"><i class="fas fa-volume-up" onclick="speak(event, 'q')"></i></div>
+                <div style="display: flex; justify-content: flex-end;"><i class="fas fa-volume-up" style="color: var(--primary); font-size: 1.2rem; cursor: pointer;" onclick="speak(event, 'q')"></i></div>
                 <div style="color: var(--text-muted); font-size: 0.8rem;" id="typeLabelQ">FRAGE</div>
                 <div class="card-text" id="typeTextQ" style="margin-bottom: 20px;">?</div>
-                <button id="btnHintType" class="btn-outline hidden" style="width: auto; margin: 0 auto 15px auto; padding: 5px 10px; font-size: 0.8rem;" onclick="toggleTypeHint()">💡 Hinweis</button>
+                <button id="btnHintType" class="btn-outline hidden" style="width: auto; margin: 0 auto 15px auto; padding: 5px 10px; font-size: 0.8rem;" onclick="toggleTypeHint()">Hinweis</button>
                 <div id="hintType" class="hint-box" style="margin-bottom: 15px;"></div>
-                <input type="text" id="typeInput" class="form-control" style="text-align: center; font-size: 1.2rem;" placeholder="Antwort..." autocomplete="off">
-                <div id="typeFeedback" style="margin: 15px 0; display: none;"></div>
-                <button class="btn btn-primary" id="btnCheckType" onclick="checkType()" style="margin-top: 10px;">Prüfen</button>
+                
+                <!-- Normales Eingabefeld -->
+                <div id="normalInputArea">
+                    <input type="text" id="typeInput" class="form-control" style="text-align: center; font-size: 1.2rem;" placeholder="Antwort..." autocomplete="off">
+                    <div id="typeFeedback" style="margin: 15px 0; display: none;"></div>
+                    <button class="btn btn-primary" id="btnCheckType" onclick="checkType()" style="margin-top: 10px;">Pruefen</button>
+                </div>
+                
+                <!-- Korrektur-Bereich (wird bei falscher Antwort angezeigt) -->
+                <div id="correctionArea" style="display: none;">
+                    <!-- Fehlervergleich -->
+                
+                    
+                    <!-- Korrektur-Phase -->
+                    <div class="correction-phase" id="correctionPhase">
+                        <div class="correction-header">
+                            <div class="correction-icon"><i class="fas fa-pen"></i></div>
+                            <div>
+                                <div class="correction-title">Jetzt richtig schreiben!</div>
+                                <div class="correction-subtitle">Tippe die korrekte Antwort ein, um weiterzumachen</div>
+                            </div>
+                        </div>
+                        
+                        <div class="correct-answer-display">
+                            <div class="correct-answer-label">Richtige Antwort</div>
+                            <div class="correct-answer-text" id="correctAnswerText">-</div>
+                        </div>
+                        
+                        <div class="copy-instruction">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>Schreibe die Antwort genau so ab</span>
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        
+                        <div class="correction-input-wrapper">
+                            <input type="text" id="correctionInput" class="correction-input" placeholder="Richtige Antwort eingeben..." autocomplete="off">
+                        </div>
+                        
+                        <button class="btn btn-success" id="btnConfirmCorrection" onclick="confirmCorrection()" style="margin-top: 10px;">
+                            <i class="fas fa-check"></i> Bestaetigen
+                        </button>
+                        
+                        <div id="correctionSuccess" class="correction-success-msg" style="display: none;">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Perfekt! Jetzt hast du es gelernt!</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <button class="btn btn-primary hidden" id="btnNextType" onclick="nextCard()" style="margin-top: 10px;">Weiter</button>
             </div>
         </div>
@@ -753,7 +410,7 @@
     <!-- MULTI SELECT BOTTOM SHEET -->
     <div class="bottom-sheet" id="moveBottomSheet">
         <div class="sheet-header">
-            <h3 style="flex: 1; text-align: center;">📂 Wohin verschieben?</h3>
+            <h3 style="flex: 1; text-align: center;">Wohin verschieben?</h3>
             <button class="btn-secondary" style="width: auto; padding: 5px 10px; border-radius: 8px;" onclick="closeMoveSheet()"><i class="fas fa-times"></i></button>
         </div>
         <div class="sheet-body" id="moveFolderList">
@@ -762,14 +419,14 @@
 
     <!-- UNDO TOAST -->
     <div class="undo-toast" id="undoToast">
-        <span class="undo-text" id="undoMessage">Gelöscht</span>
-        <button class="btn-undo" onclick="undoLastAction()">Rückgängig</button>
+        <span class="undo-text" id="undoMessage">Geloescht</span>
+        <button class="btn-undo" onclick="undoLastAction()">Rueckgaengig</button>
     </div>
 
     <!-- Standard Modals -->
     <div class="modal" id="folderModal">
         <div class="modal-content">
-            <h3>📁 Neuer Ordner</h3>
+            <h3>Neuer Ordner</h3>
             <input type="text" id="inpFolder" class="form-control" style="margin: 15px 0;" placeholder="Name...">
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="hideModal('folderModal')">Abbrechen</button>
@@ -780,9 +437,9 @@
 
     <div class="modal" id="cardModal">
         <div class="modal-content">
-            <h3 id="cardModalTitle">📝 Neue Karte</h3>
+            <h3 id="cardModalTitle">Neue Karte</h3>
             <label>Vorderseite</label><textarea id="inpFront" class="form-control" style="margin-bottom: 10px;"></textarea>
-            <label>Rückseite</label><textarea id="inpBack" class="form-control" style="margin-bottom: 10px;"></textarea>
+            <label>Rueckseite</label><textarea id="inpBack" class="form-control" style="margin-bottom: 10px;"></textarea>
             <label>Hinweis (Optional)</label><input type="text" id="inpHint" class="form-control" style="margin-bottom: 15px;">
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="hideModal('cardModal')">Abbrechen</button>
@@ -793,9 +450,9 @@
 
     <div class="modal" id="importModal">
         <div class="modal-content">
-            <h3>📥 Massen-Import</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Format: Vorderseite;Rückseite;Hinweis</p>
-            <textarea id="inpImport" class="form-control no-wrap" style="height: 150px; margin-bottom: 10px;" placeholder="Haus;Casa;Gebäude&#10;Auto;Coche;&#10;..."></textarea>
+            <h3>Massen-Import</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Format: Vorderseite;Rueckseite;Hinweis</p>
+            <textarea id="inpImport" class="form-control no-wrap" style="height: 150px; margin-bottom: 10px;" placeholder="Haus;Casa;Gebaeude&#10;Auto;Coche;&#10;..."></textarea>
             
             <div id="importFeedback" style="background: var(--bg-body); padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 10px; display: none;"></div>
 
@@ -809,12 +466,12 @@
     <!-- TEILEN MODAL -->
     <div class="modal" id="shareModal">
         <div class="modal-content">
-            <h3>📤 Ordner teilen</h3>
+            <h3>Ordner teilen</h3>
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;" id="shareFolderName">Ordnername</p>
             
             <div style="background: var(--bg-body); border-radius: 12px; padding: 15px; margin-bottom: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="font-weight: 600;">📊 Enthalten:</span>
+                    <span style="font-weight: 600;">Enthalten:</span>
                     <span id="shareStats">0 Ordner, 0 Karten</span>
                 </div>
             </div>
@@ -837,11 +494,11 @@
                     <input type="text" id="shareLinkInput" class="form-control" style="font-size: 0.8rem;" readonly>
                     <button class="btn btn-secondary" style="width: auto; padding: 0 15px;" onclick="copyShareLink()">Kopieren</button>
                 </div>
-                <p style="font-size: 0.75rem; color: var(--warning); margin-top: 5px;">⚠️ Links funktionieren nur bei kleinen Ordnern (max. ~50 Karten)</p>
+                <p style="font-size: 0.75rem; color: var(--warning); margin-top: 5px;">Links funktionieren nur bei kleinen Ordnern (max. ~50 Karten)</p>
             </div>
 
             <div style="display: flex; gap: 10px;">
-                <button class="btn btn-secondary" onclick="hideModal('shareModal')">Schließen</button>
+                <button class="btn btn-secondary" onclick="hideModal('shareModal')">Schliessen</button>
             </div>
         </div>
     </div>
@@ -849,16 +506,16 @@
     <!-- IMPORT FROM URL MODAL -->
     <div class="modal" id="urlImportModal">
         <div class="modal-content">
-            <h3>📥 Ordner importieren</h3>
+            <h3>Ordner importieren</h3>
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Jemand hat einen Ordner mit dir geteilt!</p>
             
             <div style="background: var(--bg-body); border-radius: 12px; padding: 15px; margin-bottom: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="font-weight: 600;">📁 Ordner:</span>
+                    <span style="font-weight: 600;">Ordner:</span>
                     <span id="urlImportName">--</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 600;">📊 Enthalten:</span>
+                    <span style="font-weight: 600;">Enthalten:</span>
                     <span id="urlImportStats">0 Karten</span>
                 </div>
             </div>
@@ -873,7 +530,7 @@
     <!-- DESIGN MODAL -->
     <div class="modal" id="designModal">
         <div class="modal-content">
-            <h3>🎨 Farbe wählen</h3>
+            <h3>Farbe waehlen</h3>
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;" id="designTargetName">Element</p>
             
             <div id="colorPalette" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px;">
@@ -882,7 +539,7 @@
             
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="hideModal('designModal')">Abbrechen</button>
-                <button class="btn btn-primary" onclick="applyDesign()">Übernehmen</button>
+                <button class="btn btn-primary" onclick="applyDesign()">Uebernehmen</button>
             </div>
         </div>
     </div>
@@ -895,14 +552,13 @@
             </div>
             <div style="flex: 1;">
                 <div style="font-weight: 700; font-size: 1rem;">App installieren</div>
-                <div style="font-size: 0.85rem; color: var(--text-muted);">Für bessere Performance & Offline-Zugriff</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">Fuer bessere Performance & Offline-Zugriff</div>
             </div>
             <button onclick="installPWA()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">Installieren</button>
             <button onclick="dismissInstall()" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
         </div>
     </div>
 
-    <!-- MAIN SCRIPT -->
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
