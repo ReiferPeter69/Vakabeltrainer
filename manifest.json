@@ -1,0 +1,127 @@
+{
+    "name": "Lernkarten Ultra Edition",
+    "short_name": "UltraCards",
+    "description": "Lernkarten App mit Spaced Repetition und Auto-Backup - Lerne effizienter mit dem Leitner-System",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#f3f4f6",
+    "theme_color": "#4f46e5",
+    "lang": "de",
+    "dir": "ltr",
+    "categories": ["education", "productivity"],
+    "icons": [
+        {
+            "src": "icons/icon-72.svg",
+            "sizes": "72x72",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-96.svg",
+            "sizes": "96x96",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-128.svg",
+            "sizes": "128x128",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-144.svg",
+            "sizes": "144x144",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-152.svg",
+            "sizes": "152x152",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-192.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icons/icon-384.svg",
+            "sizes": "384x384",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Neue Karte erstellen",
+            "short_name": "Neue Karte",
+            "description": "Erstelle eine neue Lernkarte",
+            "url": "./index.html?action=newcard",
+            "icons": [
+                {
+                    "src": "icons/shortcut-new.svg",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Lernen starten",
+            "short_name": "Lernen",
+            "description": "Starte eine Lernsession",
+            "url": "./index.html?view=learn",
+            "icons": [
+                {
+                    "src": "icons/shortcut-learn.svg",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Statistik anzeigen",
+            "short_name": "Statistik",
+            "description": "Zeige deinen Lernfortschritt",
+            "url": "./index.html?view=stats",
+            "icons": [
+                {
+                    "src": "icons/shortcut-stats.svg",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "screenshots/manage.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Kartenverwaltung"
+        },
+        {
+            "src": "screenshots/learn.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Lernmodus"
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "handle_links": "preferred",
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    },
+    "edge_side_panel": {
+        "preferred_width": 400
+    }
+}
