@@ -349,13 +349,22 @@ header {
 
 /* Selection Checkbox Logic */
 .selection-checkbox {
-    display: flex; visibility: hidden; width: 24px; height: 24px; border: 2px solid var(--text-muted);
+    display: flex; width: 0; height: 24px; border: 2px solid var(--text-muted);
     border-radius: 6px;
-    margin-right: 12px; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-right: 0; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-right 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     color: white; position: relative;
+    overflow: hidden;
+    opacity: 0;
 }
-.selection-mode-active .selection-checkbox { visibility: visible; }
+.selection-mode-active .selection-checkbox {
+    width: 24px;
+    margin-right: 12px;
+    opacity: 1;
+}
 .selection-mode-active .list-item { padding-left: 0.5rem; }
 
 /* Fix: Action-Icons dürfen nicht schrumpfen und sollen stabil bleiben */
