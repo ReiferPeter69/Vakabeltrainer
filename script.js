@@ -1859,7 +1859,7 @@ function toggleTheme() {
 
 function applyTheme() {
     try {
-        const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+        const savedTheme = safeLocalStorage('get', THEME_KEY) || 'light';
         document.body.setAttribute('data-theme', savedTheme);
         const themeIcon = document.getElementById('themeIcon');
         if (themeIcon) themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
@@ -3098,8 +3098,6 @@ function processImport(d) {
 // =============================================
 function initPWA() {
     if ('serviceWorker' in navigator) {
-        // Hinweis: Blob-URL SW ist ein Workaround
-        // Für Production: Eigene sw.js Datei erstellen
         console.log('Service Worker Unterstützung vorhanden');
     }
     
@@ -3347,8 +3345,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadLearnSettings();
     
     // Lern-Cockpit Einstellungen speichern bei Änderung
+    const learnSource = document.getElementById('learnSource');
     const learnStrategy = document.getElementById('learnStrategy');
     const learnMethod = document.getElementById('learnMethod');
+    if (learnSource) learnSource.addEventListener('change', saveLearnSettings);
     if (learnStrategy) learnStrategy.addEventListener('change', saveLearnSettings);
     if (learnMethod) learnMethod.addEventListener('change', saveLearnSettings);
 

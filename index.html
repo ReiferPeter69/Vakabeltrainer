@@ -64,9 +64,9 @@
 
             <!-- FAB Menu (Create) -->
             <div class="fab-menu" id="fabMenu">
-                <div class="fab-row"><span class="fab-label">Import</span><button class="fab-btn-small" style="background: #f59e0b" onclick="showModal('importModal')"><i class="fas fa-file-import"></i></button></div>
-                <div class="fab-row"><span class="fab-label">Neue Karte</span><button class="fab-btn-small" style="background: #10b981" onclick="openNewCardModal()"><i class="fas fa-plus"></i></button></div>
-                <div class="fab-row"><span class="fab-label">Neuer Ordner</span><button class="fab-btn-small" style="background: #ec4899" onclick="showModal('folderModal')"><i class="fas fa-folder-plus"></i></button></div>
+                <div class="fab-row"><span class="fab-label">Import</span><button class="fab-btn-small" style="background: #f59e0b" onclick="document.getElementById('fabMenu').classList.remove('active'); showModal('importModal')"><i class="fas fa-file-import"></i></button></div>
+                <div class="fab-row"><span class="fab-label">Neue Karte</span><button class="fab-btn-small" style="background: #10b981" onclick="document.getElementById('fabMenu').classList.remove('active'); openNewCardModal()"><i class="fas fa-plus"></i></button></div>
+                <div class="fab-row"><span class="fab-label">Neuer Ordner</span><button class="fab-btn-small" style="background: #ec4899" onclick="document.getElementById('fabMenu').classList.remove('active'); showModal('folderModal')"><i class="fas fa-folder-plus"></i></button></div>
             </div>
             
             <!-- Standard FAB Button -->
@@ -100,7 +100,7 @@
                     <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Strategie</label>
                     <select id="learnStrategy" class="form-control">
                         <option value="leitner">Smart (Leitner System)</option>
-                        <option value="random">Zufaellige Auswahl (10 Stk.)</option>
+                        <option value="random">Zufällige Auswahl (10 Stk.)</option>
                         <option value="hardest">Die Schwierigsten zuerst</option>
                         <option value="all">Alle Karten durchgehen</option>
                     </select>
@@ -294,7 +294,7 @@
                     <i class="fas fa-upload"></i> Backup wiederherstellen
                 </button>
                 <input type="file" id="importFile" hidden accept=".json" onchange="importData(this)">
-                <button class="btn btn-danger" style="margin-top: 10px;" onclick="resetAll()">Alles loeschen</button>
+                <button class="btn btn-danger" style="margin-top: 10px;" onclick="resetAll()">Alles löschen</button>
             </div>
         </div>
 
@@ -351,7 +351,7 @@
                 <div id="normalInputArea">
                     <input type="text" id="typeInput" class="form-control" style="text-align: center; font-size: 1.2rem;" placeholder="Antwort..." autocomplete="off">
                     <div id="typeFeedback" style="margin: 15px 0; display: none;"></div>
-                    <button class="btn btn-primary" id="btnCheckType" onclick="checkType()" style="margin-top: 10px;">Pruefen</button>
+                    <button class="btn btn-primary" id="btnCheckType" onclick="checkType()" style="margin-top: 10px;">Prüfen</button>
                 </div>
                 
                 <!-- Korrektur-Bereich (wird bei falscher Antwort angezeigt) -->
@@ -385,7 +385,7 @@
                         </div>
                         
                         <button class="btn btn-success" id="btnConfirmCorrection" onclick="confirmCorrection()" style="margin-top: 10px;">
-                            <i class="fas fa-check"></i> Bestaetigen
+                            <i class="fas fa-check"></i> Bestätigen
                         </button>
                         
                         <div id="correctionSuccess" class="correction-success-msg" style="display: none;">
@@ -420,8 +420,8 @@
 
     <!-- UNDO TOAST -->
     <div class="undo-toast" id="undoToast">
-        <span class="undo-text" id="undoMessage">Geloescht</span>
-        <button class="btn-undo" onclick="undoLastAction()">Rueckgaengig</button>
+        <span class="undo-text" id="undoMessage">Gelöscht</span>
+        <button class="btn-undo" onclick="undoLastAction()">Rückgängig</button>
     </div>
 
     <!-- Standard Modals -->
@@ -440,7 +440,7 @@
         <div class="modal-content">
             <h3 id="cardModalTitle">Neue Karte</h3>
             <label>Vorderseite</label><textarea id="inpFront" class="form-control" style="margin-bottom: 10px;"></textarea>
-            <label>Rueckseite</label><textarea id="inpBack" class="form-control" style="margin-bottom: 10px;"></textarea>
+            <label>Rückseite</label><textarea id="inpBack" class="form-control" style="margin-bottom: 10px;"></textarea>
             <label>Hinweis (Optional)</label><input type="text" id="inpHint" class="form-control" style="margin-bottom: 15px;">
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="hideModal('cardModal')">Abbrechen</button>
@@ -452,8 +452,8 @@
     <div class="modal" id="importModal">
         <div class="modal-content">
             <h3>Massen-Import</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Format: Vorderseite;Rueckseite;Hinweis</p>
-            <textarea id="inpImport" class="form-control no-wrap" style="height: 150px; margin-bottom: 10px;" placeholder="Haus;Casa;Gebaeude&#10;Auto;Coche;&#10;..."></textarea>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Format: Vorderseite;Rückseite;Hinweis</p>
+            <textarea id="inpImport" class="form-control no-wrap" style="height: 150px; margin-bottom: 10px;" placeholder="Haus;Casa;Gebäude&#10;Auto;Coche;&#10;..."></textarea>
             
             <div id="importFeedback" style="background: var(--bg-body); padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 10px; display: none;"></div>
 
@@ -499,7 +499,7 @@
             </div>
 
             <div style="display: flex; gap: 10px;">
-                <button class="btn btn-secondary" onclick="hideModal('shareModal')">Schliessen</button>
+                <button class="btn btn-secondary" onclick="hideModal('shareModal')">Schließen</button>
             </div>
         </div>
     </div>
@@ -531,7 +531,7 @@
     <!-- DESIGN MODAL -->
     <div class="modal" id="designModal">
         <div class="modal-content">
-            <h3>Farbe waehlen</h3>
+            <h3>Farbe wählen</h3>
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;" id="designTargetName">Element</p>
             
             <div id="colorPalette" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px;">
@@ -540,7 +540,7 @@
             
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="hideModal('designModal')">Abbrechen</button>
-                <button class="btn btn-primary" onclick="applyDesign()">Uebernehmen</button>
+                <button class="btn btn-primary" onclick="applyDesign()">Übernehmen</button>
             </div>
         </div>
     </div>
@@ -553,7 +553,7 @@
             </div>
             <div style="flex: 1;">
                 <div style="font-weight: 700; font-size: 1rem;">App installieren</div>
-                <div style="font-size: 0.85rem; color: var(--text-muted);">Fuer bessere Performance & Offline-Zugriff</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">Für bessere Performance & Offline-Zugriff</div>
             </div>
             <button onclick="installPWA()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">Installieren</button>
             <button onclick="dismissInstall()" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
