@@ -485,6 +485,97 @@ header {
 .form-control:focus { outline: none; border-color: var(--primary); }
 textarea.form-control.no-wrap { white-space: pre; overflow-x: auto; font-family: monospace; font-size: 0.9rem; }
 
+/* Select / Dropdown Styling */
+select.form-control {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    padding-right: 36px;
+    cursor: pointer;
+    min-height: 48px;
+}
+[data-theme="dark"] select.form-control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+}
+
+/* =============================================
+   MOBILE OPTIMIERUNGEN
+   ============================================= */
+@media (max-width: 600px) {
+    .container { padding: 0 12px; }
+    
+    .list-item {
+        padding: 0.6rem 0.5rem;
+        gap: 0.4rem;
+        min-height: 52px;
+    }
+    
+    .item-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+    }
+    
+    .item-actions {
+        gap: 0px;
+        margin-left: 2px;
+    }
+    
+    .action-icon {
+        padding: 5px;
+        font-size: 0.8rem;
+        border-radius: 6px;
+    }
+    
+    .item-title {
+        font-size: 0.9rem;
+    }
+    
+    .card-due-info {
+        font-size: 0.65rem;
+    }
+    
+    select.form-control {
+        font-size: 1rem;
+        padding: 14px 36px 14px 14px;
+        min-height: 48px;
+        border-radius: 14px;
+        margin-bottom: 10px;
+    }
+    
+    /* Lern-Cockpit & Filter: Selects untereinander mit mehr Abstand */
+    #learnContent select.form-control,
+    #statsContent select.form-control {
+        display: block;
+        width: 100%;
+        margin-bottom: 12px;
+    }
+    
+    .card {
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        padding: 14px;
+        min-height: 48px;
+    }
+    
+    .selection-mode-active .list-item {
+        padding-left: 0.4rem;
+    }
+    
+    .selection-mode-active .selection-checkbox {
+        width: 22px;
+        height: 22px;
+        margin-right: 8px;
+    }
+}
+
 /* Active Learning & Animation */
 .progress-container { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 1rem; overflow: hidden; }
 .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s; }
