@@ -2198,7 +2198,7 @@ function rate(success) {
         comboCount = 0;
         playFailSound();
         
-        c.box = 1;
+        c.box = Math.max(1, (c.box || 1) - 1);
         c.lastLearnedAt = now;
         if (session.method === 'flip') {
             const flashcard = document.getElementById('flashcard');
@@ -2433,7 +2433,7 @@ function showCorrectionPhase(userInput, correctAnswer) {
     
     // BUGFIX: lastLearnedAt setzen damit Karte nicht als "nie gelernt" gilt
     const now = Date.now();
-    session.current.box = 1;
+    session.current.box = Math.max(1, (session.current.box || 1) - 1);
     session.current.lastLearnedAt = now;
     save();
 }
