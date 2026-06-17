@@ -10,8 +10,17 @@ const DB_VERSION = 2;
 const BACKUP_KEY = 'ultraBackup';
 const DATA_KEY = 'ultraData';
 const THEME_KEY = 'ultraTheme';
+const ACCENT_KEY = 'ultraAccent';
 const AUTO_BACKUP_INTERVAL = 5 * 60 * 1000; // 5 Minuten
 const LEARN_SETTINGS_KEY = 'ultraLearnSettings';
+
+// Verfügbare Akzent-Themen (für den Picker)
+const ACCENT_THEMES = [
+    { id: 'indigo',  name: 'Indigo',  color: '#4f46e5' },
+    { id: 'emerald', name: 'Smaragd', color: '#059669' },
+    { id: 'sunny',   name: 'Sonnig',  color: '#ea580c' },
+    { id: 'rose',    name: 'Rosé',    color: '#e11d48' }
+];
 
 // Leitner-Zeitintervalle (in Millisekunden)
 const LEITNER_INTERVALS = {
@@ -1868,6 +1877,34 @@ function applyTheme() {
     }
 }
 
+/**
+ * Setzt das Akzent-Theme (überschreibt nur --primary-*)
+ */
+function setAccent(name) {
+    try {
+        document.body.setAttribute('data-accent', name);
+        safeLocalStorage('set', ACCENT_KEY, name);
+        // Aktiven Punkt im Picker markieren
+        document.querySelectorAll('.accent-dot').forEach(dot => {
+            dot.classList.toggle('active', dot.dataset.accent === name);
+        });
+    } catch (e) {
+        console.log('Akzent konnte nicht gespeichert werden:', e);
+    }
+}
+
+function applyAccent() {
+    try {
+        const savedAccent = safeLocalStorage('get', ACCENT_KEY) || 'indigo';
+        document.body.setAttribute('data-accent', savedAccent);
+        document.querySelectorAll('.accent-dot').forEach(dot => {
+            dot.classList.toggle('active', dot.dataset.accent === savedAccent);
+        });
+    } catch (e) {
+        console.log('Akzent konnte nicht geladen werden:', e);
+    }
+}
+
 // =============================================
 // LEARNING ENGINE
 // =============================================
@@ -2020,6 +2057,18 @@ function startSession() {
     session.startTime = Date.now();
     session.timeSpent = 0;
     correctionMode = false;
+
+    // Pädagogik-Tracking: falsche Karten sofort wiederholen + Sitzungs-Zusammenfassung
+    session.uniqueCards = session.queue.length;       // einzigartige Karten (für Statistik)
+    session.firstWrongCount = 0;                       // beim 1. Versuch falsch
+    session.retryCorrectCount = 0;                     // beim Wiederholen richtig gelernt
+    session.retryWrongCount = 0;                       // beim Wiederholen immer noch falsch
+    session.repeatedCards = new Set();                 // IDs der Karten, die bereits einmal falsch waren
+    session.currentIsRetry = false;                    // ist die aktuell gezeigte Karte ein 2. Versuch?
+    session.masteredThisSession = 0;                   // Karten, die in dieser Sitzung Box 5 erreicht haben
+
+    // Ursprüngliche Box je Karte sichern, damit beim Erholen nicht über den Startwert aufgestiegen wird
+    session.queue.forEach(card => { card._sessionStartBox = card.box || 1; });
     
     document.getElementById('manageContent').classList.remove('active');
     document.getElementById('learnContent').classList.remove('active');
@@ -2042,6 +2091,7 @@ function loadCard() {
 
     const c = session.queue[session.idx];
     session.current = c;
+    session.currentIsRetry = !!(session.repeatedCards && session.repeatedCards.has(c.id));
     let isFront = true;
     if (session.dir === 'back') isFront = false;
     else if (session.dir === 'mixed') isFront = Math.random() > 0.5;
@@ -2179,14 +2229,26 @@ function rate(success) {
             playSuccessSound();
         }
         
-        // Box-Aufstieg prüfen
-        const newBox = Math.min(oldBox + 1, MAX_LEITNER_BOX);
+        // Box-Aufstieg / Erholung
+        let newBox;
+        if (session.currentIsRetry) {
+            // 2. Versuch richtig: Box darf sich erholen, aber nicht über den
+            // Wert, den die Karte zu Beginn der Sitzung hatte (kein Glückstreffer-Aufstieg)
+            session.retryCorrectCount++;
+            const cap = (c._sessionStartBox != null) ? c._sessionStartBox : oldBox + 1;
+            newBox = Math.min(oldBox + 1, cap, MAX_LEITNER_BOX);
+        } else {
+            newBox = Math.min(oldBox + 1, MAX_LEITNER_BOX);
+        }
         if (newBox > oldBox) {
             setTimeout(() => playLevelUpSound(), 200);
         }
         
         c.box = newBox;
-        if (c.box === MAX_LEITNER_BOX) c.lastMasteredAt = now;
+        if (c.box === MAX_LEITNER_BOX && !c.lastMasteredAt) {
+            c.lastMasteredAt = now;
+            session.masteredThisSession++;
+        }
         c.lastLearnedAt = now;
         incrementStreak();
         
@@ -2197,6 +2259,17 @@ function rate(success) {
         // Combo zurücksetzen
         comboCount = 0;
         playFailSound();
+
+        // Pädagogik: falsche Karte sofort als Nächstes wiederholen
+        if (!session.currentIsRetry) {
+            session.firstWrongCount++;
+            session.repeatedCards.add(c.id);
+            // Karte direkt als Nächstes einreihen (vor der eigentlich folgenden Karte)
+            session.queue.splice(session.idx + 1, 0, c);
+        } else {
+            // Beim 2. Versuch immer noch falsch: kein dritter Versuch (Endlosschleife vermeiden)
+            session.retryWrongCount++;
+        }
         
         c.box = Math.max(1, (c.box || 1) - 1);
         c.lastLearnedAt = now;
@@ -2364,11 +2437,21 @@ function checkType() {
             playSuccessSound();
         }
         
-        // Box-Up und Animation
+        // Box-Up / Erholung (analog zum Flip-Modus)
         const oldBox = session.current.box || 1;
-        const newBox = Math.min(oldBox + 1, MAX_LEITNER_BOX);
+        let newBox;
+        if (session.currentIsRetry) {
+            session.retryCorrectCount++;
+            const cap = (session.current._sessionStartBox != null) ? session.current._sessionStartBox : oldBox + 1;
+            newBox = Math.min(oldBox + 1, cap, MAX_LEITNER_BOX);
+        } else {
+            newBox = Math.min(oldBox + 1, MAX_LEITNER_BOX);
+        }
         session.current.box = newBox;
-        if (newBox === MAX_LEITNER_BOX) session.current.lastMasteredAt = now;
+        if (newBox === MAX_LEITNER_BOX && !session.current.lastMasteredAt) {
+            session.current.lastMasteredAt = now;
+            session.masteredThisSession++;
+        }
         session.current.lastLearnedAt = now;
         
         if (newBox > oldBox) {
@@ -2384,6 +2467,15 @@ function checkType() {
         // BUGFIX: Falsche Antwort - Sound und Combo-Reset
         playFailSound();
         comboCount = 0;
+
+        // Pädagogik: falsche Karte sofort als Nächstes wiederholen (nur beim 1. Versuch)
+        if (!session.currentIsRetry) {
+            session.firstWrongCount++;
+            session.repeatedCards.add(session.current.id);
+            session.queue.splice(session.idx + 1, 0, session.current);
+        } else {
+            session.retryWrongCount++;
+        }
         
         if (inp) inp.disabled = true;
         const btnCheckType = document.getElementById('btnCheckType');
@@ -2480,8 +2572,18 @@ function nextCard() {
     loadCard(); 
 }
 
-function finishSession() { 
-    endSession(); 
+function finishSession() {
+    const duration = (Date.now() - session.startTime) / 1000;
+    data.lastSessionDuration = duration;
+    data.totalTimeSeconds += duration;
+    // einzigartige Karten zählen (Wiederholungen nicht doppelt)
+    data.totalReviews += session.uniqueCards || session.queue.length;
+    save();
+
+    // Hilfsfelder entfernen, damit sie nicht in localStorage persistiert werden
+    session.queue.forEach(c => { delete c._sessionStartBox; });
+
+    showSummary();
 }
 
 function endSession() {
@@ -2500,6 +2602,69 @@ function endSession() {
     const statsNavItem = document.querySelectorAll('.nav-item')[2];
     if (statsNavItem) nav('statsContent', statsNavItem);
     updateStatsUI();
+}
+
+/**
+ * Sitzungs-Zusammenfassung anzeigen (pädagogisches Feedback am Session-Ende)
+ */
+function showSummary() {
+    document.getElementById('activeSession').style.display = 'none';
+    const bottomNav = document.querySelector('.bottom-nav');
+    const header = document.querySelector('header');
+    if (bottomNav) bottomNav.classList.remove('hidden-nav');
+    if (header) header.classList.remove('hidden');
+
+    const total = session.uniqueCards || 0;
+    const firstWrong = session.firstWrongCount || 0;
+    const direct = Math.max(0, total - firstWrong);          // beim 1. Versuch richtig
+    const learned = session.retryCorrectCount || 0;           // nach Wiederholung richtig
+    const accuracy = total > 0 ? Math.round((direct / total) * 100) : 0;
+    const duration = data.lastSessionDuration || 0;
+
+    // Emoji & Titel je nach Genauigkeit beim 1. Versuch
+    let emoji = '🎉', title = 'Super gemacht!';
+    if (total === 0) { emoji = '👋'; title = 'Sitzung beendet'; }
+    else if (accuracy === 100) { emoji = '🏆'; title = 'Perfekt!'; }
+    else if (accuracy >= 80) { emoji = '🎉'; title = 'Super gemacht!'; }
+    else if (accuracy >= 50) { emoji = '💪'; title = 'Weiter so!'; }
+    else { emoji = '🌱'; title = 'Übung macht den Meister'; }
+
+    const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+    setText('summaryEmoji', emoji);
+    setText('summaryTitle', title);
+    setText('summarySubtitle',
+        total > 0
+            ? `${direct} von ${total} Karten sofort richtig, ${learned} nach Wiederholung gelernt.`
+            : 'Keine Karten gelernt.');
+    setText('summaryAccuracy', accuracy + '%');
+    setText('summaryAccuracySub',
+        `${direct} richtig · ${firstWrong} beim 1. Versuch falsch`);
+    setText('summaryCorrect', direct);
+    setText('summaryRetries', learned);
+    setText('summaryTime', formatTime(duration));
+    setText('summaryMastered', session.masteredThisSession || 0);
+
+    const summary = document.getElementById('sessionSummary');
+    if (summary) summary.style.display = 'block';
+
+    // Bei Top-Ergebnis Konfetti zur Belohnung
+    if (accuracy >= 80 && total > 0) {
+        triggerConfetti({ type: 'celebration', intensity: 3 });
+    }
+}
+
+function closeSummary() {
+    const summary = document.getElementById('sessionSummary');
+    if (summary) summary.style.display = 'none';
+    updateStatsUI();
+    const statsNavItem = document.querySelectorAll('.nav-item')[2];
+    if (statsNavItem) nav('statsContent', statsNavItem);
+}
+
+function restartSession() {
+    const summary = document.getElementById('sessionSummary');
+    if (summary) summary.style.display = 'none';
+    startSession();
 }
 
 function flipCard() { 
@@ -3241,6 +3406,7 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
     applyTheme();
+    applyAccent();
     renderManage();
     updateStatsUI();
     updateBackupStatus();
