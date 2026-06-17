@@ -117,6 +117,7 @@
                     <select id="learnMethod" class="form-control">
                         <option value="flip">Karteikarte (Umdrehen)</option>
                         <option value="type">Schreiben (Eintippen)</option>
+                        <option value="mc">Multiple Choice (Auswahl)</option>
                     </select>
                 </div>
 
@@ -399,6 +400,19 @@
                 </div>
 
                 <button class="btn btn-primary btn-next-type hidden" id="btnNextType" onclick="nextCard()">Weiter</button>
+            </div>
+
+            <!-- MULTIPLE CHOICE MODE -->
+            <div class="mc-container" id="mcWrapper">
+                <div class="mc-box-badge" id="mcBoxBadge">Box 1</div>
+                <div class="card-label-muted" id="mcLabelQ">Frage</div>
+                <div class="card-text mc-question" id="mcTextQ">?</div>
+                <button id="btnHintMc" class="btn-outline btn-hint hidden" onclick="toggleMcHint()">Hinweis</button>
+                <div id="hintMc" class="hint-box"></div>
+                <div class="mc-options" id="mcOptions">
+                    <!-- Antwort-Buttons werden per JS generiert -->
+                </div>
+                <button class="btn btn-primary btn-next-mc hidden" id="btnNextMc" onclick="nextCard()">Weiter</button>
             </div>
         </div>
 

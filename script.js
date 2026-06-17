@@ -2080,8 +2080,10 @@ function startSession() {
 
     const flipWrapper = document.getElementById('flipWrapper');
     const typingWrapper = document.getElementById('typingWrapper');
+    const mcWrapper = document.getElementById('mcWrapper');
     if (flipWrapper) flipWrapper.style.display = session.method === 'flip' ? 'block' : 'none';
     if (typingWrapper) typingWrapper.style.display = session.method === 'type' ? 'block' : 'none';
+    if (mcWrapper) mcWrapper.style.display = session.method === 'mc' ? 'block' : 'none';
     loadCard();
 }
 
@@ -2136,6 +2138,41 @@ function loadCard() {
                 else hBtn.classList.add('hidden');
             }
         }, 200);
+    } else if (session.method === 'mc') {
+        // MULTIPLE CHOICE: Frage + Antwort-Buttons aufbauen
+        const mcLabelQ = document.getElementById('mcLabelQ');
+        const mcTextQ = document.getElementById('mcTextQ');
+        const mcBoxBadge = document.getElementById('mcBoxBadge');
+        const mcOptions = document.getElementById('mcOptions');
+        const btnNextMc = document.getElementById('btnNextMc');
+        const hBtn = document.getElementById('btnHintMc');
+        const hBox = document.getElementById('hintMc');
+
+        if (mcLabelQ) mcLabelQ.textContent = lblQ;
+        if (mcTextQ) mcTextQ.textContent = session.q;
+        if (mcBoxBadge) {
+            mcBoxBadge.textContent = `Box ${c.box || 1}`;
+            mcBoxBadge.style.background = `var(--box-${c.box || 1})`;
+        }
+        if (btnNextMc) btnNextMc.classList.add('hidden');
+        if (hBox) hBox.style.display = 'none';
+        if (hBtn) {
+            if (c.hint) { hBtn.classList.remove('hidden'); if (hBox) hBox.textContent = c.hint; }
+            else hBtn.classList.add('hidden');
+        }
+
+        // Antwortoptionen generieren: 1 richtige + 3 Distraktoren aus dem Pool
+        if (mcOptions) {
+            const options = generateMcOptions(c);
+            mcOptions.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'mc-option';
+                btn.textContent = opt;
+                btn.addEventListener('click', (e) => answerMc(e, opt));
+                mcOptions.appendChild(btn);
+            });
+        }
     } else {
         correctionMode = false;
         const typeLabelQ = document.getElementById('typeLabelQ');
@@ -2148,7 +2185,7 @@ function loadCard() {
         const correctionArea = document.getElementById('correctionArea');
         const hBtn = document.getElementById('btnHintType');
         const hBox = document.getElementById('hintType');
-        
+
         if (typeLabelQ) typeLabelQ.textContent = lblQ;
         if (typeTextQ) typeTextQ.textContent = session.q;
         if (typeInput) {
@@ -2163,9 +2200,9 @@ function loadCard() {
         if (correctionArea) correctionArea.style.display = 'none';
         if (hBox) hBox.style.display = 'none';
         if (hBtn) {
-            if (c.hint) { 
-                hBtn.classList.remove('hidden'); 
-                if (hBox) hBox.textContent = c.hint; 
+            if (c.hint) {
+                hBtn.classList.remove('hidden');
+                if (hBox) hBox.textContent = c.hint;
             }
             else hBtn.classList.add('hidden');
         }
@@ -2280,6 +2317,9 @@ function rate(success) {
     }
     save();
     session.idx++;
+    // Im MC-Modus nicht automatisch weiter – Nutzer steuert via "Weiter"-Button,
+    // damit er die richtige Antwort in Ruhe betrachten kann.
+    if (session.method === 'mc') return;
     setTimeout(loadCard, success ? 500 : 800);
 }
 
@@ -2680,11 +2720,94 @@ function toggleHint(e) {
     if (btnHintFront) btnHintFront.classList.add('hidden'); 
 }
 
-function toggleTypeHint() { 
+function toggleTypeHint() {
     const hintType = document.getElementById('hintType');
     const btnHintType = document.getElementById('btnHintType');
-    if (hintType) hintType.style.display = 'block'; 
-    if (btnHintType) btnHintType.classList.add('hidden'); 
+    if (hintType) hintType.style.display = 'block';
+    if (btnHintType) btnHintType.classList.add('hidden');
+}
+
+// =============================================
+// MULTIPLE CHOICE LOGIK
+// =============================================
+
+/**
+ * Generiert 4 Antwortoptionen: die richtige Antwort + 3 Distraktoren
+ * aus dem aktuellen Karten-Pool. Bei zu wenigen Karten werden Duplikate
+ * oder generische Platzhalter aufgefüllt.
+ */
+function generateMcOptions(currentCard) {
+    const correct = session.a;
+    const pool = session.queue.filter(c => c !== currentCard);
+    // Mögliche Distraktoren: Antworten anderer Karten, einmalig
+    const distractors = [];
+    const used = new Set([correct.trim().toLowerCase()]);
+    // Pool mischen für Varianz
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    for (const c of shuffled) {
+        const cand = (session.dir === 'front' ? c.back : c.front).trim();
+        if (cand && !used.has(cand.toLowerCase())) {
+            distractors.push(cand);
+            used.add(cand.toLowerCase());
+        }
+        if (distractors.length >= 3) break;
+    }
+    // Falls zu wenige Distraktoren: mit neutralen Platzhaltern auffüllen
+    const fillers = ['—', '???', '(keine der Optionen)'];
+    let fi = 0;
+    while (distractors.length < 3) {
+        let f = fillers[fi % fillers.length];
+        fi++;
+        if (!used.has(f.toLowerCase())) {
+            distractors.push(f);
+            used.add(f.toLowerCase());
+        }
+    }
+
+    // 4 Optionen mischen
+    const options = [correct, ...distractors.slice(0, 3)];
+    return options.sort(() => Math.random() - 0.5);
+}
+
+/**
+ * Wertet eine MC-Antwort aus: markiert Buttons, zeigt Feedback,
+ * aktualisiert die Karte über die zentrale rate()-Logik (mit Pädagogik:
+ * Wiederholung bei falsch, Box-Erholung) und schaltet nach kurzem Delay weiter.
+ */
+function answerMc(e, chosen) {
+    const btn = e.currentTarget;
+    const allOptions = document.querySelectorAll('.mc-option');
+    const correct = session.a.trim();
+    const isCorrect = chosen.trim().toLowerCase() === correct.toLowerCase();
+
+    // Alle Buttons deaktivieren + korrekte/richtige markieren
+    allOptions.forEach(o => {
+        o.disabled = true;
+        const oCorrect = o.textContent.trim().toLowerCase() === correct.toLowerCase();
+        if (oCorrect) o.classList.add('correct');
+        else if (o === btn && !isCorrect) o.classList.add('wrong');
+    });
+
+    // Karte bewerten über zentrale Logik (Box, Combo, Pädagogik, Save)
+    rate(isCorrect);
+
+    // "Weiter"-Button anzeigen, damit der Nutzer den nächsten Schritt steuert.
+    // rate() selbst ruft nach Delay bereits loadCard() auf – wir zeigen den
+    // Button daher nur zur visuellen Bestätigung und blenden ihn beim nächsten
+    // loadCard() automatisch wieder aus.
+    const btnNextMc = document.getElementById('btnNextMc');
+    if (btnNextMc) {
+        btnNextMc.classList.remove('hidden');
+        // Fokus aufs Weiterscrollen per Tastatur möglich
+        setTimeout(() => btnNextMc.focus(), 50);
+    }
+}
+
+function toggleMcHint() {
+    const hintMc = document.getElementById('hintMc');
+    const btnHintMc = document.getElementById('btnHintMc');
+    if (hintMc) hintMc.style.display = 'block';
+    if (btnHintMc) btnHintMc.classList.add('hidden');
 }
 
 function speak(e, type) {
