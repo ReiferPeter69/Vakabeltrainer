@@ -746,15 +746,52 @@ function save() {
 // =============================================
 // STREAK LOGIC
 // =============================================
-function checkStreak() {
-    const today = new Date().toDateString();
-    if (data.lastLearnedDate) {
-        const lastDate = new Date(data.lastLearnedDate);
-        const todayDate = new Date(today);
-        const diffTime = Math.abs(todayDate - lastDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
 
-        if (diffDays > 1 && data.lastLearnedDate !== today) {
+/**
+ * Wandelt ein Datum in einen kalendertag-genauen Schlüssel (YYYY-MM-DD) um.
+ * Bewusst KEIN toISOString(): das würde in UTC umrechnen und in Zeitzonen
+ * östlich/westlich von UTC den Tag verschieben.
+ */
+function dayKey(date = new Date()) {
+    const d = date instanceof Date ? date : new Date(date);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/**
+ * Differenz in Kalendertagen zwischen zwei Tagesschlüsseln.
+ * Rechnet über UTC-Mittag, damit Sommerzeitwechsel (23h/25h-Tage)
+ * keine krummen Werte wie 0.958 erzeugen.
+ */
+function daysBetweenKeys(fromKey, toKey) {
+    const parse = (key) => {
+        const [y, m, d] = key.split('-').map(Number);
+        return Date.UTC(y, m - 1, d);
+    };
+    return Math.round((parse(toKey) - parse(fromKey)) / 86400000);
+}
+
+/**
+ * Migriert Altbestände: früher wurde lastLearnedDate als
+ * toDateString() ("Mon Jul 27 2026") gespeichert.
+ */
+function normalizeLearnedDate(value) {
+    if (!value) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    const parsed = new Date(value);
+    return isNaN(parsed) ? null : dayKey(parsed);
+}
+
+function checkStreak() {
+    data.lastLearnedDate = normalizeLearnedDate(data.lastLearnedDate);
+
+    if (data.lastLearnedDate) {
+        const gap = daysBetweenKeys(data.lastLearnedDate, dayKey());
+        // Nur ein echter Aussetzer (>= 2 Tage) bricht die Serie.
+        // gap < 0 = Systemuhr zurückgestellt -> Serie unangetastet lassen.
+        if (gap >= 2 && data.streak !== 0) {
             data.streak = 0;
             save();
         }
@@ -763,28 +800,28 @@ function checkStreak() {
     if (streakEl) streakEl.innerText = data.streak || 0;
 }
 
+/**
+ * Erhöht die Lern-Serie. Gibt true zurück, wenn heute erstmals gelernt wurde
+ * (nur dann ist eine Belohnung angebracht).
+ */
 function incrementStreak() {
-    const today = new Date().toDateString();
-    if (data.lastLearnedDate === today) return;
+    const today = dayKey();
+    const last = normalizeLearnedDate(data.lastLearnedDate);
 
-    if (data.lastLearnedDate) {
-        const lastDate = new Date(data.lastLearnedDate);
-        const todayDate = new Date(today);
-        const diffTime = todayDate - lastDate;
-        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    if (last === today) return false;
 
-        if (diffDays === 1) {
-            data.streak = (data.streak || 0) + 1;
-        } else {
-            data.streak = 1;
-        }
+    if (last) {
+        const gap = daysBetweenKeys(last, today);
+        data.streak = gap === 1 ? (data.streak || 0) + 1 : 1;
     } else {
         data.streak = 1;
     }
 
     data.lastLearnedDate = today;
+    const streakEl = document.getElementById('streakCount');
+    if (streakEl) streakEl.innerText = data.streak;
     save();
-    triggerConfetti();
+    return true;
 }
 
 // =============================================
@@ -2210,16 +2247,65 @@ function loadCard() {
 }
 
 /**
+ * Ermittelt den Zeitpunkt der nächsten Wiederholung.
+ * `dueAt` ist die maßgebliche Quelle; für Altbestände ohne dieses Feld
+ * wird es aus lastLearnedAt + Box-Intervall hergeleitet.
+ */
+function getCardDueAt(card) {
+    if (typeof card.dueAt === 'number') return card.dueAt;
+    if (!card.lastLearnedAt) return 0; // noch nie gelernt -> sofort fällig
+    const box = card.box || 1;
+    return card.lastLearnedAt + (LEITNER_INTERVALS[box] || LEITNER_INTERVALS[1]);
+}
+
+/**
  * Prüft, ob eine Karte basierend auf dem Leitner-Intervall fällig ist
  */
 function isCardDue(card) {
-    if (!card.lastLearnedAt) return true; // Noch nie gelernt
-    
-    const box = card.box || 1;
-    const interval = LEITNER_INTERVALS[box] || LEITNER_INTERVALS[1];
-    const nextReview = card.lastLearnedAt + interval;
-    
-    return Date.now() >= nextReview;
+    return Date.now() >= getCardDueAt(card);
+}
+
+/**
+ * Zentrale Leitner-Bewertung — die EINZIGE Stelle, an der sich Box und
+ * Fälligkeit einer Karte ändern. Alle Modi (Flip, Schreiben, MC) rufen sie auf,
+ * damit eine Antwort nicht versehentlich doppelt gewertet wird.
+ *
+ * @param {object} card    Die zu bewertende Karte
+ * @param {boolean} success Richtig beantwortet?
+ * @param {boolean} isRetry Handelt es sich um den 2. Versuch derselben Karte?
+ * @returns {{oldBox:number, newBox:number, mastered:boolean}}
+ */
+function applyAnswer(card, success, isRetry) {
+    const now = Date.now();
+    const oldBox = card.box || 1;
+    let newBox;
+
+    if (success) {
+        if (isRetry) {
+            // Nach einem Fehler darf sich die Karte erholen, aber nicht über den
+            // Stand vom Sitzungsbeginn hinaus aufsteigen (kein Glückstreffer-Aufstieg).
+            const cap = (card._sessionStartBox != null) ? card._sessionStartBox : oldBox + 1;
+            newBox = Math.min(oldBox + 1, cap, MAX_LEITNER_BOX);
+        } else {
+            newBox = Math.min(oldBox + 1, MAX_LEITNER_BOX);
+        }
+        card.box = newBox;
+        card.lastLearnedAt = now;
+        card.dueAt = now + (LEITNER_INTERVALS[newBox] || LEITNER_INTERVALS[1]);
+    } else {
+        newBox = Math.max(1, oldBox - 1);
+        card.box = newBox;
+        card.lastLearnedAt = now;
+        // Wichtig: eine falsch beantwortete Karte ist SOFORT wieder fällig.
+        // Würde hier das Box-1-Intervall (1 Tag) gesetzt, verschwänden
+        // ausgerechnet die schwächsten Karten für einen Tag aus der Wiederholung.
+        card.dueAt = now;
+    }
+
+    const mastered = newBox === MAX_LEITNER_BOX && oldBox < MAX_LEITNER_BOX;
+    if (mastered) card.lastMasteredAt = now;
+
+    return { oldBox, newBox, mastered };
 }
 
 /**
@@ -2237,90 +2323,81 @@ function formatTimeUntil(timestamp) {
     return `${Math.floor(diff / (1000 * 60))} Minuten`;
 }
 
-function rate(success) {
+/**
+ * Bewertet die aktuelle Karte. Zentraler Einstiegspunkt für Flip und MC.
+ *
+ * @param {boolean} success       Richtig beantwortet?
+ * @param {boolean} [autoAdvance] Soll nach kurzem Delay automatisch
+ *                                weitergeblättert werden? (MC steuert selbst)
+ */
+function rate(success, autoAdvance = true) {
     const c = session.current;
     if (!c) return;
-    
+    // Guard: verhindert Doppelbewertung durch Doppelklick, gedrückt gehaltene
+    // Pfeiltaste oder Klick während des Weiterblätter-Delays.
+    if (session.answered) return;
+    session.answered = true;
+
     const now = Date.now();
-    const cardDuration = (now - session.cardStartTime) / 1000;
-    session.timeSpent += cardDuration;
-    
-    const oldBox = c.box || 1;
+    session.timeSpent += (now - session.cardStartTime) / 1000;
+    session.answeredCount = (session.answeredCount || 0) + 1;
+
+    const isRetry = session.currentIsRetry;
+    const { oldBox, newBox, mastered } = applyAnswer(c, success, isRetry);
+    if (mastered) session.masteredThisSession++;
 
     if (success) {
         // Combo-System: Prüfe ob Combo noch aktiv
-        if (now - lastAnswerTime < comboTimeout) {
-            comboCount++;
-        } else {
-            comboCount = 1;
-        }
+        comboCount = (now - lastAnswerTime < comboTimeout) ? comboCount + 1 : 1;
         lastAnswerTime = now;
-        
-        // Confetti und Sound
-        triggerConfetti();
-        if (comboCount >= 3) {
-            playComboSound(Math.min(comboCount, 7));
-        } else if (comboCount === 1) {
-            // Keine Special-Effekte für erste Antwort
-        } else {
-            playSuccessSound();
-        }
-        
-        // Box-Aufstieg / Erholung
-        let newBox;
-        if (session.currentIsRetry) {
-            // 2. Versuch richtig: Box darf sich erholen, aber nicht über den
-            // Wert, den die Karte zu Beginn der Sitzung hatte (kein Glückstreffer-Aufstieg)
-            session.retryCorrectCount++;
-            const cap = (c._sessionStartBox != null) ? c._sessionStartBox : oldBox + 1;
-            newBox = Math.min(oldBox + 1, cap, MAX_LEITNER_BOX);
-        } else {
-            newBox = Math.min(oldBox + 1, MAX_LEITNER_BOX);
-        }
-        if (newBox > oldBox) {
-            setTimeout(() => playLevelUpSound(), 200);
-        }
-        
-        c.box = newBox;
-        if (c.box === MAX_LEITNER_BOX && !c.lastMasteredAt) {
-            c.lastMasteredAt = now;
-            session.masteredThisSession++;
-        }
-        c.lastLearnedAt = now;
-        incrementStreak();
-        
-        // Combo Badge anzeigen
-        showComboBadge(comboCount, oldBox, newBox);
-        
+
+        if (isRetry) session.retryCorrectCount++;
+
+        playAnswerFeedback(true, comboCount, oldBox, newBox);
+
+        // Konfetti nur beim ersten Lernen des Tages (Serie verlängert)
+        if (incrementStreak()) triggerConfetti({ type: 'streak' });
     } else {
-        // Combo zurücksetzen
         comboCount = 0;
-        playFailSound();
+        playAnswerFeedback(false);
 
         // Pädagogik: falsche Karte sofort als Nächstes wiederholen
-        if (!session.currentIsRetry) {
+        if (!isRetry) {
             session.firstWrongCount++;
             session.repeatedCards.add(c.id);
-            // Karte direkt als Nächstes einreihen (vor der eigentlich folgenden Karte)
             session.queue.splice(session.idx + 1, 0, c);
         } else {
             // Beim 2. Versuch immer noch falsch: kein dritter Versuch (Endlosschleife vermeiden)
             session.retryWrongCount++;
         }
-        
-        c.box = Math.max(1, (c.box || 1) - 1);
-        c.lastLearnedAt = now;
+
         if (session.method === 'flip') {
             const flashcard = document.getElementById('flashcard');
             if (flashcard) flashcard.classList.add('shake');
         }
     }
+
     save();
+
+    if (!autoAdvance) return;
     session.idx++;
-    // Im MC-Modus nicht automatisch weiter – Nutzer steuert via "Weiter"-Button,
-    // damit er die richtige Antwort in Ruhe betrachten kann.
-    if (session.method === 'mc') return;
     setTimeout(loadCard, success ? 500 : 800);
+}
+
+/**
+ * Bündelt Sound- und Badge-Feedback, damit alle Lernmodi identisch reagieren.
+ */
+function playAnswerFeedback(success, combo = 0, oldBox = 0, newBox = 0) {
+    if (!success) {
+        playFailSound();
+        return;
+    }
+    triggerConfetti();
+    if (combo >= 3) playComboSound(Math.min(combo, 7));
+    else playSuccessSound();
+
+    if (newBox > oldBox) setTimeout(playLevelUpSound, 200);
+    showComboBadge(combo, oldBox, newBox);
 }
 
 // =============================================
