@@ -78,7 +78,15 @@ let curFolder = null;
 let session = { 
     queue: [], idx: 0, method: 'flip', dir: 'mixed', 
     current: null, q: '', a: '', startTime: 0, 
-    cardStartTime: 0, timeSpent: 0 
+    cardStartTime: 0, timeSpent: 0,
+    answered: false,
+    answeredCount: 0,
+    uniqueCards: 0,
+    firstWrongCount: 0,
+    retryCorrectCount: 0,
+    retryWrongCount: 0,
+    repeatedCards: new Set(),
+    currentIsRetry: false
 };
 
 // Multi Select State
@@ -544,9 +552,10 @@ function levenshtein(a, b) {
                 d[i][j - 1] + 1,      // Einfügung
                 d[i - 1][j - 1] + cost  // Substitution
             );
-            // Transposition
+            // Transposition (case-insensitive, konsistent zu cost)
             if (i > 1 && j > 1 && 
-                a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+                a[i - 1].toLowerCase() === b[j - 2].toLowerCase() && 
+                a[i - 2].toLowerCase() === b[j - 1].toLowerCase()) {
                 d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + cost);
             }
         }
@@ -998,27 +1007,32 @@ async function bulkDeleteSelected() {
                 });
             };
             collectRecursive(id);
-            
-            const deleteRecursive = (fid) => {
-                data.cards = data.cards.filter(c => c.folderId !== fid);
-                data.folders.filter(f => f.parentId === fid).forEach(s => deleteRecursive(s.id));
-                data.folders = data.folders.filter(f => f.id !== fid);
-            };
-            deleteRecursive(id);
-        } else {
-            const card = data.cards.find(c => c.id === id);
-            if (card) deletedItems.push({...card});
-            data.cards = data.cards.filter(c => c.id !== id);
         }
     });
-
-    triggerUndoToast(`${deletedItems.length} Element(e) gelöscht`, { type: 'bulk', items: deletedItems });
-
-    save();
-    selectedIds.clear();
-    isSelectMode = false;
-    updateSelectionUI();
-    renderManage();
+    
+    if (deletedItems.length > 0) {
+        triggerUndoToast(`${selectedIds.size} Element(e) gelöscht`, { type: 'bulk', items: deletedItems });
+        
+        selectedIds.forEach(id => {
+            const folder = data.folders.find(f => f.id === id);
+            if (folder) {
+                const rec = (fid) => {
+                    data.cards = data.cards.filter(c => c.folderId !== fid);
+                    data.folders.filter(f => f.parentId === fid).forEach(s => rec(s.id));
+                    data.folders = data.folders.filter(f => f.id !== fid);
+                };
+                rec(id);
+            } else {
+                data.cards = data.cards.filter(c => c.id !== id);
+            }
+        });
+        
+        save();
+        selectedIds.clear();
+        isSelectMode = false;
+        updateSelectionUI();
+        renderManage();
+    }
 }
 
 // =============================================
@@ -1791,1935 +1805,1007 @@ function exportFolder(folderId) {
     collectIds(folderId);
     
     const folderCards = data.cards.filter(c => subs.includes(c.folderId));
-    const folderSubs = data.folders.filter(f => subs.includes(f.id));
+    const folderFolders = data.folders.filter(f => subs.includes(f.id));
     
-    const exportPayload = {
-        type: 'ultracards-folder',
-        version: 1,
+    const payload = {
+        type: 'ultracards-backup',
+        version: DB_VERSION,
         exportedAt: Date.now(),
-        name: folder.name,
-        folders: folderSubs.map(f => ({
-            id: f.id,
-            name: f.name,
-            parentId: f.parentId
-        })),
+        folders: folderFolders,
         cards: folderCards
     };
     
-    const json = JSON.stringify(exportPayload, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ultracards-${folder.name.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson(payload, `vokabeltrainer-${folder.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
     showNotification('Ordner exportiert!', 'success');
 }
 
-/**
- * Reset einer Karte auf Box 1
- */
-function resetCard(id) {
-    const card = data.cards.find(c => c.id === id);
-    if (!card) return;
-    
-    const oldBox = card.box || 1;
-    if (oldBox === 1) {
-        showNotification('Karte ist bereits in Box 1', 'warning');
-        return;
-    }
-    
-    card.box = 1;
-    card.lastLearnedAt = null;
-    save();
-    renderManage();
-    showNotification(`Karte zurückgesetzt (Box ${oldBox} → 1)`, 'success');
+// =============================================
+// MODALS & NAVIGATION
+// =============================================
+function showModal(id) {
+    const m = document.getElementById(id);
+    if (m) m.classList.add('show');
 }
 
-function runImport() {
-    if (curFolder === null) {
-        showNotification('Bitte wähle zuerst einen Ordner aus!', 'warning');
-        return;
-    }
-    
-    const lines = document.getElementById('inpImport').value.split('\n');
-    let addedCount = 0; 
-    let skipCount = 0; 
-    let errorCount = 0;
+function hideModal(id) {
+    const m = document.getElementById(id);
+    if (m) m.classList.remove('show');
+}
 
-    lines.forEach(l => {
-        let parts = l.split(';');
-        if (parts.length < 2) parts = l.split('\t');
-        const fRaw = parts[0]; 
-        const bRaw = parts[1]; 
-        const hRaw = parts[2];
-
-        if (fRaw && bRaw) { 
-            const f = fRaw.trim(); 
-            const b = bRaw.trim(); 
-            const h = hRaw ? hRaw.trim() : '';
-            const exists = data.cards.some(c => c.folderId === curFolder && c.front.toLowerCase() === f.toLowerCase() && c.back.toLowerCase() === b.toLowerCase());
-            if (!exists) {
-                data.cards.push({ id: genId(), front: f, back: b, hint: h, box: 1, folderId: curFolder, createdAt: Date.now() }); 
-                addedCount++;
-            } else { 
-                skipCount++; 
-            }
-        } else { 
-            if (l.trim() !== '') errorCount++; 
-        }
+/**
+ * Zeigt eine Content-Area und entfernt Inline-Display-Styles
+ * (wichtig für activeSession/sessionSummary, die inline display:none haben)
+ */
+function showView(viewId) {
+    document.querySelectorAll('.content-area').forEach(a => {
+        a.classList.remove('active');
+        a.style.display = '';
     });
-    
-    save(); 
-    document.getElementById('inpImport').value = '';
-    const fb = document.getElementById('importFeedback');
-    if (fb) {
-        fb.style.display = 'block';
-        let msg = `<span style="color:var(--success)">✅ ${addedCount} importiert</span>`;
-        if (skipCount > 0) msg += `<br><span style="color:var(--warning)">⚠️ ${skipCount} Duplikate übersprungen</span>`;
-        if (errorCount > 0) msg += `<br><span style="color:var(--danger)">❌ ${errorCount} fehlerhafte Zeilen</span>`;
-        fb.innerHTML = msg;
-        if (errorCount === 0 && addedCount > 0) { 
-            setTimeout(() => { hideModal('importModal'); renderManage(); }, 2000); 
-        }
+    const view = document.getElementById(viewId);
+    if (view) view.classList.add('active');
+}
+
+function setActiveNav(index) {
+    document.querySelectorAll('.nav-item').forEach((n, i) => {
+        n.classList.toggle('active', i === index);
+    });
+}
+
+function nav(viewId, el) {
+    if (sessionActive) {
+        showNotification('Bitte beende zuerst die laufende Session!', 'warning');
+        return;
     }
+    showView(viewId);
+    if (el) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+    }
+    if (viewId === 'statsContent') renderStats();
+    if (viewId === 'manageContent') renderManage(document.getElementById('searchBox')?.value || '');
 }
 
 // =============================================
-// THEME
+// THEME & AKZENT
 // =============================================
+function applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
 function toggleTheme() {
-    try {
-        const b = document.body;
-        const t = b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        b.setAttribute('data-theme', t);
-        const themeIcon = document.getElementById('themeIcon');
-        if (themeIcon) themeIcon.className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        safeLocalStorage('set', THEME_KEY, t);
-    } catch (e) {
-        console.log('Theme konnte nicht gespeichert werden:', e);
-    }
+    const next = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    safeLocalStorage('set', THEME_KEY, next);
 }
 
-function applyTheme() {
-    try {
-        const savedTheme = safeLocalStorage('get', THEME_KEY) || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-        const themeIcon = document.getElementById('themeIcon');
-        if (themeIcon) themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-    } catch (e) {
-        console.log('Theme konnte nicht geladen werden:', e);
-    }
-}
-
-/**
- * Setzt das Akzent-Theme (überschreibt nur --primary-*)
- */
-function setAccent(name) {
-    try {
-        document.body.setAttribute('data-accent', name);
-        safeLocalStorage('set', ACCENT_KEY, name);
-        // Aktiven Punkt im Picker markieren
-        document.querySelectorAll('.accent-dot').forEach(dot => {
-            dot.classList.toggle('active', dot.dataset.accent === name);
-        });
-    } catch (e) {
-        console.log('Akzent konnte nicht gespeichert werden:', e);
-    }
-}
-
-function applyAccent() {
-    try {
-        const savedAccent = safeLocalStorage('get', ACCENT_KEY) || 'indigo';
-        document.body.setAttribute('data-accent', savedAccent);
-        document.querySelectorAll('.accent-dot').forEach(dot => {
-            dot.classList.toggle('active', dot.dataset.accent === savedAccent);
-        });
-    } catch (e) {
-        console.log('Akzent konnte nicht geladen werden:', e);
-    }
+function setAccent(id) {
+    document.body.dataset.accent = id;
+    safeLocalStorage('set', ACCENT_KEY, id);
+    document.querySelectorAll('.accent-dot').forEach(d => {
+        d.classList.toggle('active', d.dataset.accent === id);
+    });
 }
 
 // =============================================
-// LEARNING ENGINE
+// FAB
 // =============================================
-function saveLearnSettings() {
-    try {
-        const settings = {
-            source: document.getElementById('learnSource')?.value || 'due',
-            strategy: document.getElementById('learnStrategy')?.value || 'leitner',
-            method: document.getElementById('learnMethod')?.value || 'flip',
-            direction: session.dir || 'mixed'
-        };
-        safeLocalStorage('set', LEARN_SETTINGS_KEY, JSON.stringify(settings));
-    } catch (e) {
-        console.log('Lern-Einstellungen konnten nicht gespeichert werden:', e);
-    }
+function toggleFab() {
+    const menu = document.getElementById('fabMenu');
+    if (menu) menu.classList.toggle('active');
 }
 
-function loadLearnSettings() {
-    try {
-        const raw = safeLocalStorage('get', LEARN_SETTINGS_KEY);
-        if (!raw) return;
-        const settings = JSON.parse(raw);
-        
-        const learnSource = document.getElementById('learnSource');
-        const learnStrategy = document.getElementById('learnStrategy');
-        const learnMethod = document.getElementById('learnMethod');
-        
-        if (learnSource && settings.source) {
-            // Warte bis Optionen aufgebaut sind, dann setzen
-            setTimeout(() => {
-                if (Array.from(learnSource.options).some(o => o.value === settings.source)) {
-                    learnSource.value = settings.source;
-                }
-            }, 0);
-        }
-        if (learnStrategy && settings.strategy) learnStrategy.value = settings.strategy;
-        if (learnMethod && settings.method) learnMethod.value = settings.method;
-        if (settings.direction) setDirection(settings.direction, true);
-    } catch (e) {
-        console.log('Lern-Einstellungen konnten nicht geladen werden:', e);
-    }
+// =============================================
+// LERN-QUELLEN & HILFSFUNKTIONEN
+// =============================================
+function getCardsForScope(scopeId) {
+    if (!scopeId || scopeId === 'all') return [...data.cards];
+    const subs = [scopeId];
+    const collect = (fid) => {
+        data.folders.filter(f => f.parentId === fid).forEach(c => {
+            subs.push(c.id);
+            collect(c.id);
+        });
+    };
+    collect(scopeId);
+    return data.cards.filter(c => subs.includes(c.folderId));
+}
+
+function isCardDue(card) {
+    if (!card.lastLearnedAt) return true;
+    const interval = LEITNER_INTERVALS[card.box || 1] || LEITNER_INTERVALS[1];
+    return (card.lastLearnedAt + interval) <= Date.now();
+}
+
+function formatTimeUntil(ts) {
+    const diff = ts - Date.now();
+    if (diff <= 0) return 'Fällig!';
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `in ${mins} Min.`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `in ${hours} Std.`;
+    const days = Math.floor(hours / 24);
+    return `in ${days} Tag${days === 1 ? '' : 'en'}`;
 }
 
 function updateLearnSource() {
-    const s = document.getElementById('learnSource'); 
-    if (!s) return;
-    s.innerHTML = '';
+    const sel = document.getElementById('learnSource');
+    if (sel) {
+        const prev = sel.value;
+        sel.innerHTML = '';
+        
+        const optAll = document.createElement('option');
+        optAll.value = 'all';
+        optAll.textContent = `Alle Karten (${data.cards.length})`;
+        sel.appendChild(optAll);
+        
+        const addFolders = (parentId, level) => {
+            data.folders.filter(f => f.parentId === parentId).forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = `${'\u00A0'.repeat(level * 2)}${f.name} (${countCardsRecursive(f.id)})`;
+                sel.appendChild(opt);
+                addFolders(f.id, level + 1);
+            });
+        };
+        addFolders(null, 0);
+        
+        if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
     
-    // Zähle fällige Karten
-    const dueCount = data.cards.filter(c => isCardDue(c)).length;
-    const dueLabel = dueCount > 0 ? `Fällige Karten (${dueCount})` : 'Fällige Karten';
-    
-    s.innerHTML += `<option value="due">${dueLabel}</option>`;
-    s.innerHTML += `<option value="all">Alle Karten</option>`;
-    if (curFolder) s.innerHTML += `<option value="current">Aktueller Ordner (+Unterordner)</option>`;
-    
-    // Gespeicherte Quelle wiederherstellen falls vorhanden
-    try {
-        const raw = safeLocalStorage('get', LEARN_SETTINGS_KEY);
-        if (raw) {
-            const settings = JSON.parse(raw);
-            if (settings.source && Array.from(s.options).some(o => o.value === settings.source)) {
-                s.value = settings.source;
-            } else {
-                s.value = 'due';
-            }
-        } else {
-            s.value = 'due';
-        }
-    } catch (e) {
-        s.value = 'due';
+    const scope = document.getElementById('statsScope');
+    if (scope) {
+        const prevScope = scope.value;
+        scope.innerHTML = '';
+        
+        const optAll2 = document.createElement('option');
+        optAll2.value = 'all';
+        optAll2.textContent = 'Alle Karten';
+        scope.appendChild(optAll2);
+        
+        const addScope = (parentId, level) => {
+            data.folders.filter(f => f.parentId === parentId).forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = `${'\u00A0'.repeat(level * 2)}${f.name}`;
+                scope.appendChild(opt);
+                addScope(f.id, level + 1);
+            });
+        };
+        addScope(null, 0);
+        
+        if ([...scope.options].some(o => o.value === prevScope)) scope.value = prevScope;
     }
 }
 
-function setDirection(d, skipSave = false) {
-    session.dir = d;
-    ['btnMix', 'btnFront', 'btnBack'].forEach(b => {
-        const el = document.getElementById(b);
-        if (el) el.classList.remove('active');
-    });
-    if (d === 'mixed') {
-        const el = document.getElementById('btnMix');
-        if (el) el.classList.add('active');
-    }
-    if (d === 'front') {
-        const el = document.getElementById('btnFront');
-        if (el) el.classList.add('active');
-    }
-    if (d === 'back') {
-        const el = document.getElementById('btnBack');
-        if (el) el.classList.add('active');
-    }
-    if (!skipSave) saveLearnSettings();
-}
+// =============================================
+// LERN-SESSION
+// =============================================
+let sessionActive = false;
 
-function getFolderIdsRecursive(rootId) {
-    let ids = [rootId];
-    const children = data.folders.filter(f => f.parentId === rootId);
-    children.forEach(child => ids = ids.concat(getFolderIdsRecursive(child.id)));
-    return ids;
+function setDirection(dir) {
+    session.dir = dir;
+    const mix = document.getElementById('btnMix');
+    const front = document.getElementById('btnFront');
+    const back = document.getElementById('btnBack');
+    if (mix) mix.classList.toggle('active', dir === 'mixed');
+    if (front) front.classList.toggle('active', dir === 'front');
+    if (back) back.classList.toggle('active', dir === 'back');
 }
 
 function startSession() {
-    const src = document.getElementById('learnSource').value;
-    const strat = document.getElementById('learnStrategy').value;
-    session.method = document.getElementById('learnMethod').value;
-    let pool = [];
-
-    if (src === 'due') {
-        // Nur fällige Karten
-        pool = data.cards.filter(c => isCardDue(c));
-        if (pool.length === 0) {
-            showNotification('Keine fälligen Karten! Lerne einfach weiter oder erweitere den Lernumfang.', 'info');
+    const sourceEl = document.getElementById('learnSource');
+    const strategyEl = document.getElementById('learnStrategy');
+    const methodEl = document.getElementById('learnMethod');
+    if (!sourceEl || !strategyEl || !methodEl) return;
+    
+    const source = sourceEl.value;
+    const strategy = strategyEl.value;
+    const method = methodEl.value;
+    
+    let pool = getCardsForScope(source);
+    if (pool.length === 0) {
+        showNotification('Keine Karten in dieser Quelle!', 'warning');
+        return;
+    }
+    
+    let queue = [];
+    if (strategy === 'due') {
+        queue = pool.filter(isCardDue);
+        if (queue.length === 0) {
+            showNotification('Alle Karten sind noch nicht fällig. Nutze eine andere Strategie!', 'info');
             return;
         }
-    } else if (src === 'all') {
-        pool = [...data.cards];
+    } else if (strategy === 'leitner') {
+        // Fällige zuerst, dann Rest – beide nach Box aufsteigend
+        const due = pool.filter(isCardDue).sort((a, b) => (a.box || 1) - (b.box || 1));
+        const rest = pool.filter(c => !isCardDue(c)).sort((a, b) => (a.box || 1) - (b.box || 1));
+        queue = [...due, ...rest].slice(0, 20);
+    } else if (strategy === 'random') {
+        queue = [...pool].sort(() => Math.random() - 0.5).slice(0, 10);
+    } else if (strategy === 'hardest') {
+        queue = [...pool].sort((a, b) => (a.box || 1) - (b.box || 1)).slice(0, 20);
     } else {
-        if (curFolder) {
-            const validFolderIds = getFolderIdsRecursive(curFolder);
-            pool = data.cards.filter(c => validFolderIds.includes(c.folderId));
-        } else {
-            pool = data.cards.filter(c => c.folderId === null);
-        }
+        queue = [...pool];
     }
-
-    if (pool.length === 0) { 
-        showNotification('Keine Karten verfügbar!', 'warning'); 
-        return; 
-    }
-
-    if (strat === 'leitner') {
-        pool.sort((a, b) => { 
-            const boxA = a.box || 1; 
-            const boxB = b.box || 1; 
-            if (boxA === boxB) return Math.random() - 0.5; 
-            return boxA - boxB; 
-        });
-        session.queue = pool.slice(0, 50);
-    } else if (strat === 'hardest') {
-        pool.sort((a, b) => (a.box || 1) - (b.box || 1));
-        session.queue = pool.slice(0, 30);
-    } else if (strat === 'random') {
-        session.queue = pool.sort(() => Math.random() - 0.5).slice(0, 20);
-    } else {
-        session.queue = pool;
-    }
-
-    session.idx = 0;
-    session.startTime = Date.now();
-    session.timeSpent = 0;
-    correctionMode = false;
-
-    // Pädagogik-Tracking: falsche Karten sofort wiederholen + Sitzungs-Zusammenfassung
-    session.uniqueCards = session.queue.length;       // einzigartige Karten (für Statistik)
-    session.firstWrongCount = 0;                       // beim 1. Versuch falsch
-    session.retryCorrectCount = 0;                     // beim Wiederholen richtig gelernt
-    session.retryWrongCount = 0;                       // beim Wiederholen immer noch falsch
-    session.repeatedCards = new Set();                 // IDs der Karten, die bereits einmal falsch waren
-    session.currentIsRetry = false;                    // ist die aktuell gezeigte Karte ein 2. Versuch?
-    session.masteredThisSession = 0;                   // Karten, die in dieser Sitzung Box 5 erreicht haben
-
-    // Ursprüngliche Box je Karte sichern, damit beim Erholen nicht über den Startwert aufgestiegen wird
-    session.queue.forEach(card => { card._sessionStartBox = card.box || 1; });
     
-    document.getElementById('manageContent').classList.remove('active');
-    document.getElementById('learnContent').classList.remove('active');
-    const bottomNav = document.querySelector('.bottom-nav');
-    const header = document.querySelector('header');
-    if (bottomNav) bottomNav.classList.add('hidden-nav');
-    if (header) header.classList.add('hidden');
-    document.getElementById('activeSession').style.display = 'block';
-
-    const flipWrapper = document.getElementById('flipWrapper');
-    const typingWrapper = document.getElementById('typingWrapper');
-    const mcWrapper = document.getElementById('mcWrapper');
-    if (flipWrapper) flipWrapper.style.display = session.method === 'flip' ? 'block' : 'none';
-    if (typingWrapper) typingWrapper.style.display = session.method === 'type' ? 'block' : 'none';
-    if (mcWrapper) mcWrapper.style.display = session.method === 'mc' ? 'block' : 'none';
-    loadCard();
-}
-
-function loadCard() {
-    if (session.idx >= session.queue.length) return finishSession();
-    session.cardStartTime = Date.now();
-
-    const c = session.queue[session.idx];
-    session.current = c;
-    session.currentIsRetry = !!(session.repeatedCards && session.repeatedCards.has(c.id));
-    let isFront = true;
-    if (session.dir === 'back') isFront = false;
-    else if (session.dir === 'mixed') isFront = Math.random() > 0.5;
-
-    session.q = isFront ? c.front : c.back;
-    session.a = isFront ? c.back : c.front;
-    const lblQ = isFront ? 'Vorderseite' : 'Rückseite';
-    const lblA = isFront ? 'Rückseite' : 'Vorderseite';
-
-    const sessionProgress = document.getElementById('sessionProgress');
-    const progressBar = document.getElementById('progressBar');
-    if (sessionProgress) sessionProgress.textContent = `${session.idx + 1} / ${session.queue.length}`;
-    if (progressBar) progressBar.style.width = `${((session.idx + 1) / session.queue.length) * 100}%`;
-
-    if (session.method === 'flip') {
-        const el = document.getElementById('flashcard');
-        if (!el) return;
-        el.classList.remove('flipped', 'shake');
-        setTimeout(() => {
-            const labelQ = document.getElementById('labelQ');
-            const textQ = document.getElementById('textQ');
-            const labelA = document.getElementById('labelA');
-            const textA = document.getElementById('textA');
-            const boxBadge = document.getElementById('boxBadge');
-            const hBtn = document.getElementById('btnHintFront');
-            const hBox = document.getElementById('hintFront');
-            
-            if (labelQ) labelQ.textContent = lblQ;
-            if (textQ) textQ.textContent = session.q;
-            if (labelA) labelA.textContent = lblA;
-            if (textA) textA.textContent = session.a;
-            if (boxBadge) {
-                boxBadge.textContent = `Box ${c.box || 1}`;
-                boxBadge.style.background = `var(--box-${c.box || 1})`;
-            }
-            if (hBox) hBox.style.display = 'none';
-            if (hBtn) {
-                if (c.hint) { 
-                    hBtn.classList.remove('hidden'); 
-                    if (hBox) hBox.textContent = c.hint; 
-                }
-                else hBtn.classList.add('hidden');
-            }
-        }, 200);
-    } else if (session.method === 'mc') {
-        // MULTIPLE CHOICE: Frage + Antwort-Buttons aufbauen
-        const mcLabelQ = document.getElementById('mcLabelQ');
-        const mcTextQ = document.getElementById('mcTextQ');
-        const mcBoxBadge = document.getElementById('mcBoxBadge');
-        const mcOptions = document.getElementById('mcOptions');
-        const btnNextMc = document.getElementById('btnNextMc');
-        const hBtn = document.getElementById('btnHintMc');
-        const hBox = document.getElementById('hintMc');
-
-        if (mcLabelQ) mcLabelQ.textContent = lblQ;
-        if (mcTextQ) mcTextQ.textContent = session.q;
-        if (mcBoxBadge) {
-            mcBoxBadge.textContent = `Box ${c.box || 1}`;
-            mcBoxBadge.style.background = `var(--box-${c.box || 1})`;
-        }
-        if (btnNextMc) btnNextMc.classList.add('hidden');
-        if (hBox) hBox.style.display = 'none';
-        if (hBtn) {
-            if (c.hint) { hBtn.classList.remove('hidden'); if (hBox) hBox.textContent = c.hint; }
-            else hBtn.classList.add('hidden');
-        }
-
-        // Antwortoptionen generieren: 1 richtige + 3 Distraktoren aus dem Pool
-        if (mcOptions) {
-            const options = generateMcOptions(c);
-            mcOptions.innerHTML = '';
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'mc-option';
-                btn.textContent = opt;
-                btn.addEventListener('click', (e) => answerMc(e, opt));
-                mcOptions.appendChild(btn);
-            });
-        }
-    } else {
-        correctionMode = false;
-        const typeLabelQ = document.getElementById('typeLabelQ');
-        const typeTextQ = document.getElementById('typeTextQ');
-        const typeInput = document.getElementById('typeInput');
-        const typeFeedback = document.getElementById('typeFeedback');
-        const btnCheckType = document.getElementById('btnCheckType');
-        const btnNextType = document.getElementById('btnNextType');
-        const normalInputArea = document.getElementById('normalInputArea');
-        const correctionArea = document.getElementById('correctionArea');
-        const hBtn = document.getElementById('btnHintType');
-        const hBox = document.getElementById('hintType');
-
-        if (typeLabelQ) typeLabelQ.textContent = lblQ;
-        if (typeTextQ) typeTextQ.textContent = session.q;
-        if (typeInput) {
-            typeInput.value = '';
-            typeInput.disabled = false;
-            typeInput.focus();
-        }
-        if (typeFeedback) typeFeedback.style.display = 'none';
-        if (btnCheckType) btnCheckType.classList.remove('hidden');
-        if (btnNextType) btnNextType.classList.add('hidden');
-        if (normalInputArea) normalInputArea.style.display = 'block';
-        if (correctionArea) correctionArea.style.display = 'none';
-        if (hBox) hBox.style.display = 'none';
-        if (hBtn) {
-            if (c.hint) {
-                hBtn.classList.remove('hidden');
-                if (hBox) hBox.textContent = c.hint;
-            }
-            else hBtn.classList.add('hidden');
-        }
-    }
-}
-
-/**
- * Ermittelt den Zeitpunkt der nächsten Wiederholung.
- * `dueAt` ist die maßgebliche Quelle; für Altbestände ohne dieses Feld
- * wird es aus lastLearnedAt + Box-Intervall hergeleitet.
- */
-function getCardDueAt(card) {
-    if (typeof card.dueAt === 'number') return card.dueAt;
-    if (!card.lastLearnedAt) return 0; // noch nie gelernt -> sofort fällig
-    const box = card.box || 1;
-    return card.lastLearnedAt + (LEITNER_INTERVALS[box] || LEITNER_INTERVALS[1]);
-}
-
-/**
- * Prüft, ob eine Karte basierend auf dem Leitner-Intervall fällig ist
- */
-function isCardDue(card) {
-    return Date.now() >= getCardDueAt(card);
-}
-
-/**
- * Zentrale Leitner-Bewertung — die EINZIGE Stelle, an der sich Box und
- * Fälligkeit einer Karte ändern. Alle Modi (Flip, Schreiben, MC) rufen sie auf,
- * damit eine Antwort nicht versehentlich doppelt gewertet wird.
- *
- * @param {object} card    Die zu bewertende Karte
- * @param {boolean} success Richtig beantwortet?
- * @param {boolean} isRetry Handelt es sich um den 2. Versuch derselben Karte?
- * @returns {{oldBox:number, newBox:number, mastered:boolean}}
- */
-function applyAnswer(card, success, isRetry) {
-    const now = Date.now();
-    const oldBox = card.box || 1;
-    let newBox;
-
-    if (success) {
-        if (isRetry) {
-            // Nach einem Fehler darf sich die Karte erholen, aber nicht über den
-            // Stand vom Sitzungsbeginn hinaus aufsteigen (kein Glückstreffer-Aufstieg).
-            const cap = (card._sessionStartBox != null) ? card._sessionStartBox : oldBox + 1;
-            newBox = Math.min(oldBox + 1, cap, MAX_LEITNER_BOX);
-        } else {
-            newBox = Math.min(oldBox + 1, MAX_LEITNER_BOX);
-        }
-        card.box = newBox;
-        card.lastLearnedAt = now;
-        card.dueAt = now + (LEITNER_INTERVALS[newBox] || LEITNER_INTERVALS[1]);
-    } else {
-        newBox = Math.max(1, oldBox - 1);
-        card.box = newBox;
-        card.lastLearnedAt = now;
-        // Wichtig: eine falsch beantwortete Karte ist SOFORT wieder fällig.
-        // Würde hier das Box-1-Intervall (1 Tag) gesetzt, verschwänden
-        // ausgerechnet die schwächsten Karten für einen Tag aus der Wiederholung.
-        card.dueAt = now;
-    }
-
-    const mastered = newBox === MAX_LEITNER_BOX && oldBox < MAX_LEITNER_BOX;
-    if (mastered) card.lastMasteredAt = now;
-
-    return { oldBox, newBox, mastered };
-}
-
-/**
- * Formatiert die verbleibende Zeit bis zur nächsten Wiederholung
- */
-function formatTimeUntil(timestamp) {
-    const diff = timestamp - Date.now();
-    if (diff <= 0) return 'Jetzt fällig';
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(hours / 24);
-    
-    if (days > 0) return `${days} Tag${days > 1 ? 'e' : ''}`;
-    if (hours > 0) return `${hours} Stunde${hours > 1 ? 'n' : ''}`;
-    return `${Math.floor(diff / (1000 * 60))} Minuten`;
-}
-
-/**
- * Bewertet die aktuelle Karte. Zentraler Einstiegspunkt für Flip und MC.
- *
- * @param {boolean} success       Richtig beantwortet?
- * @param {boolean} [autoAdvance] Soll nach kurzem Delay automatisch
- *                                weitergeblättert werden? (MC steuert selbst)
- */
-function rate(success, autoAdvance = true) {
-    const c = session.current;
-    if (!c) return;
-    // Guard: verhindert Doppelbewertung durch Doppelklick, gedrückt gehaltene
-    // Pfeiltaste oder Klick während des Weiterblätter-Delays.
-    if (session.answered) return;
-    session.answered = true;
-
-    const now = Date.now();
-    session.timeSpent += (now - session.cardStartTime) / 1000;
-    session.answeredCount = (session.answeredCount || 0) + 1;
-
-    const isRetry = session.currentIsRetry;
-    const { oldBox, newBox, mastered } = applyAnswer(c, success, isRetry);
-    if (mastered) session.masteredThisSession++;
-
-    if (success) {
-        // Combo-System: Prüfe ob Combo noch aktiv
-        comboCount = (now - lastAnswerTime < comboTimeout) ? comboCount + 1 : 1;
-        lastAnswerTime = now;
-
-        if (isRetry) session.retryCorrectCount++;
-
-        playAnswerFeedback(true, comboCount, oldBox, newBox);
-
-        // Konfetti nur beim ersten Lernen des Tages (Serie verlängert)
-        if (incrementStreak()) triggerConfetti({ type: 'streak' });
-    } else {
-        comboCount = 0;
-        playAnswerFeedback(false);
-
-        // Pädagogik: falsche Karte sofort als Nächstes wiederholen
-        if (!isRetry) {
-            session.firstWrongCount++;
-            session.repeatedCards.add(c.id);
-            session.queue.splice(session.idx + 1, 0, c);
-        } else {
-            // Beim 2. Versuch immer noch falsch: kein dritter Versuch (Endlosschleife vermeiden)
-            session.retryWrongCount++;
-        }
-
-        if (session.method === 'flip') {
-            const flashcard = document.getElementById('flashcard');
-            if (flashcard) flashcard.classList.add('shake');
-        }
-    }
-
-    save();
-
-    if (!autoAdvance) return;
-    session.idx++;
-    setTimeout(loadCard, success ? 500 : 800);
-}
-
-/**
- * Bündelt Sound- und Badge-Feedback, damit alle Lernmodi identisch reagieren.
- */
-function playAnswerFeedback(success, combo = 0, oldBox = 0, newBox = 0) {
-    if (!success) {
-        playFailSound();
+    if (queue.length === 0) {
+        showNotification('Keine Karten für diese Auswahl gefunden!', 'warning');
         return;
     }
-    triggerConfetti();
-    if (combo >= 3) playComboSound(Math.min(combo, 7));
-    else playSuccessSound();
-
-    if (newBox > oldBox) setTimeout(playLevelUpSound, 200);
-    showComboBadge(combo, oldBox, newBox);
-}
-
-// =============================================
-// FEHLERANALYSE MIT DIFF
-// =============================================
-
-function analyzeErrors(input, correct) {
-    const result = [];
-    const inputChars = input.split('');
-    const correctChars = correct.split('');
-    const maxLen = Math.max(inputChars.length, correctChars.length);
     
-    let correctCount = 0;
-    let wrongCount = 0;
-    let missingCount = 0;
-    let extraCount = 0;
-    
-    for (let i = 0; i < maxLen; i++) {
-        const inputChar = inputChars[i];
-        const correctChar = correctChars[i];
-        
-        if (inputChar === undefined && correctChar !== undefined) {
-            result.push({ char: correctChar, status: 'missing' });
-            missingCount++;
-        } else if (inputChar !== undefined && correctChar === undefined) {
-            result.push({ char: inputChar, status: 'extra' });
-            extraCount++;
-        } else if (inputChar && correctChar && inputChar.toLowerCase() === correctChar.toLowerCase()) {
-            result.push({ char: correctChar, status: 'correct' });
-            correctCount++;
-        } else {
-            if (correctChar) {
-                result.push({ char: correctChar, status: 'wrong', inputChar: inputChar });
-                wrongCount++;
-            }
-            if (inputChar && !correctChar) {
-                result.push({ char: inputChar, status: 'extra' });
-                extraCount++;
-            }
-        }
-    }
-    
-    return {
-        comparison: result,
-        stats: {
-            correct: correctCount,
-            wrong: wrongCount,
-            missing: missingCount,
-            extra: extraCount,
-            total: correctChars.length
-        }
+    session = {
+        queue, idx: 0, method, dir: session.dir || 'mixed',
+        current: null, q: '', a: '', curDir: 'front',
+        startTime: Date.now(), cardStartTime: Date.now(), timeSpent: 0,
+        answered: false, answeredCount: 0, uniqueCards: queue.length,
+        firstTryCorrect: 0, firstTryWrong: 0,
+        retryCorrectCount: 0, retryWrongCount: 0,
+        masteredCount: 0,
+        repeatedCards: new Set(), currentIsRetry: false
     };
+    sessionActive = true;
+    comboCount = 0;
+    
+    incrementStreak();
+    
+    showView('activeSession');
+    setActiveNav(-1);
+    
+    showCard();
 }
 
-function createComparisonHTML(input, correct) {
-    const analysis = analyzeErrors(input, correct);
-    let html = '';
+function showCard() {
+    const card = session.queue[session.idx];
+    session.current = card;
+    session.answered = false;
+    session.currentIsRetry = session.repeatedCards.has(card.id);
+    session.cardStartTime = Date.now();
     
-    html += '<div class="comparison-row">';
-    html += '<div class="comparison-label">Deine Antwort:</div>';
-    html += '<div class="comparison-text">';
+    // Richtung auflösen (Mix = zufällig pro Karte)
+    let dir = session.dir;
+    if (dir === 'mixed') dir = Math.random() < 0.5 ? 'front' : 'back';
+    session.curDir = dir;
     
-    const inputChars = input.split('');
-    const correctChars = correct.split('');
-    const maxLen = Math.max(inputChars.length, correctChars.length);
-    
-    for (let i = 0; i < maxLen; i++) {
-        const inputChar = inputChars[i];
-        const correctChar = correctChars[i];
-        
-        if (inputChar === undefined && correctChar !== undefined) {
-            // Fehlender Buchstabe
-        } else if (inputChar !== undefined && correctChar === undefined) {
-            html += `<span class="char-box char-extra">${escapeHtml(inputChar)}</span>`;
-        } else if (inputChar && correctChar && inputChar.toLowerCase() === correctChar.toLowerCase()) {
-            html += `<span class="char-box char-correct">${escapeHtml(inputChar)}</span>`;
-        } else if (inputChar) {
-            html += `<span class="char-box char-wrong">${escapeHtml(inputChar)}</span>`;
-        }
+    if (dir === 'front') {
+        session.q = card.front;
+        session.a = card.back;
+    } else {
+        session.q = card.back;
+        session.a = card.front;
     }
     
-    html += '</div></div>';
+    const progress = document.getElementById('sessionProgress');
+    if (progress) progress.textContent = `${session.idx + 1} / ${session.queue.length}`;
+    const bar = document.getElementById('progressBar');
+    if (bar) bar.style.width = `${(session.idx / session.queue.length) * 100}%`;
     
-    html += '<div class="comparison-row">';
-    html += '<div class="comparison-label">Richtige Antwort:</div>';
-    html += '<div class="comparison-text">';
-    
-    for (let i = 0; i < correctChars.length; i++) {
-        const inputChar = inputChars[i];
-        const correctChar = correctChars[i];
-        
-        if (inputChar === undefined) {
-            html += `<span class="char-box char-missing">${escapeHtml(correctChar)}</span>`;
-        } else if (inputChar && correctChar && inputChar.toLowerCase() === correctChar.toLowerCase()) {
-            html += `<span class="char-box char-correct">${escapeHtml(correctChar)}</span>`;
-        } else if (correctChar) {
-            html += `<span class="char-box char-wrong">${escapeHtml(correctChar)}</span>`;
-        }
-    }
-    
-    html += '</div></div>';
-    
-    return html;
+    if (session.method === 'flip') showFlipCard();
+    else if (session.method === 'type') showTypeCard();
+    else showMcCard();
 }
 
-/**
- * Prüft die getippte Antwort
- */
+function setupHint(hintBtnId, hintBoxId) {
+    const btn = document.getElementById(hintBtnId);
+    const box = document.getElementById(hintBoxId);
+    if (!btn || !box) return;
+    if (session.current.hint) {
+        btn.classList.remove('hidden');
+        box.style.display = 'none';
+        box.textContent = session.current.hint;
+    } else {
+        btn.classList.add('hidden');
+        box.style.display = 'none';
+    }
+}
+
+// ---------- FLIP-MODUS ----------
+function showFlipCard() {
+    document.getElementById('flipWrapper').style.display = '';
+    document.getElementById('typingWrapper').style.display = 'none';
+    document.getElementById('mcWrapper').style.display = 'none';
+    
+    const fc = document.getElementById('flashcard');
+    fc.classList.remove('flipped');
+    
+    document.getElementById('boxBadge').textContent = `Box ${session.current.box || 1}`;
+    document.getElementById('labelQ').textContent = session.curDir === 'back' ? 'Rückseite' : 'Vorderseite';
+    document.getElementById('textQ').textContent = session.q;
+    document.getElementById('labelA').textContent = session.curDir === 'back' ? 'Vorderseite' : 'Rückseite';
+    document.getElementById('textA').textContent = session.a;
+    
+    setupHint('btnHintFront', 'hintFront');
+}
+
+function flipCard() {
+    if (!sessionActive || session.method !== 'flip') return;
+    document.getElementById('flashcard').classList.toggle('flipped');
+}
+
+// ---------- TYPE-MODUS ----------
+function showTypeCard() {
+    document.getElementById('flipWrapper').style.display = 'none';
+    document.getElementById('typingWrapper').style.display = 'block';
+    document.getElementById('mcWrapper').style.display = 'none';
+    
+    document.getElementById('typeLabelQ').textContent = session.curDir === 'back' ? 'RÜCKSEITE' : 'VORDERSEITE';
+    document.getElementById('typeTextQ').textContent = session.q;
+    
+    setupHint('btnHintType', 'hintType');
+    
+    document.getElementById('normalInputArea').style.display = '';
+    document.getElementById('correctionArea').style.display = 'none';
+    document.getElementById('typeFeedback').style.display = 'none';
+    document.getElementById('btnNextType').classList.add('hidden');
+    
+    const input = document.getElementById('typeInput');
+    input.value = '';
+    input.disabled = false;
+    correctionMode = false;
+    setTimeout(() => input.focus(), 50);
+}
+
+function normalizeAnswer(s) {
+    return (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
 function checkType() {
-    const now = Date.now();
-    const cardDuration = (now - session.cardStartTime) / 1000;
-    session.timeSpent += cardDuration;
-
-    const inp = document.getElementById('typeInput');
-    const val = inp ? inp.value.trim() : '';
-    const corr = session.a.trim();
+    if (!sessionActive || session.method !== 'type' || correctionMode || session.answered) return;
     
-    // Leere Eingabe behandeln
-    if (val === '') {
-        if (inp) inp.disabled = true;
-        const btnCheckType = document.getElementById('btnCheckType');
-        if (btnCheckType) btnCheckType.classList.add('hidden');
-        showCorrectionPhase('', corr);
+    const input = document.getElementById('typeInput');
+    const answer = input.value.trim();
+    if (!answer) return;
+    
+    const feedback = document.getElementById('typeFeedback');
+    feedback.style.display = 'block';
+    
+    const normIn = normalizeAnswer(answer);
+    const normTarget = normalizeAnswer(session.a);
+    const tolerance = Math.max(1, Math.floor(normTarget.length / 5));
+    const correct = normIn === normTarget || levenshtein(normIn, normTarget) <= tolerance;
+    
+    if (correct) {
+        feedback.innerHTML = '<span style="color: var(--success); font-weight: bold;">✓ Richtig!</span>';
+        input.disabled = true;
+        handleAnswer(true);
+        document.getElementById('btnNextType').classList.remove('hidden');
+    } else {
+        handleAnswer(false);
+        startCorrection();
+    }
+}
+
+function startCorrection() {
+    correctionMode = true;
+    playFailSound();
+    document.getElementById('normalInputArea').style.display = 'none';
+    document.getElementById('correctionArea').style.display = 'block';
+    document.getElementById('correctAnswerText').textContent = session.a;
+    document.getElementById('correctionSuccess').style.display = 'none';
+    
+    const cInput = document.getElementById('correctionInput');
+    cInput.value = '';
+    setTimeout(() => cInput.focus(), 50);
+}
+
+function confirmCorrection() {
+    if (!correctionMode) return;
+    const val = document.getElementById('correctionInput').value.trim();
+    
+    if (normalizeAnswer(val) !== normalizeAnswer(session.a)) {
+        playFailSound();
+        const input = document.getElementById('correctionInput');
+        input.value = '';
+        input.focus();
+        showNotification('Noch nicht ganz richtig – schreibe die Antwort genau ab!', 'warning');
         return;
     }
     
-    const isCorr = val.toLowerCase() === corr.toLowerCase();
-    
-    if (isCorr) {
-        if (inp) inp.disabled = true;
-        const btnCheckType = document.getElementById('btnCheckType');
-        if (btnCheckType) btnCheckType.classList.add('hidden');
-        
-        const fb = document.getElementById('typeFeedback');
-        if (fb) {
-            fb.style.display = 'block';
-            fb.innerHTML = `<div style="color:var(--success); font-weight:bold"><i class="fas fa-check"></i> Richtig!</div>`;
-        }
-        
-        triggerConfetti();
-        
-        // BUGFIX: Combo-System auch im Typ-Modus aktivieren
-        if (now - lastAnswerTime < comboTimeout) {
-            comboCount++;
-        } else {
-            comboCount = 1;
-        }
-        lastAnswerTime = now;
-        
-        // Sound basierend auf Combo
-        if (comboCount >= 3) {
-            playComboSound(Math.min(comboCount, 7));
-        } else {
-            playSuccessSound();
-        }
-        
-        // Box-Up / Erholung (analog zum Flip-Modus)
-        const oldBox = session.current.box || 1;
-        let newBox;
-        if (session.currentIsRetry) {
-            session.retryCorrectCount++;
-            const cap = (session.current._sessionStartBox != null) ? session.current._sessionStartBox : oldBox + 1;
-            newBox = Math.min(oldBox + 1, cap, MAX_LEITNER_BOX);
-        } else {
-            newBox = Math.min(oldBox + 1, MAX_LEITNER_BOX);
-        }
-        session.current.box = newBox;
-        if (newBox === MAX_LEITNER_BOX && !session.current.lastMasteredAt) {
-            session.current.lastMasteredAt = now;
-            session.masteredThisSession++;
-        }
-        session.current.lastLearnedAt = now;
-        
-        if (newBox > oldBox) {
-            playLevelUpSound();
-        }
-        showComboBadge(comboCount, oldBox, newBox);
-        
-        incrementStreak();
-        save();
-        
-        setTimeout(() => { session.idx++; loadCard(); }, 1200);
-    } else {
-        // BUGFIX: Falsche Antwort - Sound und Combo-Reset
-        playFailSound();
-        comboCount = 0;
+    correctionMode = false;
+    document.getElementById('correctionSuccess').style.display = 'block';
+    playSuccessSound();
+    session.retryCorrectCount++;
+    document.getElementById('btnNextType').classList.remove('hidden');
+}
 
-        // Pädagogik: falsche Karte sofort als Nächstes wiederholen (nur beim 1. Versuch)
-        if (!session.currentIsRetry) {
-            session.firstWrongCount++;
-            session.repeatedCards.add(session.current.id);
-            session.queue.splice(session.idx + 1, 0, session.current);
+// ---------- MULTIPLE-CHOICE-MODUS ----------
+function showMcCard() {
+    document.getElementById('flipWrapper').style.display = 'none';
+    document.getElementById('typingWrapper').style.display = 'none';
+    document.getElementById('mcWrapper').style.display = 'block';
+    
+    document.getElementById('mcBoxBadge').textContent = `Box ${session.current.box || 1}`;
+    document.getElementById('mcLabelQ').textContent = session.curDir === 'back' ? 'Rückseite' : 'Vorderseite';
+    document.getElementById('mcTextQ').textContent = session.q;
+    
+    setupHint('btnHintMc', 'hintMc');
+    
+    // Distraktoren aus anderen Karten generieren
+    const options = new Set([session.a]);
+    const pool = data.cards.filter(c => c.id !== session.current.id);
+    const maxOptions = Math.min(4, data.cards.length);
+    let guard = 0;
+    while (options.size < maxOptions && guard < 100) {
+        guard++;
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        if (!pick) break;
+        const val = session.curDir === 'back' ? pick.front : pick.back;
+        if (val) options.add(val);
+    }
+    const shuffled = [...options].sort(() => Math.random() - 0.5);
+    
+    const container = document.getElementById('mcOptions');
+    container.innerHTML = '';
+    document.getElementById('btnNextMc').classList.add('hidden');
+    
+    shuffled.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'mc-option';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => {
+            if (session.answered) return;
+            session.answered = true;
+            const correct = opt === session.a;
+            
+            document.querySelectorAll('.mc-option').forEach(b => {
+                b.disabled = true;
+                if (b.textContent === session.a) b.classList.add('correct');
+            });
+            if (!correct) btn.classList.add('wrong');
+            
+            handleAnswer(correct);
+            document.getElementById('btnNextMc').classList.remove('hidden');
+        });
+        container.appendChild(btn);
+    });
+}
+
+// ---------- ANTWORT-VERARBEITUNG (LEITNER) ----------
+function handleAnswer(correct) {
+    const card = session.current;
+    if (!card) return;
+    
+    const oldBox = card.box || 1;
+    const isFirstTry = !session.repeatedCards.has(card.id);
+    
+    if (correct) {
+        card.box = Math.min(oldBox + 1, MAX_LEITNER_BOX);
+        comboCount++;
+        playSuccessSound();
+        if (comboCount >= 2) showComboBadge(comboCount, oldBox, card.box);
+        if (card.box === MAX_LEITNER_BOX && oldBox < MAX_LEITNER_BOX) {
+            playLevelUpSound();
+            launchConfetti();
+            session.masteredCount++;
+        }
+        if (isFirstTry) session.firstTryCorrect++;
+        else session.retryCorrectCount++;
+    } else {
+        card.box = 1;
+        comboCount = 0;
+        playFailSound();
+        if (isFirstTry) {
+            session.firstTryWrong++;
+            // Karte zum Wiederholen ans Ende der Queue
+            session.repeatedCards.add(card.id);
+            session.queue.push(card);
         } else {
             session.retryWrongCount++;
         }
-        
-        if (inp) inp.disabled = true;
-        const btnCheckType = document.getElementById('btnCheckType');
-        if (btnCheckType) btnCheckType.classList.add('hidden');
-        showCorrectionPhase(val, corr);
-    }
-}
-
-/**
- * Zeigt die Korrektur-Phase an
- */
-function showCorrectionPhase(userInput, correctAnswer) {
-    correctionMode = true;
-    
-    const normalInputArea = document.getElementById('normalInputArea');
-    const correctionArea = document.getElementById('correctionArea');
-    
-    if (normalInputArea) normalInputArea.style.display = 'none';
-    if (correctionArea) correctionArea.style.display = 'block';
-    
-    /*
-    const comparisonContainer = document.getElementById('comparisonContainer');
-    if (comparisonContainer) {
-        comparisonContainer.innerHTML = createComparisonHTML(userInput, correctAnswer);
-    }
-    */
-    
-    const correctAnswerText = document.getElementById('correctAnswerText');
-    if (correctAnswerText) correctAnswerText.textContent = correctAnswer;
-    
-    const correctionInput = document.getElementById('correctionInput');
-    if (correctionInput) {
-        correctionInput.value = '';
-        correctionInput.disabled = false;
-        correctionInput.classList.remove('correct');
     }
     
-    const correctionSuccess = document.getElementById('correctionSuccess');
-    if (correctionSuccess) correctionSuccess.style.display = 'none';
-    
-    const btnConfirmCorrection = document.getElementById('btnConfirmCorrection');
-    if (btnConfirmCorrection) btnConfirmCorrection.style.display = 'inline-flex';
-    
-    setTimeout(() => {
-        if (correctionInput) correctionInput.focus();
-    }, 100);
-    
-    // BUGFIX: lastLearnedAt setzen damit Karte nicht als "nie gelernt" gilt
-    const now = Date.now();
-    session.current.box = Math.max(1, (session.current.box || 1) - 1);
-    session.current.lastLearnedAt = now;
+    card.lastLearnedAt = Date.now();
+    data.totalReviews = (data.totalReviews || 0) + 1;
     save();
 }
 
-/**
- * Bestätigt die Korrektur-Eingabe
- */
-function confirmCorrection() {
-    const correctionInput = document.getElementById('correctionInput');
-    const val = correctionInput ? correctionInput.value.trim() : '';
-    const corr = session.a.trim();
-    
-    if (val.toLowerCase() === corr.toLowerCase()) {
-        if (correctionInput) correctionInput.classList.add('correct');
-        if (correctionInput) correctionInput.disabled = true;
-        
-        const correctionSuccess = document.getElementById('correctionSuccess');
-        if (correctionSuccess) correctionSuccess.style.display = 'block';
-        
-        const btnConfirmCorrection = document.getElementById('btnConfirmCorrection');
-        if (btnConfirmCorrection) btnConfirmCorrection.style.display = 'none';
-        
-        const btnNextType = document.getElementById('btnNextType');
-        if (btnNextType) {
-            btnNextType.classList.remove('hidden');
-            btnNextType.focus();
-        }
-        
-        triggerConfetti();
+function rate(correct) {
+    if (!sessionActive || session.method !== 'flip' || session.answered) return;
+    session.answered = true;
+    handleAnswer(correct);
+    nextCard();
+}
+
+function nextCard() {
+    if (!sessionActive) return;
+    session.idx++;
+    if (session.idx >= session.queue.length) {
+        endSessionSummary();
     } else {
-        if (correctionInput) {
-            correctionInput.style.animation = 'none';
-            setTimeout(() => {
-                correctionInput.style.animation = 'shake 0.3s';
-            }, 10);
-        }
-        showNotification('Noch nicht ganz richtig. Schau genau hin!', 'warning');
+        showCard();
     }
 }
 
-function nextCard() { 
-    session.idx++; 
+function endSessionSummary() {
+    sessionActive = false;
     correctionMode = false;
-    loadCard(); 
-}
-
-function finishSession() {
-    const duration = (Date.now() - session.startTime) / 1000;
+    
+    const duration = Math.max(1, Math.round((Date.now() - session.startTime) / 1000));
     data.lastSessionDuration = duration;
-    data.totalTimeSeconds += duration;
-    // einzigartige Karten zählen (Wiederholungen nicht doppelt)
-    data.totalReviews += session.uniqueCards || session.queue.length;
+    data.totalTimeSeconds = (data.totalTimeSeconds || 0) + duration;
     save();
-
-    // Hilfsfelder entfernen, damit sie nicht in localStorage persistiert werden
-    session.queue.forEach(c => { delete c._sessionStartBox; });
-
-    showSummary();
+    
+    const total = session.firstTryCorrect + session.firstTryWrong;
+    const acc = total > 0 ? Math.round((session.firstTryCorrect / total) * 100) : 0;
+    
+    document.getElementById('summaryAccuracy').textContent = acc + '%';
+    document.getElementById('summaryAccuracySub').textContent =
+        `${session.firstTryCorrect} von ${total} Karten beim 1. Versuch richtig`;
+    document.getElementById('summaryCorrect').textContent = session.firstTryCorrect;
+    document.getElementById('summaryRetries').textContent = session.retryCorrectCount;
+    document.getElementById('summaryTime').textContent = formatTime(duration);
+    document.getElementById('summaryMastered').textContent = session.masteredCount;
+    
+    const emoji = acc >= 90 ? '🏆' : acc >= 70 ? '🎉' : acc >= 50 ? '💪' : '📚';
+    const title = acc >= 90 ? 'Herausragend!' : acc >= 70 ? 'Sitzung geschafft!' : acc >= 50 ? 'Gut gemacht!' : 'Übung macht den Meister!';
+    document.getElementById('summaryEmoji').textContent = emoji;
+    document.getElementById('summaryTitle').textContent = title;
+    document.getElementById('summarySubtitle').textContent =
+        `${session.queue.length} Antworten in ${formatTime(duration)}`;
+    
+    launchConfetti();
+    showView('sessionSummary');
+    setActiveNav(-1);
 }
 
 function endSession() {
-    const duration = (Date.now() - session.startTime) / 1000;
+    sessionActive = false;
+    correctionMode = false;
+    
+    const duration = Math.max(1, Math.round((Date.now() - session.startTime) / 1000));
     data.lastSessionDuration = duration;
-    data.totalTimeSeconds += duration;
-    data.totalReviews += session.queue.length;
+    data.totalTimeSeconds = (data.totalTimeSeconds || 0) + duration;
     save();
     
-    document.getElementById('activeSession').style.display = 'none';
-    const bottomNav = document.querySelector('.bottom-nav');
-    const header = document.querySelector('header');
-    if (bottomNav) bottomNav.classList.remove('hidden-nav');
-    if (header) header.classList.remove('hidden');
-    
-    const statsNavItem = document.querySelectorAll('.nav-item')[2];
-    if (statsNavItem) nav('statsContent', statsNavItem);
-    updateStatsUI();
-}
-
-/**
- * Sitzungs-Zusammenfassung anzeigen (pädagogisches Feedback am Session-Ende)
- */
-function showSummary() {
-    document.getElementById('activeSession').style.display = 'none';
-    const bottomNav = document.querySelector('.bottom-nav');
-    const header = document.querySelector('header');
-    if (bottomNav) bottomNav.classList.remove('hidden-nav');
-    if (header) header.classList.remove('hidden');
-
-    const total = session.uniqueCards || 0;
-    const firstWrong = session.firstWrongCount || 0;
-    const direct = Math.max(0, total - firstWrong);          // beim 1. Versuch richtig
-    const learned = session.retryCorrectCount || 0;           // nach Wiederholung richtig
-    const accuracy = total > 0 ? Math.round((direct / total) * 100) : 0;
-    const duration = data.lastSessionDuration || 0;
-
-    // Emoji & Titel je nach Genauigkeit beim 1. Versuch
-    let emoji = '🎉', title = 'Super gemacht!';
-    if (total === 0) { emoji = '👋'; title = 'Sitzung beendet'; }
-    else if (accuracy === 100) { emoji = '🏆'; title = 'Perfekt!'; }
-    else if (accuracy >= 80) { emoji = '🎉'; title = 'Super gemacht!'; }
-    else if (accuracy >= 50) { emoji = '💪'; title = 'Weiter so!'; }
-    else { emoji = '🌱'; title = 'Übung macht den Meister'; }
-
-    const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-    setText('summaryEmoji', emoji);
-    setText('summaryTitle', title);
-    setText('summarySubtitle',
-        total > 0
-            ? `${direct} von ${total} Karten sofort richtig, ${learned} nach Wiederholung gelernt.`
-            : 'Keine Karten gelernt.');
-    setText('summaryAccuracy', accuracy + '%');
-    setText('summaryAccuracySub',
-        `${direct} richtig · ${firstWrong} beim 1. Versuch falsch`);
-    setText('summaryCorrect', direct);
-    setText('summaryRetries', learned);
-    setText('summaryTime', formatTime(duration));
-    setText('summaryMastered', session.masteredThisSession || 0);
-
-    const summary = document.getElementById('sessionSummary');
-    if (summary) summary.style.display = 'block';
-
-    // Bei Top-Ergebnis Konfetti zur Belohnung
-    if (accuracy >= 80 && total > 0) {
-        triggerConfetti({ type: 'celebration', intensity: 3 });
-    }
-}
-
-function closeSummary() {
-    const summary = document.getElementById('sessionSummary');
-    if (summary) summary.style.display = 'none';
-    updateStatsUI();
-    const statsNavItem = document.querySelectorAll('.nav-item')[2];
-    if (statsNavItem) nav('statsContent', statsNavItem);
+    showView('learnContent');
+    setActiveNav(1);
+    showNotification('Session beendet', 'info');
 }
 
 function restartSession() {
-    const summary = document.getElementById('sessionSummary');
-    if (summary) summary.style.display = 'none';
     startSession();
 }
 
-function flipCard() { 
-    const card = document.getElementById('flashcard');
-    if (card) card.classList.toggle('flipped'); 
+function closeSummary() {
+    showView('statsContent');
+    setActiveNav(2);
+    renderStats();
 }
 
-function toggleHint(e) { 
-    e.stopPropagation(); 
-    const hintFront = document.getElementById('hintFront');
-    const btnHintFront = document.getElementById('btnHintFront');
-    if (hintFront) hintFront.style.display = 'block'; 
-    if (btnHintFront) btnHintFront.classList.add('hidden'); 
+// =============================================
+// SPRACHAUSGABE (TEXT-TO-SPEECH)
+// =============================================
+function guessLang(text) {
+    if (/[äöüß]/i.test(text)) return 'de-DE';
+    if (/[ñ¿¡áéíóú]/i.test(text)) return 'es-ES';
+    if (/[àèìòùç]/i.test(text)) return 'fr-FR';
+    if (/[àèìòù]/i.test(text)) return 'it-IT';
+    return 'en-US';
+}
+
+function speak(e, which) {
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    const text = which === 'q' ? session.q : session.a;
+    if (!text || !('speechSynthesis' in window)) return;
+    try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = guessLang(text);
+        u.rate = 0.9;
+        speechSynthesis.speak(u);
+    } catch (err) {
+        console.error('Sprachausgabe fehlgeschlagen:', err);
+    }
+}
+
+// =============================================
+// HINWEISE (HINTS)
+// =============================================
+function toggleHint(e) {
+    if (e) e.stopPropagation();
+    const box = document.getElementById('hintFront');
+    if (box) box.style.display = box.style.display === 'block' ? 'none' : 'block';
 }
 
 function toggleTypeHint() {
-    const hintType = document.getElementById('hintType');
-    const btnHintType = document.getElementById('btnHintType');
-    if (hintType) hintType.style.display = 'block';
-    if (btnHintType) btnHintType.classList.add('hidden');
-}
-
-// =============================================
-// MULTIPLE CHOICE LOGIK
-// =============================================
-
-/**
- * Generiert 4 Antwortoptionen: die richtige Antwort + 3 Distraktoren
- * aus dem aktuellen Karten-Pool. Bei zu wenigen Karten werden Duplikate
- * oder generische Platzhalter aufgefüllt.
- */
-function generateMcOptions(currentCard) {
-    const correct = session.a;
-    const pool = session.queue.filter(c => c !== currentCard);
-    // Mögliche Distraktoren: Antworten anderer Karten, einmalig
-    const distractors = [];
-    const used = new Set([correct.trim().toLowerCase()]);
-    // Pool mischen für Varianz
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    for (const c of shuffled) {
-        const cand = (session.dir === 'front' ? c.back : c.front).trim();
-        if (cand && !used.has(cand.toLowerCase())) {
-            distractors.push(cand);
-            used.add(cand.toLowerCase());
-        }
-        if (distractors.length >= 3) break;
-    }
-    // Falls zu wenige Distraktoren: mit neutralen Platzhaltern auffüllen
-    const fillers = ['—', '???', '(keine der Optionen)'];
-    let fi = 0;
-    while (distractors.length < 3) {
-        let f = fillers[fi % fillers.length];
-        fi++;
-        if (!used.has(f.toLowerCase())) {
-            distractors.push(f);
-            used.add(f.toLowerCase());
-        }
-    }
-
-    // 4 Optionen mischen
-    const options = [correct, ...distractors.slice(0, 3)];
-    return options.sort(() => Math.random() - 0.5);
-}
-
-/**
- * Wertet eine MC-Antwort aus: markiert Buttons, zeigt Feedback,
- * aktualisiert die Karte über die zentrale rate()-Logik (mit Pädagogik:
- * Wiederholung bei falsch, Box-Erholung) und schaltet nach kurzem Delay weiter.
- */
-function answerMc(e, chosen) {
-    const btn = e.currentTarget;
-    const allOptions = document.querySelectorAll('.mc-option');
-    const correct = session.a.trim();
-    const isCorrect = chosen.trim().toLowerCase() === correct.toLowerCase();
-
-    // Alle Buttons deaktivieren + korrekte/richtige markieren
-    allOptions.forEach(o => {
-        o.disabled = true;
-        const oCorrect = o.textContent.trim().toLowerCase() === correct.toLowerCase();
-        if (oCorrect) o.classList.add('correct');
-        else if (o === btn && !isCorrect) o.classList.add('wrong');
-    });
-
-    // Karte bewerten über zentrale Logik (Box, Combo, Pädagogik, Save)
-    rate(isCorrect);
-
-    // "Weiter"-Button anzeigen, damit der Nutzer den nächsten Schritt steuert.
-    // rate() selbst ruft nach Delay bereits loadCard() auf – wir zeigen den
-    // Button daher nur zur visuellen Bestätigung und blenden ihn beim nächsten
-    // loadCard() automatisch wieder aus.
-    const btnNextMc = document.getElementById('btnNextMc');
-    if (btnNextMc) {
-        btnNextMc.classList.remove('hidden');
-        // Fokus aufs Weiterscrollen per Tastatur möglich
-        setTimeout(() => btnNextMc.focus(), 50);
-    }
+    const box = document.getElementById('hintType');
+    if (box) box.style.display = box.style.display === 'block' ? 'none' : 'block';
 }
 
 function toggleMcHint() {
-    const hintMc = document.getElementById('hintMc');
-    const btnHintMc = document.getElementById('btnHintMc');
-    if (hintMc) hintMc.style.display = 'block';
-    if (btnHintMc) btnHintMc.classList.add('hidden');
-}
-
-function speak(e, type) {
-    e.stopPropagation();
-    const txt = type === 'q' ? session.q : session.a;
-    const u = new SpeechSynthesisUtterance(txt);
-    u.lang = /[äöüß]/i.test(txt) ? 'de-DE' : 'en-US';
-    window.speechSynthesis.speak(u);
-}
-
-// =============================================
-// STATS UI
-// =============================================
-function updateStatsFilter() {
-    const sel = document.getElementById('statsScope');
-    if (!sel) return;
-    
-    sel.innerHTML = '';
-    const optAll = document.createElement('option');
-    optAll.value = 'all';
-    optAll.textContent = 'Alle Karten (Global)';
-    sel.appendChild(optAll);
-    
-    if (curFolder) {
-        const folder = data.folders.find(f => f.id === curFolder);
-        if (folder) {
-            const optCur = document.createElement('option');
-            optCur.value = 'cur';
-            optCur.textContent = `Akt. Ordner: ${folder.name}`;
-            sel.appendChild(optCur);
-            sel.value = 'cur';
-        }
-    } else {
-        sel.value = 'all';
-    }
-    sel.onchange = updateStatsUI;
-}
-
-function updateStatsUI() {
-    const scope = document.getElementById('statsScope')?.value || 'all';
-    let pool = [];
-    if (scope === 'cur' && curFolder) {
-        const validIds = getFolderIdsRecursive(curFolder);
-        pool = data.cards.filter(c => validIds.includes(c.folderId));
-    } else {
-        pool = data.cards;
-    }
-
-    let boxes = [0, 0, 0, 0, 0, 0];
-    pool.forEach(c => boxes[Math.min(Math.max(c.box || 1, 1), 5)]++);
-    const total = pool.length;
-    const mastered = boxes[5];
-    const percent = total > 0 ? Math.round((mastered / total) * 100) : 0;
-
-    const statsTotal = document.getElementById('statsTotal');
-    const statsMastered = document.getElementById('statsMastered');
-    if (statsTotal) statsTotal.textContent = total;
-    if (statsMastered) statsMastered.textContent = `${mastered} (${percent}%) gemeistert`;
-
-    // Update redesigned box chart with percentage-based progress bars
-    // Each box bar shows the percentage of cards in that box relative to total cards
-    for (let i = 1; i <= 5; i++) {
-        const boxRow = document.querySelector(`.box-row[data-box="${i}"]`);
-        if (!boxRow) continue;
-        
-        const boxValueEl = boxRow.querySelector('.box-value');
-        const boxProgressEl = boxRow.querySelector('.box-progress-fill');
-        
-        const count = boxes[i];
-        
-        // Empty state class
-        boxRow.classList.toggle('empty', count === 0);
-        
-        // Animate count
-        if (boxValueEl) {
-            const currentValue = parseInt(boxValueEl.dataset.count) || 0;
-            if (currentValue !== count) {
-                const startTime = performance.now();
-                const diff = count - currentValue;
-                
-                function updateCount(currentTime) {
-                    const elapsed = currentTime - startTime;
-                    const progress = Math.min(elapsed / 400, 1);
-                    const easeOut = 1 - Math.pow(1 - progress, 3);
-                    const current = Math.round(currentValue + diff * easeOut);
-                    boxValueEl.textContent = current;
-                    if (progress < 1) {
-                        requestAnimationFrame(updateCount);
-                    }
-                }
-                requestAnimationFrame(updateCount);
-                boxValueEl.dataset.count = count;
-            }
-        }
-        
-        // Animate progress bar - percentage relative to total cards
-        if (boxProgressEl) {
-            const percentage = total > 0 ? (boxes[i] / total) * 100 : 0;
-            boxProgressEl.style.width = `${percentage}%`;
-        }
-    }
-
-    const perfLastSession = document.getElementById('perfLastSession');
-    const perfAvgTime = document.getElementById('perfAvgTime');
-    if (perfLastSession) perfLastSession.textContent = formatTime(data.lastSessionDuration);
-    const avgTime = data.totalReviews > 0 ? (data.totalTimeSeconds / data.totalReviews).toFixed(1) : "--";
-    if (perfAvgTime) perfAvgTime.textContent = avgTime + "s";
-
-    const masteredCards = pool.filter(c => c.box === 5 && c.lastMasteredAt && c.createdAt);
-    const perfTimeToMaster = document.getElementById('perfTimeToMaster');
-    if (masteredCards.length > 0) {
-        let totalDays = 0;
-        let validCount = 0;
-        masteredCards.forEach(c => {
-            if (c.createdAt) {
-                const diffMs = c.lastMasteredAt - c.createdAt;
-                if (diffMs > 0) {
-                    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-                    totalDays += diffDays;
-                    validCount++;
-                }
-            }
-        });
-        if (validCount > 0) {
-            const avgDays = (totalDays / validCount).toFixed(1);
-            if (perfTimeToMaster) perfTimeToMaster.textContent = avgDays + " Tage";
-        } else {
-            if (perfTimeToMaster) perfTimeToMaster.textContent = "--";
-        }
-    } else {
-        if (perfTimeToMaster) perfTimeToMaster.textContent = "--";
-    }
-
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const masteredToday = pool.filter(c => c.lastMasteredAt && c.lastMasteredAt >= todayStart.getTime()).length;
-    const perfMasteredToday = document.getElementById('perfMasteredToday');
-    if (perfMasteredToday) perfMasteredToday.textContent = masteredToday;
-}
-
-// =============================================
-// NAVIGATION & MODALS
-// =============================================
-function nav(id, el) {
-    document.querySelectorAll('.content-area').forEach(d => d.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    if (el) el.classList.add('active');
-    
-    const mainFab = document.getElementById('mainFab');
-    if (mainFab) mainFab.style.display = id === 'manageContent' ? 'flex' : 'none';
-    
-    if (id === 'statsContent') {
-        updateStatsFilter();
-        updateStatsUI();
-    }
-}
-
-function showModal(id) { 
-    const modal = document.getElementById(id);
-    if (modal) {
-        modal.classList.add('show');
-        if (id === 'importModal') {
-            const fb = document.getElementById('importFeedback');
-            if (fb) fb.style.display = 'none';
-        }
-    }
-}
-
-function hideModal(id) { 
-    const modal = document.getElementById(id);
-    if (modal) modal.classList.remove('show'); 
-}
-
-function toggleFab() { 
-    const menu = document.getElementById('fabMenu');
-    if (menu) menu.classList.toggle('active'); 
-}
-
-// =============================================
-// CONFETTI
-// =============================================
-function resizeCanvas() {
-    if (confettiCanvas) {
-        confettiCanvas.width = window.innerWidth;
-        confettiCanvas.height = window.innerHeight;
-    }
-}
-
-window.addEventListener('resize', resizeCanvas);
-
-// Konfetti-Partikel mit erweiterten Eigenschaften
-let streak = 0; // Interne Streak-Variable für intensiveres Konfetti
-let lastConfettiTime = 0;
-
-/**
- * Trigger eine spektakuläre Konfetti-Animation
- * @param {Object} options - Konfigurationsoptionen
- * @param {string} options.type - Typ des Konfettis ('celebration', 'streak', 'mastery', 'explosion')
- * @param {number} options.intensity - Intensität 1-5
- * @param {string} options.color - Hauptfarbe (optional)
- */
-function triggerConfetti(options = {}) {
-    if (!ctx) return;
-    
-    const now = Date.now();
-    const type = options.type || (streak > 3 ? 'streak' : 'celebration');
-    const intensity = options.intensity || Math.min(1 + streak * 0.5, 5);
-    
-    // Streak erhöhen (max 10)
-    if (now - lastConfettiTime < 3000) {
-        streak = Math.min(streak + 1, 10);
-    } else {
-        streak = Math.max(streak - 1, 0);
-    }
-    lastConfettiTime = now;
-    
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    const count = Math.floor(50 * intensity);
-    
-    // Farbpaletten je nach Typ
-    const colorPalettes = {
-        celebration: ['#ff0080', '#ff8c00', '#40e0d0', '#ee82ee', '#00ff7f'],
-        streak: ['#ffd700', '#ff6347', '#7fff00', '#00bfff', '#ff1493'],
-        mastery: ['#ffd700', '#ffa500', '#ff6347', '#ff4500', '#dc143c'],
-        explosion: ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#8b00ff']
-    };
-    
-    const colors = colorPalettes[type] || colorPalettes.celebration;
-    
-    // Partikel generieren
-    for (let i = 0; i < count; i++) {
-        const confetti = {
-            // Position
-            x: type === 'explosion' ? w / 2 + (Math.random() - 0.5) * w * 0.3 : Math.random() * w,
-            y: type === 'explosion' ? h / 2 : h + 20 + Math.random() * 100,
-            
-            // Geschwindigkeit
-            vx: (Math.random() - 0.5) * 8 * intensity,
-            vy: -((Math.random() * 12 + 8) * intensity),
-            
-            // Physik
-            rotation: Math.random() * 360,
-            rotationSpeed: (Math.random() - 0.5) * 15,
-            gravity: 0.15 + Math.random() * 0.1,
-            drag: 0.98 + Math.random() * 0.02,
-            
-            // Größe & Form
-            size: Math.random() * 10 + 5,
-            shape: ['rect', 'circle', 'triangle', 'star'][Math.floor(Math.random() * 4)],
-            
-            // Farbe
-            color: colors[Math.floor(Math.random() * colors.length)],
-            opacity: 1,
-            fadeRate: 0.005 + Math.random() * 0.005,
-            
-            // Spezial
-            life: 150 + Math.random() * 100,
-            wobble: Math.random() * 10,
-            wobbleSpeed: 0.05 + Math.random() * 0.05
-        };
-        
-        confettiParticles.push(confetti);
-    }
-    
-    // Explosion-Effekt bei hohen Intensitäten
-    if (intensity >= 4) {
-        for (let i = 0; i < 30; i++) {
-            confettiParticles.push({
-                x: w / 2,
-                y: h / 2,
-                vx: (Math.random() - 0.5) * 20,
-                vy: (Math.random() - 0.5) * 20,
-                rotation: Math.random() * 360,
-                rotationSpeed: (Math.random() - 0.5) * 20,
-                gravity: 0.2,
-                drag: 0.97,
-                size: Math.random() * 8 + 4,
-                shape: 'circle',
-                color: colors[Math.floor(Math.random() * colors.length)],
-                opacity: 1,
-                fadeRate: 0.01,
-                life: 80,
-                wobble: 0,
-                wobbleSpeed: 0
-            });
-        }
-    }
-    
-    // Konfetti-Animation starten
-    if (!confettiRunning) {
-        confettiRunning = true;
-        requestAnimationFrame(animateConfetti);
-    }
-}
-
-/**
- * Zeichne verschiedene Konfetti-Formen
- */
-function drawConfettiShape(ctx, shape, size, color, opacity) {
-    ctx.save();
-    ctx.globalAlpha = opacity;
-    ctx.fillStyle = color;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    
-    switch (shape) {
-        case 'rect':
-            ctx.fillRect(-size/2, -size/4, size, size/2);
-            // Glanz-Effekt
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.fillRect(-size/2, -size/4, size, size/6);
-            break;
-            
-        case 'circle':
-            ctx.beginPath();
-            ctx.arc(0, 0, size/2, 0, Math.PI * 2);
-            ctx.fill();
-            // Glanz-Effekt
-            ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            ctx.beginPath();
-            ctx.arc(-size/6, -size/6, size/6, 0, Math.PI * 2);
-            ctx.fill();
-            break;
-            
-        case 'triangle':
-            ctx.beginPath();
-            ctx.moveTo(0, -size/2);
-            ctx.lineTo(size/2, size/2);
-            ctx.lineTo(-size/2, size/2);
-            ctx.closePath();
-            ctx.fill();
-            break;
-            
-        case 'star':
-            ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-                const x = Math.cos(angle) * size/2;
-                const y = Math.sin(angle) * size/2;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            break;
-    }
-    
-    ctx.restore();
-}
-
-/**
- * Haupt-Animationsschleife für Konfetti
- */
-function animateConfetti() {
-    if (!ctx || !confettiCanvas) return;
-    
-    // Canvas mit leichtem Fade leeren (Trail-Effekt)
-    ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-    
-    // Partikel aktualisieren und zeichnen
-    for (let i = confettiParticles.length - 1; i >= 0; i--) {
-        const p = confettiParticles[i];
-        
-        // Physik aktualisieren
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += p.gravity;
-        p.vx *= p.drag;
-        p.vy *= p.drag;
-        p.rotation += p.rotationSpeed;
-        
-        // Wobble-Effekt (seitliches Schaukeln)
-        p.wobble += p.wobbleSpeed;
-        p.x += Math.sin(p.wobble) * 0.5;
-        
-        // Lebensdauer und Opazität
-        p.life--;
-        if (p.life < 30) {
-            p.opacity = p.life / 30;
-        }
-        
-        // Zeichnen (nur wenn im sichtbaren Bereich)
-        if (p.y > -50 && p.y < confettiCanvas.height + 50 && p.x > -50 && p.x < confettiCanvas.width + 50) {
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            ctx.rotate((p.rotation * Math.PI) / 180);
-            
-            drawConfettiShape(ctx, p.shape, p.size, p.color, p.opacity);
-            
-            ctx.restore();
-        }
-        
-        // Partikel entfernen wenn abgelaufen
-        if (p.life <= 0) {
-            confettiParticles.splice(i, 1);
-        }
-    }
-    
-    // Sekundär-Effekt: Leichte Partikel (Glow)
-    if (confettiParticles.length > 20) {
-        ctx.save();
-        ctx.globalAlpha = 0.1;
-        for (let i = 0; i < 10; i++) {
-            const p = confettiParticles[Math.floor(Math.random() * confettiParticles.length)];
-            if (p) {
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
-                ctx.fill();
-            }
-        }
-        ctx.restore();
-    }
-    
-    // Animation fortsetzen, solange noch Partikel vorhanden
-    if (confettiParticles.length > 0) {
-        requestAnimationFrame(animateConfetti);
-    } else {
-        confettiRunning = false;
-    }
+    const box = document.getElementById('hintMc');
+    if (box) box.style.display = box.style.display === 'block' ? 'none' : 'block';
 }
 
 // =============================================
 // EXPORT / IMPORT / RESET
 // =============================================
-async function resetAll() {
-    const confirmed = await showConfirm('ACHTUNG: Alle Daten werden unwiderruflich gelöscht!\n\nMöchtest du wirklich fortfahren?');
-    if (confirmed) {
-        safeLocalStorage('remove', DATA_KEY);
-        safeLocalStorage('remove', BACKUP_KEY);
-        location.reload();
-    }
-}
-
-function escapeCSV(str) {
-    if (!str) return '';
-    str = str.replace(/"/g, '""');
-    if (str.includes(';') || str.includes(',') || str.includes('"')) {
-        str = '"' + str + '"';
-    }
-    return str;
-}
-
-function exportData(type) {
-    const exportPayload = {
-        ...data,
-        exportedAt: Date.now(),
-        exportType: 'manual'
-    };
-    const str = type === 'json' 
-        ? JSON.stringify(exportPayload, null, 2) 
-        : "Front;Back;Box;Hint\n" + data.cards.map(c => 
-            `${escapeCSV(c.front)};${escapeCSV(c.back)};${c.box};${escapeCSV(c.hint || '')}`
-        ).join('\n');
-    const blob = new Blob([str], { type: type === 'json' ? 'application/json' : 'text/csv;charset=utf-8' });
+function downloadJson(obj, filename) {
+    const json = JSON.stringify(obj, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `ultracards-backup-${new Date().toISOString().split('T')[0]}.${type}`;
+    a.href = url;
+    a.download = filename;
     a.click();
-    showNotification('Backup heruntergeladen!', 'success');
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function importData(inp) {
-    const f = inp.files[0];
-    if (!f) return;
+function exportData(format) {
+    if (format === 'json') {
+        const payload = {
+            type: 'ultracards-backup',
+            version: DB_VERSION,
+            exportedAt: Date.now(),
+            ...data
+        };
+        downloadJson(payload, `vokabeltrainer-backup-${dayKey()}.json`);
+        showNotification('Backup heruntergeladen!', 'success');
+    } else if (format === 'csv') {
+        const esc = (s) => `"${String(s || '').replace(/"/g, '""')}"`;
+        let csv = 'Vorderseite;Rueckseite;Hinweis;Box;Ordner\n';
+        data.cards.forEach(c => {
+            const folder = data.folders.find(f => f.id === c.folderId);
+            csv += [
+                esc(c.front), esc(c.back), esc(c.hint),
+                c.box || 1, esc(folder ? folder.name : '')
+            ].join(';') + '\n';
+        });
+        // BOM für Excel-Kompatibilität
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `vokabeltrainer-${dayKey()}.csv`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showNotification('CSV exportiert!', 'success');
+    }
+}
+
+function importData(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
     
-    const r = new FileReader();
-    r.onload = e => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
         try {
-            const d = JSON.parse(e.target.result);
-            
-            if (!d.cards || !Array.isArray(d.cards)) {
-                throw new Error('Ungültiges Format: Keine Karten gefunden');
+            const parsed = JSON.parse(e.target.result);
+            if (!parsed.cards || !parsed.folders) {
+                showNotification('Ungültige Backup-Datei!', 'error');
+                input.value = '';
+                return;
             }
-            
-            if (data.cards.length > 0) {
-                showConfirm(`Achtung: Du hast bereits ${data.cards.length} Karten.\n\nDer Import wird deine bestehenden Daten ERGÄNZEN (Duplikate werden übersprungen).\n\nFortfahren?`)
-                    .then(confirmed => {
-                        if (!confirmed) return;
-                        processImport(d);
-                    });
-            } else {
-                processImport(d);
+            const confirmed = await showConfirm('Backup wiederherstellen? Die aktuellen Daten werden überschrieben!');
+            if (!confirmed) {
+                input.value = '';
+                return;
             }
+            data = migrateData(parsed);
+            if (!data.totalTimeSeconds) data.totalTimeSeconds = 0;
+            if (!data.totalReviews) data.totalReviews = 0;
+            if (!data.lastSessionDuration) data.lastSessionDuration = 0;
+            save();
+            curFolder = null;
+            renderManage();
+            updateBackupStatus();
+            checkStreak();
+            showNotification('Backup wiederhergestellt!', 'success');
         } catch (err) {
-            showNotification('Fehler beim Import: ' + err.message, 'error');
+            console.error('Import-Fehler:', err);
+            showNotification('Fehler beim Lesen der Datei!', 'error');
         }
+        input.value = '';
     };
-    r.readAsText(f);
-    inp.value = '';
+    reader.readAsText(file);
 }
 
-function processImport(d) {
-    let addedCards = 0;
-    let addedFolders = 0;
-    
-    const migrated = migrateData(d);
-    const folderIdMap = {}; // Mapping: old ID -> new ID
-    
-    // Rekursive Funktion zum Verarbeiten von Ordnern (Eltern zuerst)
-    function processFolder(oldFolder) {
-        // Prüfen ob bereits verarbeitet
-        if (folderIdMap[oldFolder.id]) return;
-        
-        // Zuerst Parent-Ordner verarbeiten falls nötig
-        if (oldFolder.parentId && !folderIdMap[oldFolder.parentId]) {
-            const parentFolder = migrated.folders.find(f => f.id === oldFolder.parentId);
-            if (parentFolder) {
-                processFolder(parentFolder);
-            }
-        }
-        
-        // Neue Parent-ID ermitteln
-        const newParentId = oldFolder.parentId ? folderIdMap[oldFolder.parentId] : null;
-        
-        // Prüfen ob Ordner bereits existiert (nach Name und Parent)
-        const existingFolder = data.folders.find(f => 
-            f.name === oldFolder.name && 
-            (f.parentId || '') === (newParentId || '')
-        );
-        
-        if (!existingFolder) {
-            // Neuen Ordner erstellen
-            const newId = genId();
-            folderIdMap[oldFolder.id] = newId;
-            
-            data.folders.push({
-                id: newId,
-                name: oldFolder.name,
-                parentId: newParentId
-            });
-            addedFolders++;
-        } else {
-            // Ordner existiert bereits, Mapping auf existierende ID
-            folderIdMap[oldFolder.id] = existingFolder.id;
-        }
+function runImport() {
+    const text = document.getElementById('inpImport').value.trim();
+    if (!text) {
+        showNotification('Keine Daten zum Importieren!', 'warning');
+        return;
     }
     
-    // Alle Ordner verarbeiten
-    migrated.folders.forEach(f => processFolder(f));
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    let added = 0, skipped = 0;
     
-    // Karten importieren mit korrektem folderId-Mapping
-    migrated.cards.forEach(oldCard => {
-        const newFolderId = folderIdMap[oldCard.folderId] || null;
+    lines.forEach(line => {
+        const parts = line.split(';').map(p => p.trim());
+        const front = parts[0];
+        const back = parts[1];
+        const hint = parts[2] || '';
         
-        // Duplikatsprüfung: front, back UND folderId
+        if (!front || !back) { skipped++; return; }
+        
         const exists = data.cards.some(c =>
-            c.front === oldCard.front &&
-            c.back === oldCard.back &&
-            (c.folderId || '') === (newFolderId || '')
+            c.folderId === curFolder &&
+            c.front.toLowerCase() === front.toLowerCase() &&
+            c.back.toLowerCase() === back.toLowerCase()
         );
+        if (exists) { skipped++; return; }
         
-        if (!exists) {
-            data.cards.push({
-                id: genId(),
-                front: oldCard.front,
-                back: oldCard.back,
-                hint: oldCard.hint || '',
-                box: oldCard.box || 1,
-                folderId: newFolderId,
-                createdAt: oldCard.createdAt || Date.now()
-            });
-            addedCards++;
-        }
+        data.cards.push({ id: genId(), front, back, hint, box: 1, folderId: curFolder, createdAt: Date.now() });
+        added++;
     });
     
     save();
-    showNotification(`Import erfolgreich: ${addedCards} Karten, ${addedFolders} Ordner hinzugefügt`, 'success');
     renderManage();
+    hideModal('importModal');
+    document.getElementById('inpImport').value = '';
+    showNotification(`${added} Karten importiert${skipped > 0 ? `, ${skipped} übersprungen` : ''}!`, 'success');
+}
+
+async function resetAll() {
+    const confirmed = await showConfirm('Wirklich ALLE Daten löschen? Ordner, Karten und Fortschritt werden entfernt!');
+    if (!confirmed) return;
+    const confirmed2 = await showConfirm('Letzte Chance – wirklich alles löschen?');
+    if (!confirmed2) return;
+    
+    safeLocalStorage('remove', DATA_KEY);
+    safeLocalStorage('remove', BACKUP_KEY);
+    curFolder = null;
+    createSampleData();
+    renderManage();
+    updateBackupStatus();
+    showNotification('Alle Daten gelöscht!', 'info');
+}
+
+function resetCard(id) {
+    const card = data.cards.find(c => c.id === id);
+    if (card) {
+        card.box = 1;
+        card.lastLearnedAt = null;
+        save();
+        renderManage();
+        showNotification('Karte zurückgesetzt (Box 1)!', 'success');
+    }
 }
 
 // =============================================
-// PWA INITIALISIERUNG
+// STATISTIK
 // =============================================
-function initPWA() {
-    if ('serviceWorker' in navigator) {
-        console.log('Service Worker Unterstützung vorhanden');
+function renderStats() {
+    const scopeEl = document.getElementById('statsScope');
+    const cards = getCardsForScope(scopeEl ? scopeEl.value : 'all');
+    
+    const totalEl = document.getElementById('statsTotal');
+    if (totalEl) totalEl.textContent = cards.length;
+    
+    const mastered = cards.filter(c => (c.box || 1) >= MAX_LEITNER_BOX).length;
+    const pct = cards.length > 0 ? Math.round((mastered / cards.length) * 100) : 0;
+    const masteredEl = document.getElementById('statsMastered');
+    if (masteredEl) masteredEl.textContent = `${pct}% gemeistert`;
+    
+    const lastSessionEl = document.getElementById('perfLastSession');
+    if (lastSessionEl) lastSessionEl.textContent = data.lastSessionDuration ? formatTime(data.lastSessionDuration) : '--:--';
+    
+    const avgEl = document.getElementById('perfAvgTime');
+    if (avgEl) {
+        avgEl.textContent = data.totalReviews > 0
+            ? `${Math.max(1, Math.round((data.totalTimeSeconds || 0) / data.totalReviews))}s`
+            : '--s';
     }
     
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
+    const ttmEl = document.getElementById('perfTimeToMaster');
+    if (ttmEl) {
+        const unmastered = cards.filter(c => (c.box || 1) < MAX_LEITNER_BOX).length;
+        // 1+3+7+14 = 25 Tage Intervall-Summe bis Box 5
+        ttmEl.textContent = cards.length === 0 ? '--' : (unmastered === 0 ? 'Fertig! 🎉' : `~${unmastered * 25} Tage`);
+    }
+    
+    const todayEl = document.getElementById('perfMasteredToday');
+    if (todayEl) {
+        const today = dayKey();
+        const count = cards.filter(c =>
+            c.lastLearnedAt &&
+            dayKey(new Date(c.lastLearnedAt)) === today &&
+            (c.box || 1) >= MAX_LEITNER_BOX
+        ).length;
+        todayEl.textContent = count;
+    }
+    
+    // Box-Chart
+    for (let b = 1; b <= MAX_LEITNER_BOX; b++) {
+        const row = document.querySelector(`.box-row[data-box="${b}"]`);
+        if (!row) continue;
+        const count = cards.filter(c => (c.box || 1) === b).length;
+        const valueEl = row.querySelector('.box-value');
+        if (valueEl) valueEl.textContent = count;
+        const fill = row.querySelector('.box-progress-fill');
+        if (fill) fill.style.width = cards.length > 0 ? `${(count / cards.length) * 100}%` : '0%';
+        row.classList.toggle('empty', count === 0);
+    }
+}
+
+// =============================================
+// CONFETTI
+// =============================================
+function resizeConfettiCanvas() {
+    if (!confettiCanvas) return;
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeConfettiCanvas);
+
+function launchConfetti() {
+    if (!confettiCanvas || !ctx) return;
+    resizeConfettiCanvas();
+    
+    const colors = ['#4f46e5', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#ef4444'];
+    for (let i = 0; i < 80; i++) {
+        confettiParticles.push({
+            x: confettiCanvas.width / 2 + (Math.random() - 0.5) * 200,
+            y: confettiCanvas.height * 0.4,
+            vx: (Math.random() - 0.5) * 12,
+            vy: Math.random() * -12 - 4,
+            size: Math.random() * 8 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: (Math.random() - 0.5) * 0.3,
+            life: 1
+        });
+    }
+    
+    if (!confettiRunning) {
+        confettiRunning = true;
+        requestAnimationFrame(confettiLoop);
+    }
+}
+
+function confettiLoop() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    confettiParticles = confettiParticles.filter(p => p.life > 0 && p.y < confettiCanvas.height + 50);
+    
+    confettiParticles.forEach(p => {
+        p.vy += 0.25; // Gravitation
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rotation += p.rotationSpeed;
+        p.life -= 0.008;
         
-        if (!localStorage.getItem('installBannerDismissed')) {
-            setTimeout(() => {
-                const banner = document.getElementById('installBanner');
-                if (banner) banner.style.display = 'block';
-            }, 3000);
-        }
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.restore();
     });
     
-    window.addEventListener('appinstalled', () => {
-        const banner = document.getElementById('installBanner');
-        if (banner) banner.style.display = 'none';
-        deferredPrompt = null;
-        showNotification('App erfolgreich installiert!', 'success');
-    });
+    if (confettiParticles.length > 0) {
+        requestAnimationFrame(confettiLoop);
+    } else {
+        confettiRunning = false;
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    }
 }
+
+// =============================================
+// PWA INSTALLATION
+// =============================================
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!safeLocalStorage('get', 'ultraInstallDismissed')) {
+        const banner = document.getElementById('installBanner');
+        if (banner) banner.style.display = 'block';
+    }
+});
 
 async function installPWA() {
     if (!deferredPrompt) return;
-    
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-        console.log('User accepted install');
-    }
-    
+    try {
+        await deferredPrompt.userChoice;
+    } catch (e) {}
     deferredPrompt = null;
-    const banner = document.getElementById('installBanner');
-    if (banner) banner.style.display = 'none';
+    dismissInstall();
 }
 
 function dismissInstall() {
     const banner = document.getElementById('installBanner');
     if (banner) banner.style.display = 'none';
-    localStorage.setItem('installBannerDismissed', 'true');
+    safeLocalStorage('set', 'ultraInstallDismissed', '1');
 }
+
+// =============================================
+// TASTATUR-STEUERUNG (NEUES FEATURE)
+// =============================================
+document.addEventListener('keydown', (e) => {
+    if (!sessionActive) return;
+    
+    // Eingabefelder: Enter prüft die Antwort
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        if (e.key === 'Enter' && session.method === 'type') {
+            e.preventDefault();
+            if (correctionMode) confirmCorrection();
+            else checkType();
+        }
+        return;
+    }
+    
+    if (session.method === 'flip') {
+        if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            flipCard();
+        } else if (e.key === 'ArrowLeft') {
+            rate(false);
+        } else if (e.key === 'ArrowRight') {
+            rate(true);
+        }
+    } else if (session.method === 'mc') {
+        if (['1', '2', '3', '4'].includes(e.key)) {
+            const btns = document.querySelectorAll('.mc-option:not(:disabled)');
+            const btn = btns[parseInt(e.key, 10) - 1];
+            if (btn) btn.click();
+        } else if (e.key === 'Enter') {
+            const nextBtn = document.getElementById('btnNextMc');
+            if (nextBtn && !nextBtn.classList.contains('hidden')) nextBtn.click();
+        }
+    } else if (session.method === 'type') {
+        if (e.key === 'Enter') {
+            const nextBtn = document.getElementById('btnNextType');
+            if (nextBtn && !nextBtn.classList.contains('hidden')) nextBtn.click();
+        }
+    }
+});
 
 // =============================================
 // INITIALISIERUNG
 // =============================================
-// =============================================
-// KEYBOARD SHORTCUTS
-// =============================================
-document.addEventListener('keydown', function(e) {
-    // STRG+S - Speichern (falls ein Formular offen ist)
-    if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        // Prüfen ob ein Card-Modal offen ist
-        const cardModal = document.getElementById('cardModal');
-        if (cardModal && cardModal.classList.contains('show')) {
-            saveCard();
-        }
-    }
+function init() {
+    // Theme & Akzent wiederherstellen
+    applyTheme(safeLocalStorage('get', THEME_KEY) || 'light');
+    const accent = safeLocalStorage('get', ACCENT_KEY);
+    if (accent) setAccent(accent);
     
-    // ESC - Modal schließen oder Session beenden
-    if (e.key === 'Escape') {
-        // Modals schließen
-        document.querySelectorAll('.modal.show').forEach(modal => {
-            hideModal(modal.id);
-        });
-        
-        // Bottom Sheet schließen
-        closeMoveSheet();
-    }
-    
-    // Während aktiver Learning-Session
-    const activeSession = document.getElementById('activeSession');
-    if (activeSession && activeSession.style.display === 'block') {
-        if (session.method === 'flip') {
-            // Leertaste - Karte umdrehen
-            if (e.key === ' ' || e.code === 'Space') {
-                e.preventDefault();
-                flipCard();
-            }
-            // Pfeil links - Wiederholen
-            if (e.key === 'ArrowLeft') {
-                rate(false);
-            }
-            // Pfeil rechts - Gewusst
-            if (e.key === 'ArrowRight') {
-                rate(true);
-            }
-        } else {
-            // Typ-Mode: Enter zum Prüfen/Weiter
-            if (e.key === 'Enter') {
-                const correctionInput = document.getElementById('correctionInput');
-                if (correctionInput && correctionMode) {
-                    confirmCorrection();
-                }
-            }
-        }
-    }
-    
-    // ALT+1 - Karten-Tab
-    if (e.altKey && e.key === '1') {
-        e.preventDefault();
-        nav('manageContent', document.querySelector('.nav-item:first-child'));
-    }
-    // ALT+2 - Lernen-Tab
-    if (e.altKey && e.key === '2') {
-        e.preventDefault();
-        nav('learnContent', document.querySelectorAll('.nav-item')[1]);
-    }
-    // ALT+3 - Statistik-Tab  
-    if (e.altKey && e.key === '3') {
-        e.preventDefault();
-        nav('statsContent', document.querySelectorAll('.nav-item')[2]);
-    }
-    
-    // / - Suchfeld fokussieren
-    if (e.key === '/' && !e.ctrlKey && !e.altKey) {
-        const activeEl = document.activeElement;
-        const searchBox = document.getElementById('searchBox');
-        if (searchBox && activeEl !== searchBox && 
-            activeEl.tagName !== 'INPUT' && activeEl.tagName !== 'TEXTAREA') {
-            e.preventDefault();
-            searchBox.focus();
-        }
-    }
-    
-    // N - Neue Karte (wenn auf Karten-Tab)
-    if (e.key === 'n' && !e.ctrlKey && !e.altKey) {
-        const activeEl = document.activeElement;
-        if (activeEl.tagName !== 'INPUT' && activeEl.tagName !== 'TEXTAREA') {
-            const manageContent = document.getElementById('manageContent');
-            if (manageContent && manageContent.classList.contains('active')) {
-                e.preventDefault();
-                openNewCardModal();
-            }
-        }
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
     loadData();
-    applyTheme();
-    applyAccent();
     renderManage();
-    updateStatsUI();
-    updateBackupStatus();
-    
     checkUrlImport();
-
-    // Undo Toast Swipe
-    const toast = document.getElementById('undoToast');
-    if (toast) {
-        let startY = 0;
-        let isSwiping = false;
-
-        toast.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-            isSwiping = true;
-        }, { passive: true });
-
-        toast.addEventListener('touchmove', (e) => {
-            if (!isSwiping) return;
-            const diff = e.touches[0].clientY - startY;
-            if (diff > 0) {
-                e.preventDefault();
-                toast.style.transform = `translateY(${diff}px)`;
-            }
-        }, { passive: false });
-
-        toast.addEventListener('touchend', (e) => {
-            if (!isSwiping) return;
-            isSwiping = false;
-            const diff = e.changedTouches[0].clientY - startY;
-            if (diff > 60) {
-                undoLastAction();
-            } else {
-                toast.style.transform = '';
-            }
-        });
-    }
-
-    // Search mit Debounce
-    const searchBox = document.getElementById('searchBox');
-    if (searchBox) {
-        let searchTimeout = null;
-        searchBox.addEventListener('input', (e) => {
-            if (searchTimeout) clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                renderManage(e.target.value);
-            }, 300);
-        });
-    }
     
-    // Type Input Enter
-    const typeInput = document.getElementById('typeInput');
-    if (typeInput) {
-        typeInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const btnCheckType = document.getElementById('btnCheckType');
-                if (btnCheckType && btnCheckType.classList.contains('hidden')) nextCard();
-                else checkType();
-            }
-        });
-    }
+    // Auto-Backup alle 5 Minuten
+    setInterval(createAutoBackup, AUTO_BACKUP_INTERVAL);
     
-    // Correction Input Enter
-    const correctionInput = document.getElementById('correctionInput');
-    if (correctionInput) {
-        correctionInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                confirmCorrection();
-            }
-        });
-    }
-    
-    // Modal Close on Overlay Click
-    window.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal')) {
-            hideModal(e.target.id);
+    // FAB-Menü bei Klick außerhalb schließen
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('fabMenu');
+        const fab = document.getElementById('mainFab');
+        if (menu && menu.classList.contains('active') &&
+            !menu.contains(e.target) && fab && !fab.contains(e.target)) {
+            menu.classList.remove('active');
         }
     });
     
-    // Auto Backup Interval
-    setInterval(() => {
-        createAutoBackup();
-    }, AUTO_BACKUP_INTERVAL);
+    // Suchbox (Fuzzy-Suche)
+    const searchBox = document.getElementById('searchBox');
+    if (searchBox) {
+        searchBox.addEventListener('input', (e) => renderManage(e.target.value));
+    }
     
-    // Canvas Resize
-    resizeCanvas();
+    // Statistik-Filter
+    const statsScope = document.getElementById('statsScope');
+    if (statsScope) statsScope.addEventListener('change', renderStats);
     
-    // FAB Menu Auto-Close bei Klick außerhalb
-    const fabMenu = document.getElementById('fabMenu');
-    const mainFab = document.getElementById('mainFab');
-    if (fabMenu && mainFab) {
-        document.addEventListener('click', (e) => {
-            if (fabMenu.classList.contains('active') && 
-                !fabMenu.contains(e.target) && 
-                !mainFab.contains(e.target)) {
-                fabMenu.classList.remove('active');
-            }
+    // Enter im Ordner-Modal
+    const inpFolder = document.getElementById('inpFolder');
+    if (inpFolder) {
+        inpFolder.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addFolder();
         });
     }
-
-    // Lern-Cockpit Einstellungen laden
-    loadLearnSettings();
     
-    // Lern-Cockpit Einstellungen speichern bei Änderung
-    const learnSource = document.getElementById('learnSource');
-    const learnStrategy = document.getElementById('learnStrategy');
-    const learnMethod = document.getElementById('learnMethod');
-    if (learnSource) learnSource.addEventListener('change', saveLearnSettings);
-    if (learnStrategy) learnStrategy.addEventListener('change', saveLearnSettings);
-    if (learnMethod) learnMethod.addEventListener('change', saveLearnSettings);
+    // Modals: Klick auf Backdrop schließt
+    document.querySelectorAll('.modal').forEach(m => {
+        m.addEventListener('click', (e) => {
+            if (e.target === m) m.classList.remove('show');
+        });
+    });
+}
 
-    // PWA Init
-    initPWA();
-    
-    console.log('Vokabeltrainer Ultra Edition geladen!');
-});
+init();
