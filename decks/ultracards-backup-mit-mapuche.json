@@ -1,0 +1,3613 @@
+{
+  "folders": [
+    {
+      "id": "mqic1hnn9654jp1zjme",
+      "name": "Geschichte",
+      "parentId": null
+    },
+    {
+      "id": "mqic1hnny7gzkyvpjii",
+      "name": "Spanisch",
+      "parentId": null
+    },
+    {
+      "id": "mqic1hnn4xa9tvem2zf",
+      "name": "Tema 2",
+      "parentId": "mqic1hnny7gzkyvpjii"
+    },
+    {
+      "id": "mqic1hnn0u5xiutrf5hi",
+      "name": "Tema 2 Extranjero",
+      "parentId": "mqic1hnn4xa9tvem2zf"
+    },
+    {
+      "id": "mqic1hnn2z9ay2rqqwi",
+      "name": "Testimonios de jóvenes",
+      "parentId": "mqic1hnn4xa9tvem2zf"
+    },
+    {
+      "id": "mqic1hnnebkkjjev0wr",
+      "name": "Deutsch",
+      "parentId": null
+    },
+    {
+      "id": "mqic1hnn5f7sw9696il",
+      "name": "Vokabeltest",
+      "parentId": "mqic1hnn4xa9tvem2zf"
+    },
+    {
+      "id": "mqic1hnn6y2vpldqpfn",
+      "name": "Thema: Zweisprachigkeit & Katalonien",
+      "parentId": "mqic1hnn4xa9tvem2zf"
+    },
+    {
+      "id": "mqic1hnnkfit89voslp",
+      "name": "1. Weltkrieg Test",
+      "parentId": "mqic1hnn9654jp1zjme"
+    },
+    {
+      "id": "mqic1hnnvhat9zeea9",
+      "name": "Kriegsverlauf & Waffen",
+      "parentId": "mqic1hnnkfit89voslp"
+    },
+    {
+      "id": "mqic1hnn5m3xibc9b4",
+      "name": "Kriegswirtschaft & Alltag",
+      "parentId": "mqic1hnnkfit89voslp"
+    },
+    {
+      "id": "mqic1hnnxz9o2dqmxnd",
+      "name": "Ergebnisse & Folgen",
+      "parentId": "mqic1hnnkfit89voslp"
+    },
+    {
+      "id": "mqic1hnn0qhz35dd5m2",
+      "name": "Los gamines",
+      "parentId": "mqic1hnn4xa9tvem2zf"
+    },
+    {
+      "id": "mqic1hnnov10ym82uqe",
+      "name": "Spanisch Thema 2",
+      "parentId": "mqic1hnn4xa9tvem2zf"
+    },
+    {
+      "id": "mqic1hnntnt0ypxhdhd",
+      "name": "Erzählstrategien",
+      "parentId": "mqic1hnnebkkjjev0wr"
+    },
+    {
+      "id": "mqic1hnnnls1nfv5a6m",
+      "name": "Rede",
+      "parentId": "mqic1hnnebkkjjev0wr"
+    },
+    {
+      "id": "mapuchefolder01",
+      "name": "La lucha de los mapuche",
+      "parentId": "mqic1hnn4xa9tvem2zf"
+    }
+  ],
+  "cards": [
+    {
+      "id": "mqic1hnnqc40gpiwxl",
+      "front": "el asilo",
+      "back": "Asyl",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063453,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnne1h9jar0w94",
+      "front": "el autobús",
+      "back": "Bus",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063453
+    },
+    {
+      "id": "mqic1hnn8ykh8ljohrl",
+      "front": "la economía",
+      "back": "Wirtschaft",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063453
+    },
+    {
+      "id": "mqic1hnnsk2grodt6eh",
+      "front": "estrecho",
+      "back": "eng",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063453
+    },
+    {
+      "id": "mqic1hnncms9n4rfl2",
+      "front": "el frío",
+      "back": "Kälte",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063453,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781716619622
+    },
+    {
+      "id": "mqic1hnnlzs9iesxej9",
+      "front": "el futuro",
+      "back": "Zukunft",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063453,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnn29dzr0rvssg",
+      "front": "el hambre",
+      "back": "Hunger",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063453
+    },
+    {
+      "id": "mqic1hnnw6cwahd3r4e",
+      "front": "el hijo",
+      "back": "Sohn",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063453
+    },
+    {
+      "id": "mqic1hnn4kegskuj2v7",
+      "front": "la opinión",
+      "back": "Meinung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063453,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnndf2fc1ota79",
+      "front": "el oleaje",
+      "back": "Wellengang",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnnz1akx8g2ej",
+      "front": "la pobreza",
+      "back": "Armut",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnnrs8q1wy45q",
+      "front": "la religión",
+      "back": "Religion",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnn2zatb1j7juh",
+      "front": "el sol / el calor",
+      "back": "Hitze",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnn5cvpt15uhkx",
+      "front": "peligroso",
+      "back": "gefährlich",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnc0cmq4xjfpv",
+      "front": "inseguro",
+      "back": "unsicher",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnnh4xluhuttkw",
+      "front": "climático",
+      "back": "klimatisch",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnwcamqd11a99",
+      "front": "terrestre",
+      "back": "irdisch",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnnftmifuq0c78",
+      "front": "a pie",
+      "back": "zu Fuß",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnkkzmx46ebni",
+      "front": "mejor",
+      "back": "besser",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnn347daik17l",
+      "front": "política",
+      "back": "politisch",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnn2r7mmkiyrba",
+      "front": "marítimo/a",
+      "back": "Meer",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnnsdqxtvnwf4r",
+      "front": "natural",
+      "back": "natürlich",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnn8gu0hlmpph",
+      "front": "largo",
+      "back": "lang",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnnz39i20dyxlk",
+      "front": "seguro",
+      "back": "sicher",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnel3smzhoyd7",
+      "front": "aéreo/a",
+      "back": "überirdisch",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781716631809
+    },
+    {
+      "id": "mqic1hnnp1rodyx8sg",
+      "front": "funcionar",
+      "back": "funktionieren",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnng6amdlwdfx9",
+      "front": "ganar",
+      "back": "gewinnen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnn3mzg4cu165",
+      "front": "ahogar",
+      "back": "ertrinken",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnnlz8vkwzsvw",
+      "front": "escapar",
+      "back": "flüchten",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnnyzdbbk2p41p",
+      "front": "deber",
+      "back": "schulden",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnn8yswvfxs033",
+      "front": "poder",
+      "back": "können",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnno71gbtm9p2g",
+      "front": "tener que",
+      "back": "müssen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnl81ksxxhtzo",
+      "front": "saber",
+      "back": "wissen können",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnn79gvvlr55hm",
+      "front": "la sensación",
+      "back": "das Gefühl",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnt5xfdhu781q",
+      "front": "limpio",
+      "back": "sauber",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnn1pcrgxzlh54",
+      "front": "una balsa de plásticos a remos",
+      "back": "Schlauchboot mit Ruder",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnn2ba6ybbs6tq",
+      "front": "rescatar",
+      "back": "retten",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnhyteck1jowm",
+      "front": "el engaño",
+      "back": "Täuschung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnx17t7ui3sr",
+      "front": "el visado",
+      "back": "Visum",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnny55aymx0asn",
+      "front": "la patera",
+      "back": "Boot",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnnujhoblogcp8",
+      "front": "subirse a",
+      "back": "einsteigen in",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnner9yheesrq",
+      "front": "zódiac",
+      "back": "aufblasbares Boot",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnbszl9r04skf",
+      "front": "gastar",
+      "back": "ausgeben",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnnpwzctx36xnh",
+      "front": "reunir (dinero)",
+      "back": "Geld zusammenlegen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnopfa1lni4t7m",
+      "front": "la decepción",
+      "back": "Enttäuschung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hno8gvl3irm7u9",
+      "front": "luchar",
+      "back": "kämpfen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnovg8k1zt8ze",
+      "front": "un cayuco",
+      "back": "traditionelles Boot",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781716614714
+    },
+    {
+      "id": "mqic1hnoal2ry8wyc2",
+      "front": "lleno de gente",
+      "back": "voll von Leuten",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hno67dimrkry2",
+      "front": "un puerto",
+      "back": "ein Hafen",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnodg2ww9v1a1o",
+      "front": "naufragar",
+      "back": "Schiffbruch erleiden",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hno9hs8xm9kg7k",
+      "front": "abandonar",
+      "back": "verlassen",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnomaq6tee3x3p",
+      "front": "ayudar a una persona",
+      "back": "einer Person helfen",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnojmgqx8f5zna",
+      "front": "chaquetas salvavidas",
+      "back": "Rettungswesten",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnowk9cx87atjs",
+      "front": "los restos de un barco",
+      "back": "die Überreste eines Schiffes",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnom2hhdd9xb8f",
+      "front": "un barco naufragado",
+      "back": "ein Schiffswrack",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnous0v99es3ms",
+      "front": "una valla",
+      "back": "ein Zaun",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hno748q4o1npo5",
+      "front": "el alambre",
+      "back": "der Draht",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnotf4e20qr28",
+      "front": "de espino",
+      "back": "Stachel",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnooutut44t8ig",
+      "front": "alambre de espino",
+      "back": "Stacheldraht",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hno5ourvv6um8w",
+      "front": "el entendimiento",
+      "back": "Verständnis",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnocml9nth6bul",
+      "front": "entender a una p.",
+      "back": "jmd verstehen",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnogqlzep7ll3",
+      "front": "entendido/a",
+      "back": "verständlich",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnoa95re1drru8",
+      "front": "el enriquecimiento",
+      "back": "Bereicherung",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnoualnd8u14b",
+      "front": "enriquecer",
+      "back": "bereichern",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hno2uvcvm442gv",
+      "front": "enriquecido",
+      "back": "bereichernd",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnow7l42x0yzm",
+      "front": "la convivencia",
+      "back": "Zusammenleben",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hno6c42t7bilvi",
+      "front": "convivir",
+      "back": "zusammenleben",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hno7jkw0ejlyi",
+      "front": "el/la trabajador/a",
+      "back": "Arbeiter/in",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnou6j894w9xso",
+      "front": "trabajar",
+      "back": "arbeiten",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnohinzxpnmz7e",
+      "front": "trabajador/a",
+      "back": "fleißig",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnopdx4337mhah",
+      "front": "el esfuerzo",
+      "back": "Anstrengung",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnohytqxo7f1kg",
+      "front": "esforzarse",
+      "back": "sich anstrengen",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771518533567
+    },
+    {
+      "id": "mqic1hnocl6vbt4bpd8",
+      "front": "esforzado",
+      "back": "anstrengend",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652712
+    },
+    {
+      "id": "mqic1hnogirx3d60lt9",
+      "front": "la construcción",
+      "back": "Bau",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652712
+    },
+    {
+      "id": "mqic1hno762urovb9j",
+      "front": "construir",
+      "back": "bauen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652712
+    },
+    {
+      "id": "mqic1hnow398bb8erp",
+      "front": "construido/a",
+      "back": "aufgebaut",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652712
+    },
+    {
+      "id": "mqic1hno5k0eunqwfg",
+      "front": "el aprecio",
+      "back": "Wertschätzung",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652712
+    },
+    {
+      "id": "mqic1hnoot7d40f05vm",
+      "front": "apreciar",
+      "back": "schätzen, anerkennen",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652712
+    },
+    {
+      "id": "mqic1hnoar2erar44u",
+      "front": "apreciado/a",
+      "back": "geschätzt",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652712
+    },
+    {
+      "id": "mqic1hnonq362ekugol",
+      "front": "la división",
+      "back": "Teilung",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717
+    },
+    {
+      "id": "mqic1hnooap14opaonk",
+      "front": "dividir",
+      "back": "teilen",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717
+    },
+    {
+      "id": "mqic1hnoj9ilu5epnq",
+      "front": "dividido/a",
+      "back": "geteilt",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717
+    },
+    {
+      "id": "mqic1hnoyf0uaa1zfp",
+      "front": "el sentimiento",
+      "back": "Gefühl",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717
+    },
+    {
+      "id": "mqic1hno9le83ckyz15",
+      "front": "sentir",
+      "back": "fühlen",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717
+    },
+    {
+      "id": "mqic1hnos6o4nytxlrm",
+      "front": "sentido/a",
+      "back": "gefühlt",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717
+    },
+    {
+      "id": "mqic1hnoj16nd3yjo4",
+      "front": "el logro",
+      "back": "Erfolg",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717
+    },
+    {
+      "id": "mqic1hnozfcndd3622",
+      "front": "lograr",
+      "back": "erreichen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnojnho53feown",
+      "front": "logrado/a",
+      "back": "gelungen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnovgvu2xwrs9",
+      "front": "el bilingüismo",
+      "back": "die Zweisprachigkeit",
+      "hint": "Hauptthema",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536245
+    },
+    {
+      "id": "mqic1hnooacfa9shfd",
+      "front": "el monolingüismo",
+      "back": "die Einsprachigkeit",
+      "hint": "Gegenteil von Zweisprachigkeit",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536246
+    },
+    {
+      "id": "mqic1hno8ixb7amdpn9",
+      "front": "la preservación de la cultura",
+      "back": "die Erhaltung der Kultur",
+      "hint": "Pro-Argument",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536247
+    },
+    {
+      "id": "mqic1hnobibsokz46lg",
+      "front": "el patrimonio cultural",
+      "back": "das kulturelle Erbe",
+      "hint": "Wichtig für Identität",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536248
+    },
+    {
+      "id": "mqic1hnoi2yej9rt5x",
+      "front": "la identidad",
+      "back": "die Identität",
+      "hint": "Persönliche/kulturelle Zugehörigkeit",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536249
+    },
+    {
+      "id": "mqic1hno72iu1i78m3t",
+      "front": "la comprensión intercultural",
+      "back": "das interkulturelle Verständnis",
+      "hint": "Fördert Toleranz",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536250,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnolf3qzk2pem",
+      "front": "el mercado laboral",
+      "back": "der Arbeitsmarkt",
+      "hint": "Wo man Jobs findet",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536251
+    },
+    {
+      "id": "mqic1hnom7endusna0d",
+      "front": "la oportunidad laboral",
+      "back": "die Berufschance",
+      "hint": "Vorteil bei Bewerbungen",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536252
+    },
+    {
+      "id": "mqic1hnor2p9wr59sg9",
+      "front": "la competitividad",
+      "back": "die Konkurrenzfähigkeit",
+      "hint": "Im wirtschaftlichen Kontext",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536253,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hno8ivqgkg9tzc",
+      "front": "la barrera de comunicación",
+      "back": "die Kommunikationsbarriere",
+      "hint": "Contra-Argument",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536254,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781716626409
+    },
+    {
+      "id": "mqic1hnoiz8pzy3twnr",
+      "front": "la comunicación",
+      "back": "die Verständigung",
+      "hint": "Sich verstehen",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536255
+    },
+    {
+      "id": "mqic1hno85o1g7zib4k",
+      "front": "la división social",
+      "back": "die gesellschaftliche Spaltung",
+      "hint": "Risiko der Trennung",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536256
+    },
+    {
+      "id": "mqic1hnofwl24hi76fm",
+      "front": "el conflicto",
+      "back": "der Konflikt",
+      "hint": "Auseinandersetzung",
+      "box": 4,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536257
+    },
+    {
+      "id": "mqic1hnozboj83d0dcq",
+      "front": "la convivencia",
+      "back": "das Zusammenleben",
+      "hint": "Leben in der Gemeinschaft",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536258
+    },
+    {
+      "id": "mqic1hnoa1o440xdao9",
+      "front": "la lengua materna",
+      "back": "die Muttersprache",
+      "hint": "Erstsprache",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536259
+    },
+    {
+      "id": "mqic1hno0ef6evrs2fx7",
+      "front": "el idioma oficial",
+      "back": "die Amtssprache",
+      "hint": "Sprache des Staates",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536260,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hno5a051u2gblf",
+      "front": "promover",
+      "back": "fördern",
+      "hint": "Unterstützen",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536261,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnoab33smbrqmg",
+      "front": "perjudicar",
+      "back": "beeinträchtigen",
+      "hint": "Negativ beeinflussen",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536262,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hno7g3m3phqw0w",
+      "front": "conservar",
+      "back": "bewahren",
+      "hint": "Schützen, erhalten",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536263
+    },
+    {
+      "id": "mqic1hnoitbgxc6y7ok",
+      "front": "exigir",
+      "back": "verlangen",
+      "hint": "Fordern (z.B. Rechte)",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536264,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnowl1pcgqet4",
+      "front": "la ventaja",
+      "back": "der Vorteil",
+      "hint": "Positiver Aspekt",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536265
+    },
+    {
+      "id": "mqic1hnot89vttvvplh",
+      "front": "la desventaja",
+      "back": "der Nachteil",
+      "hint": "Negativer Aspekt",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536266
+    },
+    {
+      "id": "mqic1hnov0z04a6kh5b",
+      "front": "la educación",
+      "back": "die Bildung",
+      "hint": "Schule, Erziehung",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536267
+    },
+    {
+      "id": "mqic1hnorv9fracmgne",
+      "front": "cognitivo",
+      "back": "kognitiv",
+      "hint": "Das Denken betreffend",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536268
+    },
+    {
+      "id": "mqic1hnoxqfnbsvbhr",
+      "front": "el gobierno",
+      "back": "die Regierung",
+      "hint": "Politische Leitung",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536269
+    },
+    {
+      "id": "mqic1hno0c4il2vl5wxv",
+      "front": "Was löste den Ersten Weltkrieg 1914 aus?",
+      "back": "Das Attentat von Sarajevo auf den österreichischen Thronfolger.",
+      "hint": "Sommer 1914",
+      "box": 5,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467329
+    },
+    {
+      "id": "mqic1hnohlxqcyg0ntd",
+      "front": "Welches System löste nach dem Attentat eine Kettenreaktion von Kriegserklärungen aus?",
+      "back": "Das Bündnissystem der Großmächte.",
+      "hint": "Verbündete ziehen mit in den Krieg.",
+      "box": 4,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467330
+    },
+    {
+      "id": "mqic1hnob5cppk6cm6",
+      "front": "Wie war die Stimmung der Bevölkerung bei Kriegsbeginn?",
+      "back": "Große Begeisterung und die Erwartung eines kurzen Krieges.",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467331
+    },
+    {
+      "id": "mqic1hnoadru8hxx42b",
+      "front": "Was war das strategische Ziel des Schlieffen-Plans?",
+      "back": "Einen Zweifrontenkrieg vermeiden durch einen schnellen Sieg über Frankreich im Westen (Überfall durch Belgien).",
+      "hint": "Zweifrontenkrieg vermeiden.",
+      "box": 5,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467332
+    },
+    {
+      "id": "mqic1hnomxb8mz1c2dc",
+      "front": "Warum schlug der Schlieffen-Plan fehl?",
+      "back": "Die Schlacht an der Marne stoppte den deutschen Vormarsch vor Paris.",
+      "hint": "1914 an der Westfront.",
+      "box": 4,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467333
+    },
+    {
+      "id": "mqic1hno2hszh5osja",
+      "front": "Welcher Kriegstyp begann nach dem Scheitern des Schlieffen-Plans?",
+      "back": "Der Stellungskrieg (Grabenkrieg).",
+      "hint": "Keine Bewegung mehr.",
+      "box": 5,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467334
+    },
+    {
+      "id": "mqic1hno4jcn7l0pu6q",
+      "front": "Wie unterschied sich die Ostfront von der Westfront?",
+      "back": "An der Ostfront war es ein beweglicher Krieg mit größeren Entfernungen.",
+      "hint": "Wenig Gräben.",
+      "box": 5,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467335
+    },
+    {
+      "id": "mqic1hno8jdopxx1s0j",
+      "front": "Was passierte 1917 in Russland?",
+      "back": "Die Russische Revolution: Der Zar wurde gestürzt und Russland schied aus dem Krieg aus.",
+      "hint": "Oktoberrevolution.",
+      "box": 5,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467336
+    },
+    {
+      "id": "mqic1hno82bt9cucl8e",
+      "front": "Warum traten die USA 1917 in den Krieg ein?",
+      "back": "Wegen des deutschen U-Boot-Krieges gegen Handelsschiffe.",
+      "hint": "Versenkung US-Schiffe.",
+      "box": 5,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467337
+    },
+    {
+      "id": "mqic1hno94b5jwe2dkq",
+      "front": "Wann endete der Erste Weltkrieg?",
+      "back": "Mit dem Waffenstillstand am 11. November 1918.",
+      "hint": "11.11.1918",
+      "box": 4,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467338
+    },
+    {
+      "id": "mqic1hnoymwzkbt6bxn",
+      "front": "Was kennzeichnet den Stellungskrieg?",
+      "back": "Schützengräben, Stacheldraht, Maschinengewehre, kaum Geländegewinne bei hohen Verlusten.",
+      "hint": "Grabenkrieg.",
+      "box": 4,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467339
+    },
+    {
+      "id": "mqic1hnoxnhnbc2eta",
+      "front": "Was sind Materialschlachten?",
+      "back": "Schlachten mit riesigem Materialeinsatz (Waffen/Munition), die zum Abnutzungskrieg wurden (z.B. Verdun, Somme).",
+      "hint": "Verdun, Somme.",
+      "box": 2,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467340
+    },
+    {
+      "id": "mqic1hnonl8fv48zgu",
+      "front": "Nenne drei neue Waffen, die im 1. Weltkrieg großflächig eingesetzt wurden.",
+      "back": "Giftgas, Panzer, U-Boote (auch Flugzeuge/Zeppeline).",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467341
+    },
+    {
+      "id": "mqic1hno88b40rx1ke",
+      "front": "Was war das Ziel des uneingeschränkten U-Boot-Kriegs?",
+      "back": "Die britische Seeblockade brechen und Großbritannien durch Versenkung von Handelsschiffen aushungern.",
+      "hint": "Isolation Britanniens.",
+      "box": 4,
+      "folderId": "mqic1hnnvhat9zeea9",
+      "createdAt": 1773559467342
+    },
+    {
+      "id": "mqic1hno68esazl21l8",
+      "front": "Wie änderte sich die Industrieproduktion im Krieg?",
+      "back": "Umstellung auf Kriegswirtschaft (Rüstungsproduktion).",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5m3xibc9b4",
+      "createdAt": 1773559467343
+    },
+    {
+      "id": "mqic1hno41clmo5xjpp",
+      "front": "Wer übernahm die Arbeit in den Fabriken, da die Männer an der Front waren?",
+      "back": "Frauen.",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5m3xibc9b4",
+      "createdAt": 1773559467344
+    },
+    {
+      "id": "mqic1hnocskuphmuge",
+      "front": "Welche Auswirkung hatte die britische Seeblockade auf Deutschland?",
+      "back": "Importe sanken drastisch (90%), es gab Versorgungsengpässe und Hunger.",
+      "hint": "Rohstoffmangel.",
+      "box": 4,
+      "folderId": "mqic1hnn5m3xibc9b4",
+      "createdAt": 1773559467345
+    },
+    {
+      "id": "mqic1hnogpn9oq4bilt",
+      "front": "Welche Erfindung half Deutschland gegen den Salpetermangel (für Sprengstoff)?",
+      "back": "Das Haber-Bosch-Verfahren zur Herstellung von Salpetersäure.",
+      "hint": "Chemie.",
+      "box": 2,
+      "folderId": "mqic1hnn5m3xibc9b4",
+      "createdAt": 1773559467346,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781716643251
+    },
+    {
+      "id": "mqic1hnovtqazllepve",
+      "front": "Wie viele Hungertote gab es in Deutschland durch die Blockade?",
+      "back": "Ca. 800.000.",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5m3xibc9b4",
+      "createdAt": 1773559467347
+    },
+    {
+      "id": "mqic1hnog0o7jacb72k",
+      "front": "Wie erlebten Soldaten den Alltag an der Front?",
+      "back": "Abstumpfung gegenüber Leid, schlechte Versorgung, strenge Disziplin, Schuldgefühle.",
+      "hint": "Kriegsfront.",
+      "box": 1,
+      "folderId": "mqic1hnn5m3xibc9b4",
+      "createdAt": 1773559467348
+    },
+    {
+      "id": "mqic1hnois6p8id9ecp",
+      "front": "Was passierte an der Heimatfront?",
+      "back": "Rebellionen gegen Hunger, Frauenarbeit in Rüstungsbetrieben, lebensgefährliche Arbeitsbedingungen.",
+      "hint": "Zuhause.",
+      "box": 1,
+      "folderId": "mqic1hnn5m3xibc9b4",
+      "createdAt": 1773559467349
+    },
+    {
+      "id": "mqic1hno05hpftws41le",
+      "front": "Wer verlor den Ersten Weltkrieg?",
+      "back": "Die Mittelmächte (Deutsches Reich, Österreich-Ungarn, Osmanisches Reich).",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnnxz9o2dqmxnd",
+      "createdAt": 1773559467350
+    },
+    {
+      "id": "mqic1hnojbtkaku7gwi",
+      "front": "Wie viele Soldaten starben weltweit im 1. Weltkrieg?",
+      "back": "Ca. 9 Millionen Soldaten.",
+      "hint": "Insgesamt ca. 15-17 Mio. Tote mit Zivilisten.",
+      "box": 2,
+      "folderId": "mqic1hnnxz9o2dqmxnd",
+      "createdAt": 1773559467351,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781716648058
+    },
+    {
+      "id": "mqic1hno7s2b7q1qc0g",
+      "front": "Welche politische Folge hatte der Krieg für die Landkarte Europas?",
+      "back": "Entstehung neuer Nationalstaaten (z.B. Polen, Tschechoslowakei).",
+      "hint": "Zerfall der Kaiserreiche.",
+      "box": 1,
+      "folderId": "mqic1hnnxz9o2dqmxnd",
+      "createdAt": 1773559467352
+    },
+    {
+      "id": "mqic1hnof9j17onqqzc",
+      "front": "Welcher Vertrag beendete den Krieg für Deutschland?",
+      "back": "Der Versailler Vertrag.",
+      "hint": "Harte Bedingungen.",
+      "box": 3,
+      "folderId": "mqic1hnnxz9o2dqmxnd",
+      "createdAt": 1773559467353
+    },
+    {
+      "id": "mqic1hnolwedswn129",
+      "front": "Welche Pandemie breitete sich am Ende des Krieges aus?",
+      "back": "Die Spanische Grippe.",
+      "hint": "Ca. 20 Mio. Tote.",
+      "box": 3,
+      "folderId": "mqic1hnnxz9o2dqmxnd",
+      "createdAt": 1773559467354
+    },
+    {
+      "id": "mqic1hnoqokr0hg9iq",
+      "front": "Welche Macht stieg durch den Krieg zur Weltmacht auf?",
+      "back": "Die USA.",
+      "hint": "Europa geschwächt.",
+      "box": 3,
+      "folderId": "mqic1hnnxz9o2dqmxnd",
+      "createdAt": 1773559467355
+    },
+    {
+      "id": "mqic1hno5o0jtewu7zs",
+      "front": "el entendimiento",
+      "back": "Verständigung",
+      "hint": "Sich verstehen",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536255
+    },
+    {
+      "id": "mqic1hno0f0b15lmhc8u",
+      "front": "fomentar",
+      "back": "fördern",
+      "hint": "Unterstützen",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536261
+    },
+    {
+      "id": "mqic1hno4dtw22w426y",
+      "front": "preservar",
+      "back": "bewahren",
+      "hint": "Schützen, erhalten",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536263,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnogrhy10jrtkq",
+      "front": "el gamín (pl.: los gamines)",
+      "back": "Straßenkind",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500000,
+      "lastLearnedAt": 1781760480176,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hno3w0b4484v0c",
+      "front": "la injusticia",
+      "back": "Ungerechtigkeit",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500001,
+      "_sessionStartBox": 2,
+      "lastLearnedAt": 1781759961686
+    },
+    {
+      "id": "mqic1hno56exzlodke3",
+      "front": "injusto/-a",
+      "back": "ungerecht",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500002,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781760522347
+    },
+    {
+      "id": "mqic1hnptpasntxx7sg",
+      "front": "pobre",
+      "back": "arm",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500003,
+      "_sessionStartBox": 4
+    },
+    {
+      "id": "mqic1hnpfp4d7dgx09a",
+      "front": "el problema",
+      "back": "Problem",
+      "hint": "maskulin!",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500005,
+      "lastLearnedAt": 1781759867114,
+      "_sessionStartBox": 3
+    },
+    {
+      "id": "mqic1hnp3puuypzdlln",
+      "front": "un futuro inseguro",
+      "back": "eine unsichere Zukunft",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500007,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnptfkunenyc8r",
+      "front": "el círculo vicioso",
+      "back": "Teufelskreis",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500008,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781760190149
+    },
+    {
+      "id": "mqic1hnp6inmb5x3oae",
+      "front": "trabajar como/de",
+      "back": "arbeiten als",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500010,
+      "lastMasteredAt": 1781759927061,
+      "lastLearnedAt": 1781759927061,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnpg497uujg62u",
+      "front": "el limpiabotas",
+      "back": "Schuhputzer",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500011,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781760149756
+    },
+    {
+      "id": "mqic1hnpp93sdk2kdmi",
+      "front": "ser limpiabotas",
+      "back": "Schuhputzer sein",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500012,
+      "lastLearnedAt": 1781759874629,
+      "_sessionStartBox": 3
+    },
+    {
+      "id": "mqic1hnpyqxbuxjim5l",
+      "front": "limpiar",
+      "back": "putzen",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500013,
+      "lastMasteredAt": 1781759921987,
+      "lastLearnedAt": 1781759921987,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnpz8i2unux4w",
+      "front": "lustrar",
+      "back": "polieren",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500014,
+      "lastLearnedAt": 1781759887973,
+      "_sessionStartBox": 3
+    },
+    {
+      "id": "mqic1hnp1gw73kmgzvq",
+      "front": "el trapo",
+      "back": "Tuch",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500015,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781760423177
+    },
+    {
+      "id": "mqic1hnp32m73gkiscp",
+      "front": "el trapo lustrador",
+      "back": "Poliertuch",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500016,
+      "lastLearnedAt": 1781760473720,
+      "_sessionStartBox": 2
+    },
+    {
+      "id": "mqic1hnpuq0ol1fyjrb",
+      "front": "el betún",
+      "back": "Schuhcreme",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500017,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnps51s07gcqt",
+      "front": "la lata",
+      "back": "Dose",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500018,
+      "lastLearnedAt": 1781759892478,
+      "_sessionStartBox": 3
+    },
+    {
+      "id": "mqic1hnpg19op05jcxp",
+      "front": "el cepillo",
+      "back": "Bürste",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500019,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781760389487
+    },
+    {
+      "id": "mqic1hnp35wkl673prv",
+      "front": "la caja",
+      "back": "Kiste",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500020,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnp6jp4fmgzr9e",
+      "front": "la propina",
+      "back": "Trinkgeld",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500021,
+      "lastLearnedAt": 1781759896046,
+      "_sessionStartBox": 4
+    },
+    {
+      "id": "mqic1hnp8sypeoi3sry",
+      "front": "vender",
+      "back": "verkaufen",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500022,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnpr90hqll9fw",
+      "front": "el tabaco de contrabando",
+      "back": "geschmuggelter Tabak",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500023,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781760511786
+    },
+    {
+      "id": "mqic1hnpkqpcnxjy1wg",
+      "front": "el cigarrillo",
+      "back": "Zigarette",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500024,
+      "lastLearnedAt": 1781759815533,
+      "_sessionStartBox": 2
+    },
+    {
+      "id": "mqic1hnp4z8m5quky4p",
+      "front": "el semáforo",
+      "back": "Ampel",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500025,
+      "lastMasteredAt": 1781759930164,
+      "lastLearnedAt": 1781759930164,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnp31zv32xqy0f",
+      "front": "mendigar",
+      "back": "betteln",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500026,
+      "lastMasteredAt": 1781759915629,
+      "lastLearnedAt": 1781759915629,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnpm2hvzdliwyj",
+      "front": "el mendigo",
+      "back": "Bettler",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500027,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781759991928
+    },
+    {
+      "id": "mqic1hnpgt3s2453im9",
+      "front": "robar",
+      "back": "rauben",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500028,
+      "lastMasteredAt": 1781759918740,
+      "lastLearnedAt": 1781759918740,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnpiexao7095he",
+      "front": "el robo",
+      "back": "Raub",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500029,
+      "_sessionStartBox": 2,
+      "lastLearnedAt": 1781760197694
+    },
+    {
+      "id": "mqic1hnp727lbk5lixd",
+      "front": "asaltar",
+      "back": "überfallen",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500030,
+      "lastLearnedAt": 1781759835557,
+      "_sessionStartBox": 2
+    },
+    {
+      "id": "mqic1hnpqvzh4anh4p",
+      "front": "el criminal",
+      "back": "Verbrecher",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500031,
+      "lastLearnedAt": 1781760376276,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnpcxkvorxg4zf",
+      "front": "el crimen",
+      "back": "Verbrechen",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500032,
+      "_sessionStartBox": 3,
+      "lastLearnedAt": 1781760372073
+    },
+    {
+      "id": "mqic1hnpsdt61j2naen",
+      "front": "la criminalidad",
+      "back": "Kriminalität",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500033,
+      "lastLearnedAt": 1781760365990,
+      "_sessionStartBox": 2
+    },
+    {
+      "id": "mqic1hnpfos8ykteoya",
+      "front": "la cárcel",
+      "back": "Gefängnis",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500034,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781760203611
+    },
+    {
+      "id": "mqic1hnp74egvyb4cai",
+      "front": "la policía",
+      "back": "Polizei",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500035,
+      "lastLearnedAt": 1781760307128,
+      "_sessionStartBox": 3
+    },
+    {
+      "id": "mqic1hnpmy2i6bq6c1p",
+      "front": "el/la policía",
+      "back": "der Polizist / die Polizistin",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500036,
+      "lastLearnedAt": 1781759849522,
+      "_sessionStartBox": 3
+    },
+    {
+      "id": "mqic1hnpxm2lvfdhk5",
+      "front": "el conflicto",
+      "back": "Konflikt",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500037,
+      "_sessionStartBox": 2
+    },
+    {
+      "id": "mqic1hnpubm7yozznhn",
+      "front": "la basura",
+      "back": "Müll",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500038,
+      "_sessionStartBox": 3,
+      "lastLearnedAt": 1781760274750
+    },
+    {
+      "id": "mqic1hnp18ojxrpcjht",
+      "front": "buscar",
+      "back": "suchen",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500039,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnpqzxwdjvf1c",
+      "front": "sobrevivir",
+      "back": "überleben",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500040,
+      "lastMasteredAt": 1781759903149,
+      "lastLearnedAt": 1781759903149,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnpd2swuubqbd",
+      "front": "abandonar a la familia",
+      "back": "die Familie verlassen",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500042,
+      "lastMasteredAt": 1781759899390,
+      "lastLearnedAt": 1781759899390,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnporzwg3usucr",
+      "front": "alimentar",
+      "back": "ernähren",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500043,
+      "_sessionStartBox": 3,
+      "lastLearnedAt": 1781760281900
+    },
+    {
+      "id": "mqic1hnp8k8qmudirno",
+      "front": "alimentar a la familia",
+      "back": "die Familie ernähren",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500044,
+      "lastLearnedAt": 1781759853542,
+      "_sessionStartBox": 3
+    },
+    {
+      "id": "mqic1hnp7vwyjhj5n7u",
+      "front": "emigrar",
+      "back": "auswandern",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500045,
+      "_sessionStartBox": 1,
+      "lastLearnedAt": 1781760501828
+    },
+    {
+      "id": "mqic1hnpjtup64chnz",
+      "front": "la emigración",
+      "back": "die Auswanderung",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500045,
+      "lastLearnedAt": 1781759845879,
+      "_sessionStartBox": 3
+    },
+    {
+      "id": "mqic1hnp2w5zigylu0i",
+      "front": "ilegal",
+      "back": "illegal",
+      "hint": "Schreibweise beachten (nicht y)",
+      "box": 5,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500046,
+      "_sessionStartBox": 5
+    },
+    {
+      "id": "mqic1hnpp9ylqc1lij",
+      "front": "volver (o>ue)",
+      "back": "zurückkehren",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200000
+    },
+    {
+      "id": "mqic1hnpdb4ni8dz5k",
+      "front": "la vuelta",
+      "back": "die Rückkehr",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200000
+    },
+    {
+      "id": "mqic1hnpjwktuvq26op",
+      "front": "salir",
+      "back": "weggehen",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200001
+    },
+    {
+      "id": "mqic1hnph2scmddoo7f",
+      "front": "luchar por algo",
+      "back": "für etwas kämpfen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200002
+    },
+    {
+      "id": "mqic1hnpfmpt1fjlebw",
+      "front": "la lucha",
+      "back": "der Kampf",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200002
+    },
+    {
+      "id": "mqic1hnpj1vi9z5lndd",
+      "front": "soñar con (o>ue)",
+      "back": "träumen (von)",
+      "hint": "Konstruktion mit 'con'",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200003
+    },
+    {
+      "id": "mqic1hnpqep9jmzra1",
+      "front": "el sueño",
+      "back": "der Traum",
+      "hint": "Konstruktion mit 'con'",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200003,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnpw3yfhc5ucwm",
+      "front": "la perspectiva",
+      "back": "Perspektive",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200004,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnppmewmflvvbf",
+      "front": "el analfabeto",
+      "back": "Analphabet/-in",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200005
+    },
+    {
+      "id": "mqic1hnprdt7dfl7i3m",
+      "front": "el analfabetismo",
+      "back": "Analphabetismus",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200006
+    },
+    {
+      "id": "mqic1hnp189cao2jk42",
+      "front": "la droga",
+      "back": "Droge",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200007
+    },
+    {
+      "id": "mqic1hnpjfyli93vzo",
+      "front": "tomar drogas",
+      "back": "Drogen nehmen",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200008
+    },
+    {
+      "id": "mqic1hnp631tmm8zllg",
+      "front": "el alcohol",
+      "back": "Alkohol",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200009
+    },
+    {
+      "id": "mqic1hnpetza1mdjxy5",
+      "front": "prostituir",
+      "back": "prostituieren",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200010,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnpdffu188qgv4",
+      "front": "la prostitución",
+      "back": "Prostitution",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200011
+    },
+    {
+      "id": "mqic1hnp8ka7bkd7sho",
+      "front": "el prostíbulo",
+      "back": "Bordell",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200012
+    },
+    {
+      "id": "mqic1hnp9srtkrfy3bp",
+      "front": "ayudar",
+      "back": "helfen",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200013
+    },
+    {
+      "id": "mqic1hnpxd1thkv098s",
+      "front": "ofrecer",
+      "back": "anbieten",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200014
+    },
+    {
+      "id": "mqic1hnpacfr8tfsr7d",
+      "front": "la organización",
+      "back": "Organisation",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200015
+    },
+    {
+      "id": "mqic1hnpygzcpk4rm9a",
+      "front": "el proyecto",
+      "back": "Projekt",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200016
+    },
+    {
+      "id": "mqic1hnp8dvac64xwhl",
+      "front": "el asistente social",
+      "back": "Sozialarbeiter",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200017,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnpx6cg6090zt",
+      "front": "el éxodo rural",
+      "back": "Landflucht",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200018
+    },
+    {
+      "id": "mqic1hnplfifkls9ozg",
+      "front": "el campesino",
+      "back": "Bauer",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200019
+    },
+    {
+      "id": "mqic1hnpoej5df3s2g8",
+      "front": "el campo",
+      "back": "Land",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200020
+    },
+    {
+      "id": "mqic1hnp9mfimilysf8",
+      "front": "la educación",
+      "back": "Ausbildung",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200021
+    },
+    {
+      "id": "mqic1hnpo1a42kibg7a",
+      "front": "la educación escolar",
+      "back": "Schulausbildung",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200022
+    },
+    {
+      "id": "mqic1hnp2ni3zcigmk2",
+      "front": "la educación profesional",
+      "back": "Berufsausbildung",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200023
+    },
+    {
+      "id": "mqic1hnpes0r2he8kc5",
+      "front": "la esperanza",
+      "back": "Hoffnung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200024
+    },
+    {
+      "id": "mqic1hnp9qnwribon6",
+      "front": "no tener esperanzas",
+      "back": "keine Hoffnung haben",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200025
+    },
+    {
+      "id": "mqic1hnpjnor0c4ykom",
+      "front": "ver el futuro con esperanza",
+      "back": "zuversichtlich sein",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200026
+    },
+    {
+      "id": "mqic1hnpx0k916xz0vk",
+      "front": "ayudar a un amigo",
+      "back": "einem Freund helfen",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200027
+    },
+    {
+      "id": "mqic1hnpr5jc2ix2x9",
+      "front": "pasar hambre",
+      "back": "Hunger leiden",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200028
+    },
+    {
+      "id": "mqic1hnpqqu0f495u8o",
+      "front": "formar bandas",
+      "back": "Banden bilden",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200029
+    },
+    {
+      "id": "mqic1hnpye0h1n5xnwi",
+      "front": "la desnutrición",
+      "back": "Unterernährung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200030
+    },
+    {
+      "id": "mqic1hnpyph28pih4ds",
+      "front": "sufrir",
+      "back": "leiden",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200031
+    },
+    {
+      "id": "mqic1hnpf0qtjuiqsc9",
+      "front": "el peligro",
+      "back": "die Gefahr",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200032
+    },
+    {
+      "id": "mqic1hnpmkbmybnrff",
+      "front": "encontrar (o>ue)",
+      "back": "finden",
+      "hint": "o > ue",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200033
+    },
+    {
+      "id": "mqic1hnpuduy1o8fn0r",
+      "front": "encontrarse",
+      "back": "sich treffen",
+      "hint": "reflexiv",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200034
+    },
+    {
+      "id": "mqic1hnpuirrbtzhf3s",
+      "front": "el dueño",
+      "back": "Besitzer",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200035
+    },
+    {
+      "id": "mqic1hnpdtbjmds5i48",
+      "front": "poseer",
+      "back": "besitzen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200036
+    },
+    {
+      "id": "mqic1hnp9k50hndq8p",
+      "front": "la tienda",
+      "back": "Geschäft",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200037
+    },
+    {
+      "id": "mqic1hnp4q6tmcr9ae9",
+      "front": "expulsar a clientes",
+      "back": "Kunden vertreiben",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200038
+    },
+    {
+      "id": "mqic1hnpsmc28rda43l",
+      "front": "para + infinitivo",
+      "back": "um ... zu",
+      "hint": "Zweck / Absicht",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200039
+    },
+    {
+      "id": "mqic1hnp4lcidzrjyfw",
+      "front": "para que + subjuntivo",
+      "back": "damit",
+      "hint": "Zweck / Absicht",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200040,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnp4maael222j",
+      "front": "desengañar",
+      "back": "enttäuschen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200041
+    },
+    {
+      "id": "mqic1hnpyya6o91ch",
+      "front": "el desengaño",
+      "back": "Enttäuschung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200041
+    },
+    {
+      "id": "mqic1hnp5uwxtnminum",
+      "front": "desarrollar",
+      "back": "entwickeln",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200042
+    },
+    {
+      "id": "mqic1hnpoakd27ulyto",
+      "front": "el desarrollo",
+      "back": "Entwicklung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200042
+    },
+    {
+      "id": "mqic1hnp48dleu0ksuq",
+      "front": "el ambiente malo",
+      "back": "schlechte Umgebung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200043
+    },
+    {
+      "id": "mqic1hnppu1cyguye4",
+      "front": "sustituir a la familia",
+      "back": "die Familie ersetzen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200044
+    },
+    {
+      "id": "mqic1hnp1lt4etkj9hz",
+      "front": "destruir",
+      "back": "zerstören",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200045
+    },
+    {
+      "id": "mqic1hnp1p13yccjojk",
+      "front": "la fuerza",
+      "back": "Kraft",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200046
+    },
+    {
+      "id": "mqic1hnp8va7k1x1lxy",
+      "front": "amable",
+      "back": "freundlich",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200047
+    },
+    {
+      "id": "mqic1hnp1lf5ofigmhg",
+      "front": "admirar",
+      "back": "bewundern",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200048
+    },
+    {
+      "id": "mqic1hnpcy0wk0c4aw5",
+      "front": "la admiración",
+      "back": "die Bewunderung",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200048
+    },
+    {
+      "id": "mqic1hnpl42pi8tdnpj",
+      "front": "intentar",
+      "back": "versuchen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200049
+    },
+    {
+      "id": "mqic1hnp6y6bhdxf54",
+      "front": "el intento",
+      "back": "der Versuch",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200049
+    },
+    {
+      "id": "mqic1hnpl0v3iw6krlf",
+      "front": "Was ist der Erzähler?",
+      "back": "Eine fiktive Rolle/Gestalt im Werk, die die Geschichte vermittelt.",
+      "hint": "Nicht mit dem Autor verwechseln!",
+      "box": 1,
+      "folderId": "mqic1hnntnt0ypxhdhd",
+      "createdAt": 1672531201000
+    },
+    {
+      "id": "mqic1hnpjnzcc0529g9",
+      "front": "Unterschied zwischen Autor und Erzähler",
+      "back": "Der Autor ist die reale Person, die das Buch schreibt. Der Erzähler ist die fiktive Instanz, die im Buch die Geschichte erzählt.",
+      "hint": "Real vs. Fiktiv",
+      "box": 1,
+      "folderId": "mqic1hnntnt0ypxhdhd",
+      "createdAt": 1672531201001
+    },
+    {
+      "id": "mqic1hnp9fa6lrre0ih",
+      "front": "Nenne die zwei Erzählformen (Formen des Erzählens).",
+      "back": "1. Ich-Form (Ich-Erzähler)\n2. Er/Sie-Form (Er/Sie-Erzähler)",
+      "hint": "Pronomen",
+      "box": 1,
+      "folderId": "mqic1hnntnt0ypxhdhd",
+      "createdAt": 1672531201002
+    },
+    {
+      "id": "mqic1hnp7yfvsyhtscq",
+      "front": "Was ist die 'auktorale Erzählhaltung'?",
+      "back": "Der Erzähler steht außerhalb des Geschehens, ist allwissend (omniscient) und greift oft kommentierend ein.",
+      "hint": "Der 'Gott' über der Geschichte.",
+      "box": 1,
+      "folderId": "mqic1hnntnt0ypxhdhd",
+      "createdAt": 1672531201003,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnpuqidsotnbrb",
+      "front": "Was ist die 'personale Erzählhaltung'?",
+      "back": "Der Erzähler nimmt die Perspektive einer Figur ein und erzählt durch deren 'Brille' (innere Perspektive).",
+      "hint": "Perspektive einer Person.",
+      "box": 1,
+      "folderId": "mqic1hnntnt0ypxhdhd",
+      "createdAt": 1672531201004
+    },
+    {
+      "id": "mqic1hnp3ovmh4ke8h",
+      "front": "Was ist die 'neutrale Erzählhaltung'?",
+      "back": "Der Erzähler berichtet nur das äußerlich Sichtbare (wie eine Kamera). Keine Einblicke in Gedanken, keine Kommentare.",
+      "hint": "Objektiv, beobachtend.",
+      "box": 1,
+      "folderId": "mqic1hnntnt0ypxhdhd",
+      "createdAt": 1672531201005
+    },
+    {
+      "id": "mqic1hnpwq1c1pnhpk",
+      "front": "Was beschreibt die 'Erzählperspektive'?",
+      "back": "Den Standort des Erzählers: Befindet er sich innerhalb oder außerhalb des Geschehens? (Innen- vs. Außenperspektive).",
+      "hint": "Ort des Erzählers.",
+      "box": 1,
+      "folderId": "mqic1hnntnt0ypxhdhd",
+      "createdAt": 1672531201006
+    },
+    {
+      "id": "mqic1hnp6mk3dpsdh78",
+      "front": "Was ist die 'Innere Perspektive'?",
+      "back": "Der Erzähler kennt Gedanken und Gefühle der Figuren und teilt sie dem Leser mit.",
+      "hint": "Gedanken lesen.",
+      "box": 1,
+      "folderId": "mqic1hnntnt0ypxhdhd",
+      "createdAt": 1672531201007
+    },
+    {
+      "id": "mqic1hnp6x90956xteu",
+      "front": "Was ist die 'Außenperspektive'?",
+      "back": "Der Erzähler beschreibt nur das äußerliche Verhalten und Aussehen der Figuren (keine Gedanken).",
+      "hint": "Von außen betrachtet.",
+      "box": 1,
+      "folderId": "mqic1hnntnt0ypxhdhd",
+      "createdAt": 1672531201008
+    },
+    {
+      "id": "mqic1hnpt4aemiv3tmk",
+      "front": "el apoyo",
+      "back": "Unterstützung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412293
+    },
+    {
+      "id": "mqic1hnpbdrqj7anbyu",
+      "front": "la crisis",
+      "back": "Krise",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412294
+    },
+    {
+      "id": "mqic1hnpgkge9rt601d",
+      "front": "la violencia",
+      "back": "Gewalt",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412295,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnpjz1gcs8hwnr",
+      "front": "la salud",
+      "back": "Gesundheit",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412296
+    },
+    {
+      "id": "mqic1hnpub4c2lml7j",
+      "front": "integrar",
+      "back": "integrieren",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412297
+    },
+    {
+      "id": "mqic1hnp3f9qco5n8pi",
+      "front": "la reintegración",
+      "back": "Wiedereingliederung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412298
+    },
+    {
+      "id": "mqic1hnptjeq4zyok4",
+      "front": "el programa de apoyo",
+      "back": "Hilfsprogramm",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412299
+    },
+    {
+      "id": "mqic1hnpgehis1bva1r",
+      "front": "la adicción",
+      "back": "Abhängigkeit",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412300
+    },
+    {
+      "id": "mqic1hnpq5som9q0nvh",
+      "front": "el trauma",
+      "back": "Trauma",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412301,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnp11vjpsmxudqe",
+      "front": "el respeto",
+      "back": "Respekt",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412302
+    },
+    {
+      "id": "mqic1hnpx6yiza8g0i",
+      "front": "el hogar",
+      "back": "Heim",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412303
+    },
+    {
+      "id": "mqic1hnpzii7fmx58pb",
+      "front": "el niño",
+      "back": "Kind",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412304
+    },
+    {
+      "id": "mqic1hnpd0k8n82j7t6",
+      "front": "joven",
+      "back": "jung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412305
+    },
+    {
+      "id": "mqic1hnp4spxicv1scc",
+      "front": "la víctima",
+      "back": "Opfer",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412306
+    },
+    {
+      "id": "mqic1hnp3vby4nsoyat",
+      "front": "la explotación sexual",
+      "back": "sexuelle Ausbeutung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412307
+    },
+    {
+      "id": "mqic1hnpv1ecwdqtt2",
+      "front": "la confianza",
+      "back": "Vertrauen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412308
+    },
+    {
+      "id": "mqic1hnqg7libafip0w",
+      "front": "la reintegración familiar",
+      "back": "Familieneinbindung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412309
+    },
+    {
+      "id": "mqic1hnqf8l0x4b3mqa",
+      "front": "la etapa",
+      "back": "Etappe",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412310
+    },
+    {
+      "id": "mqic1hnqc2pdjk4zvy8",
+      "front": "mismo",
+      "back": "gleich",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412311
+    },
+    {
+      "id": "mqic1hnq04a42ran6h37",
+      "front": "entrar",
+      "back": "eintreten",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412312,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnqghkvp0fkvfp",
+      "front": "comenzar",
+      "back": "beginnen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412313
+    },
+    {
+      "id": "mqic1hnqnagm1gnqik8",
+      "front": "calmar",
+      "back": "beruhigen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412315
+    },
+    {
+      "id": "mqic1hnqiau8l4bk8uc",
+      "front": "superar",
+      "back": "überwinden",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412316
+    },
+    {
+      "id": "mqic1hnqu6sm08ly5t",
+      "front": "el residencial",
+      "back": "Wohnheim",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412317
+    },
+    {
+      "id": "mqic1hnqgbimyvxkjbs",
+      "front": "la explotación",
+      "back": "Ausbeutung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412318
+    },
+    {
+      "id": "mqic1hnqvm0xql8sgo",
+      "front": "el bienestar",
+      "back": "Wohlbefinden",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412319
+    },
+    {
+      "id": "mqic1hnqyws860psuh",
+      "front": "acompañar",
+      "back": "begleiten",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412320
+    },
+    {
+      "id": "mqic1hnqn1y0uekt17e",
+      "front": "el crecimiento",
+      "back": "Wachstum",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412321
+    },
+    {
+      "id": "mqic1hnqz0t9tp074nq",
+      "front": "el cuerpo",
+      "back": "Körper",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412322
+    },
+    {
+      "id": "mqic1hnqenqdrtwanj9",
+      "front": "la mente",
+      "back": "Geist",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412323
+    },
+    {
+      "id": "mqic1hnq8lc00x0725p",
+      "front": "el/la adolescente",
+      "back": "Jugendliche/r",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412324,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnqnzfs92rba6o",
+      "front": "la manera",
+      "back": "Art und Weise",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412325
+    },
+    {
+      "id": "mqic1hnqzpln8k4pwa7",
+      "front": "político/a",
+      "back": "politisch",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnqm5oejnq48bm",
+      "front": "el mar",
+      "back": "Meer",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnqejn6zcjua8c",
+      "front": "querer",
+      "back": "wollen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn0u5xiutrf5hi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnqekdnxu00g0k",
+      "front": "la sensación",
+      "back": "Gefühl",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnqo7w0oz4an4c",
+      "front": "el zódiac",
+      "back": "aufblasbares Boot",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnqjd48urdrx4m",
+      "front": "un puerto",
+      "back": "Hafen",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnqw8y6ed3n7eh",
+      "front": "un barco naufragado",
+      "back": "Schiffswrack",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnqc7d5liqh89b",
+      "front": "una valla",
+      "back": "Zaun",
+      "hint": "",
+      "box": 3,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnq7373z4a1ok3",
+      "front": "el alambre",
+      "back": "Draht",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnn2z9ay2rqqwi",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnqiu4ayis6h4",
+      "front": "el logro",
+      "back": "Errungenschaft",
+      "hint": "",
+      "box": 4,
+      "folderId": "mqic1hnn5f7sw9696il",
+      "createdAt": 1771519652717
+    },
+    {
+      "id": "mqic1hnqsphmtosk7d",
+      "front": "el bilingüismo",
+      "back": "Zweisprachigkeit",
+      "hint": "Hauptthema",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536245
+    },
+    {
+      "id": "mqic1hnqyocnxstymcd",
+      "front": "el monolingüismo",
+      "back": "Einsprachigkeit",
+      "hint": "Gegenteil von Zweisprachigkeit",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536246
+    },
+    {
+      "id": "mqic1hnqfet14li63db",
+      "front": "la preservación de la cultura",
+      "back": "Erhaltung der Kultur",
+      "hint": "Pro-Argument",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536247
+    },
+    {
+      "id": "mqic1hnql69ryijogdo",
+      "front": "el patrimonio cultural",
+      "back": "kulturelles Erbe",
+      "hint": "Wichtig für Identität",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536248
+    },
+    {
+      "id": "mqic1hnq5ypq94v08d",
+      "front": "la identidad",
+      "back": "Identität",
+      "hint": "Persönliche/kulturelle Zugehörigkeit",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536249
+    },
+    {
+      "id": "mqic1hnqsd684ayd01m",
+      "front": "la comprensión intercultural",
+      "back": "interkulturelles Verständnis",
+      "hint": "Fördert Toleranz",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536250
+    },
+    {
+      "id": "mqic1hnqs9r340altj",
+      "front": "el mercado laboral",
+      "back": "Arbeitsmarkt",
+      "hint": "Wo man Jobs findet",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536251
+    },
+    {
+      "id": "mqic1hnqv4nvvnax1cj",
+      "front": "la oportunidad laboral",
+      "back": "Berufschance",
+      "hint": "Vorteil bei Bewerbungen",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536252
+    },
+    {
+      "id": "mqic1hnq2dz82olb6bg",
+      "front": "la competitividad",
+      "back": "Konkurrenzfähigkeit",
+      "hint": "Im wirtschaftlichen Kontext",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536253
+    },
+    {
+      "id": "mqic1hnqnrezetf1wqd",
+      "front": "la barrera de comunicación",
+      "back": "Kommunikationsbarriere",
+      "hint": "Contra-Argument",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536254,
+      "_sessionStartBox": 1
+    },
+    {
+      "id": "mqic1hnqfn0ifypaum",
+      "front": "la comunicación",
+      "back": "Verständigung",
+      "hint": "Sich verstehen",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536255
+    },
+    {
+      "id": "mqic1hnqd1ve358vign",
+      "front": "la división social",
+      "back": "gesellschaftliche Spaltung",
+      "hint": "Risiko der Trennung",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536256
+    },
+    {
+      "id": "mqic1hnqvzj2tiiolrd",
+      "front": "la lengua materna",
+      "back": "Muttersprache",
+      "hint": "Erstsprache",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536259
+    },
+    {
+      "id": "mqic1hnq3i1j6kw9r0j",
+      "front": "el idioma oficial",
+      "back": "Amtssprache",
+      "hint": "Sprache des Staates",
+      "box": 1,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536260
+    },
+    {
+      "id": "mqic1hnq3ontleigheb",
+      "front": "la ventaja",
+      "back": "Vorteil",
+      "hint": "Positiver Aspekt",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536265
+    },
+    {
+      "id": "mqic1hnqpzqw91thts",
+      "front": "la desventaja",
+      "back": "Nachteil",
+      "hint": "Negativer Aspekt",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536266
+    },
+    {
+      "id": "mqic1hnqhmrrscjguec",
+      "front": "la educación",
+      "back": "Bildung",
+      "hint": "Schule, Erziehung",
+      "box": 3,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536267
+    },
+    {
+      "id": "mqic1hnqrpjsjp9b0kr",
+      "front": "el gobierno",
+      "back": "Regierung",
+      "hint": "Politische Leitung",
+      "box": 2,
+      "folderId": "mqic1hnn6y2vpldqpfn",
+      "createdAt": 1772786536269
+    },
+    {
+      "id": "mqic1hnqqfbm2f5cm28",
+      "front": "el/la policía",
+      "back": "Polizist / Polizistin",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnn0qhz35dd5m2",
+      "createdAt": 1772789500036,
+      "lastLearnedAt": 1781759842692,
+      "_sessionStartBox": 2
+    },
+    {
+      "id": "mqic1hnqeia4ugi4luw",
+      "front": "la subalimentación",
+      "back": "Unterernährung",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1672531200030
+    },
+    {
+      "id": "mqic1hnqjhgq4kebadm",
+      "front": "los mismos",
+      "back": "dieselben",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1777536412311
+    },
+    {
+      "id": "mqic1hnqbqa9gbssavf",
+      "front": "Pathos",
+      "back": "Emotionen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnnls1nfv5a6m",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnqk6jsl4frl9q",
+      "front": "Logos",
+      "back": "Vernuft",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnnnls1nfv5a6m",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnq7op9v69hr8f",
+      "front": "Ethos",
+      "back": "Vertrauen",
+      "hint": "",
+      "box": 5,
+      "folderId": "mqic1hnnnls1nfv5a6m",
+      "createdAt": 1771335063455
+    },
+    {
+      "id": "mqic1hnqlc2g0olb6bs",
+      "front": "la vuelta",
+      "back": "Rückkehr",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128611
+    },
+    {
+      "id": "mqic1hnqk3je4q1p82m",
+      "front": "la lucha",
+      "back": "Kampf",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128611
+    },
+    {
+      "id": "mqic1hnqrd7h4e8haw",
+      "front": "soñar con (o>ue)",
+      "back": "träumen von",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128611
+    },
+    {
+      "id": "mqic1hnq2ytyoowae66",
+      "front": "el sueño",
+      "back": "Traum",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128611
+    },
+    {
+      "id": "mqic1hnql8g767e4o8a",
+      "front": "el analfabeto",
+      "back": "Analphabet",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128611
+    },
+    {
+      "id": "mqic1hnqi0v5v35no9l",
+      "front": "la educación profesional",
+      "back": "Ausbildung",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128613
+    },
+    {
+      "id": "mqic1hnqhlngwt6ps0i",
+      "front": "el peligro",
+      "back": "Gefahr",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128613
+    },
+    {
+      "id": "mqic1hnqvlo4l558io",
+      "front": "para + inf",
+      "back": "um zu",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128613
+    },
+    {
+      "id": "mqic1hnqye82mfsj02i",
+      "front": "la admiración",
+      "back": "Bewunderung",
+      "hint": "",
+      "box": 2,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128614
+    },
+    {
+      "id": "mqic1hnqx9dq7iray4p",
+      "front": "el intento",
+      "back": "Versuch",
+      "hint": "",
+      "box": 1,
+      "folderId": "mqic1hnnov10ym82uqe",
+      "createdAt": 1778182128614
+    },
+    {
+      "id": "mapuchecard001",
+      "front": "levantarse contra",
+      "back": "sich erheben gegen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard002",
+      "front": "la sobrevivencia de un pueblo",
+      "back": "das Überleben eines Volkes",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard003",
+      "front": "el reconocimiento de la lengua",
+      "back": "die Anerkennung der Sprache",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard004",
+      "front": "el/la activista",
+      "back": "der/die Aktivist/in",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard005",
+      "front": "ocupar el territorio",
+      "back": "das Land besetzen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard006",
+      "front": "callar las voces de los mapuches",
+      "back": "die Stimmen der Mapuche zum Schweigen bringen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard007",
+      "front": "la lucha honrada",
+      "back": "der ehrenhafte Kampf",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard008",
+      "front": "recuperar el territorio",
+      "back": "das Land zurückholen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard009",
+      "front": "estar desarraigado/a",
+      "back": "entwurzelt sein",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard010",
+      "front": "la raíz",
+      "back": "die Wurzel",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard011",
+      "front": "el trabajo en el campo",
+      "back": "die Arbeit auf dem Land",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard012",
+      "front": "el donativo",
+      "back": "die Spende",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard013",
+      "front": "la cosecha",
+      "back": "die Ernte",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard014",
+      "front": "el latifundista",
+      "back": "der Großgrundbesitzer",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard015",
+      "front": "tolerar",
+      "back": "tolerieren",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard016",
+      "front": "engañoso, ilusorio",
+      "back": "täuschend/ illusorisch",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard017",
+      "front": "la desobediencia civil",
+      "back": "der zivile Ungehorsam",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard018",
+      "front": "las noticias",
+      "back": "die Nachrichten",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard019",
+      "front": "producirse disturbios",
+      "back": "Unruhen entstehen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard020",
+      "front": "tomar medidas rigurosas contr u/p",
+      "back": "strikte Maßnahmen gegen jmd ergreifen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard021",
+      "front": "la represión",
+      "back": "die Unterdrückung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard022",
+      "front": "la compañía forestal",
+      "back": "Holzfällerunternehmen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard023",
+      "front": "proteger",
+      "back": "(be)schützen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard024",
+      "front": "el portavoz de la comunidad",
+      "back": "der Sprecher der Gemeinschaft",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard025",
+      "front": "oponerse a u/p",
+      "back": "sich gegen etw. wenden/ auflehnen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard026",
+      "front": "el palo",
+      "back": "der Stock",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard027",
+      "front": "el puño",
+      "back": "die Faust",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard028",
+      "front": "la piedra",
+      "back": "der Stein",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard029",
+      "front": "el armamento",
+      "back": "die Bewaffnung",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard030",
+      "front": "la venta de la madera",
+      "back": "der Verkauf von Holz",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard031",
+      "front": "alimentar a u/p",
+      "back": "jmd ernähren",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard032",
+      "front": "el tronco",
+      "back": "der Stamm",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard033",
+      "front": "el bosque nativo",
+      "back": "der heimische Wald",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard034",
+      "front": "estar/sentirse perjudicado",
+      "back": "geschädigt sein/ sich fühlen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard035",
+      "front": "la sastra",
+      "back": "die Schneiderin",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard036",
+      "front": "la bandera",
+      "back": "die Fahne/Flagge",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard037",
+      "front": "admitir/reconocer una culpa",
+      "back": "eine Schuld zugeben/ anerkennen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard038",
+      "front": "ministra de asuntos sociales",
+      "back": "Ministerin für Soziales",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard039",
+      "front": "el estado de derecho",
+      "back": "der Rechtsstaat",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard040",
+      "front": "lograr algo",
+      "back": "etwas erreichen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard041",
+      "front": "llevar a cabo u/c",
+      "back": "etwas durchführen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard042",
+      "front": "imponer u/c",
+      "back": "eine Sache durchsetzen/ vorschreiben",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard043",
+      "front": "la política de la tierra",
+      "back": "die Boden-/ Grundstückspolitik",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard044",
+      "front": "desconfiar de u/p",
+      "back": "jmd misstrauen",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard045",
+      "front": "estar orgulloso/a",
+      "back": "stolz",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    },
+    {
+      "id": "mapuchecard046",
+      "front": "dificultar u/c",
+      "back": "etw. erschweren/ behindern",
+      "hint": "",
+      "box": 1,
+      "folderId": "mapuchefolder01",
+      "createdAt": 1788800000000
+    }
+  ],
+  "lastLearnedDate": "Thu Jun 18 2026",
+  "streak": 0,
+  "totalTimeSeconds": 732.189,
+  "totalReviews": 194,
+  "lastSessionDuration": 29.943,
+  "version": 2,
+  "lastBackup": 1788704253724,
+  "exportedAt": 1788704273058,
+  "exportType": "manual"
+}
