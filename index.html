@@ -28,8 +28,8 @@
                 <div class="backup-badge" id="backupBadge" title="Backup-Status">
                     <i class="fas fa-cloud-upload-alt"></i> <span id="backupStatus">OK</span>
                 </div>
-                <div class="streak-badge" id="streakBadge" title="Lern-Serie">
-                    <i class="fas fa-fire"></i> <span id="streakCount">0</span>
+                <div class="streak-badge" id="streakBadge" title="Lern-Serie: 1x pro Tag lernen. Das Schild ist dein Streak-Freeze – er rettet die Serie einmalig bei einem Pausentag.">
+                    <i class="fas fa-fire"></i> <span id="streakCount">0</span><span class="freeze-badge" id="freezeCount" title="Streak-Freeze: rettet die Serie bei 1 Pausentag"><i class="fas fa-shield-alt"></i>&nbsp;1</span>
                 </div>
                 <div class="accent-picker" id="accentPicker" title="Akzentfarbe wählen">
                     <button class="accent-dot" data-accent="indigo" style="--dot:#4f46e5" onclick="setAccent('indigo')" aria-label="Indigo"></button>
@@ -102,13 +102,36 @@
                 <h2>Lern-Cockpit</h2>
                 <p class="section-subtitle">Konfiguriere deine Sitzung.</p>
 
+                <div class="preset-row" role="group" aria-label="Lern-Presets">
+                    <button class="preset-btn" type="button" onclick="applyLearnPreset('quick')">⚡ 5-Min-Quick</button>
+                    <button class="preset-btn" type="button" onclick="applyLearnPreset('due')">📥 Fällige weg</button>
+                    <button class="preset-btn" type="button" onclick="applyLearnPreset('exam')">🎯 Prüfung</button>
+                </div>
+
+                <div class="learn-meta" id="learnMeta">
+                    <span id="learnDueInfo">– fällig</span>
+                    <strong id="learnTimeInfo"></strong>
+                </div>
+
+                <div class="goal-row">
+                    <div class="goal-top">
+                        <label for="dailyGoalNumber" style="font-size:0.85rem; font-weight:600;">Tagesziel:</label>
+                        <input type="number" id="dailyGoalNumber" class="goal-number" min="5" max="50" step="1" value="10" aria-label="Tagesziel eintippen">
+                        <span id="goalProgressText" style="font-size:0.8rem; color:var(--text-muted); margin-left:auto;">0/10</span>
+                    </div>
+                    <div class="goal-slider-wrap">
+                        <input type="range" id="dailyGoalInput" class="goal-slider" min="5" max="50" step="1" value="10" aria-label="Tagesziel mit Regler wählen">
+                    </div>
+                    <div class="goal-progress" aria-hidden="true"><div class="goal-progress-fill" id="goalProgressFill"></div></div>
+                </div>
+
                 <div class="form-group">
-                    <label class="form-label">Quelle</label>
+                    <label class="form-label" for="learnSource">Quelle</label>
                     <select id="learnSource" class="form-control"></select>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Strategie</label>
+                    <label class="form-label" for="learnStrategy">Strategie</label>
                     <select id="learnStrategy" class="form-control">
                         <option value="leitner">Smart (Leitner System)</option>
                         <option value="due">Nur fällige Karten (Intervall)</option>
@@ -119,7 +142,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Modus</label>
+                    <label class="form-label" for="learnMethod">Modus</label>
                     <select id="learnMethod" class="form-control">
                         <option value="flip">Karteikarte (Umdrehen)</option>
                         <option value="type">Schreiben (Eintippen)</option>
@@ -128,8 +151,8 @@
                 </div>
 
                 <div class="form-group spacing-lg">
-                    <label class="form-label">Richtung</label>
-                    <div class="btn-group">
+                    <label class="form-label" id="directionLabel">Richtung</label>
+                    <div class="btn-group" role="group" aria-labelledby="directionLabel">
                         <button class="btn btn-outline active" id="btnMix" onclick="setDirection('mixed')">Mix</button>
                         <button class="btn btn-outline" id="btnFront" onclick="setDirection('front')">V - R</button>
                         <button class="btn btn-outline" id="btnBack" onclick="setDirection('back')">R - V</button>
@@ -273,6 +296,17 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Darstellung & Ruhemodus</h3>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">Größere Schrift, ruhigere Animationen.</p>
+                <div class="btn-group" role="group" aria-label="Darstellung">
+                    <button class="btn btn-outline" id="btnFontNormal" onclick="setDisplayOption('fontSize','normal')">A Normal</button>
+                    <button class="btn btn-outline" id="btnFontLarge" onclick="setDisplayOption('fontSize','large')">A+ Groß</button>
+                    <button class="btn btn-outline" id="btnDyslexia" onclick="toggleDisplayFlag('dyslexia')">Legasthenie-Modus</button>
+                    <button class="btn btn-outline" id="btnCalm" onclick="toggleDisplayFlag('calm')">Calm (ohne Effekte)</button>
                 </div>
             </div>
 
@@ -472,18 +506,28 @@
 
     <!-- Navigation -->
     <div class="bottom-nav" id="bottomNav">
-        <div class="nav-item active" onclick="nav('manageContent', this)"><i class="fas fa-folder"></i> Karten</div>
-        <div class="nav-item" onclick="nav('learnContent', this)"><i class="fas fa-graduation-cap"></i> Lernen</div>
-        <div class="nav-item" onclick="nav('statsContent', this)"><i class="fas fa-chart-bar"></i> Statistik</div>
+        <div class="nav-item active" onclick="nav('manageContent', this)" role="button" tabindex="0" aria-label="Karten verwalten"><i class="fas fa-folder"></i> Karten</div>
+        <div class="nav-item" onclick="nav('learnContent', this)" role="button" tabindex="0" aria-label="Lernen"><i class="fas fa-graduation-cap"></i> Lernen<span class="due-badge" id="dueBadge" style="display:none;">0</span></div>
+        <div class="nav-item" onclick="nav('statsContent', this)" role="button" tabindex="0" aria-label="Statistik"><i class="fas fa-chart-bar"></i> Statistik</div>
     </div>
 
     <!-- MULTI SELECT BOTTOM SHEET -->
     <div class="bottom-sheet" id="moveBottomSheet">
         <div class="sheet-header">
             <h3 style="flex: 1; text-align: center;">Wohin verschieben?</h3>
-            <button class="btn-secondary" style="width: auto; padding: 5px 10px; border-radius: 8px;" onclick="closeMoveSheet()"><i class="fas fa-times"></i></button>
+            <button class="btn-secondary" style="width: auto; padding: 5px 10px; border-radius: 8px;" onclick="closeMoveSheet()" aria-label="Schließen"><i class="fas fa-times"></i></button>
         </div>
         <div class="sheet-body" id="moveFolderList">
+        </div>
+    </div>
+
+    <!-- ACTION SHEET (⋯-Menü) -->
+    <div class="bottom-sheet" id="actionSheet">
+        <div class="sheet-header">
+            <h3 style="flex: 1; text-align: center;" id="actionSheetTitle">Aktionen</h3>
+            <button class="btn-secondary" style="width: auto; padding: 5px 10px; border-radius: 8px;" onclick="closeActionSheet()" aria-label="Menü schließen"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sheet-body" id="actionSheetList">
         </div>
     </div>
 

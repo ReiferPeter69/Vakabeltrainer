@@ -13,6 +13,8 @@ const THEME_KEY = 'ultraTheme';
 const ACCENT_KEY = 'ultraAccent';
 const AUTO_BACKUP_INTERVAL = 5 * 60 * 1000; // 5 Minuten
 const LEARN_SETTINGS_KEY = 'ultraLearnSettings';
+const DAILY_GOAL_KEY = 'ultraDailyGoal';
+const DISPLAY_KEY = 'ultraDisplay';
 
 // Verfügbare Akzent-Themen (für den Picker)
 const ACCENT_THEMES = [
@@ -832,6 +834,7 @@ function loadData() {
         if (!data.totalReviews) data.totalReviews = 0;
         if (!data.lastSessionDuration) data.lastSessionDuration = 0;
         if (!data.version) data.version = DB_VERSION;
+        if (data.streakFreezes === undefined || data.streakFreezes === null) data.streakFreezes = 1;
         
         checkStreak();
         updateBackupStatus();
@@ -856,7 +859,8 @@ function createSampleData() {
         totalReviews: 0,
         lastSessionDuration: 0,
         version: DB_VERSION,
-        lastBackup: null
+        lastBackup: null,
+        streakFreezes: 1
     };
     save();
 }
@@ -921,18 +925,29 @@ function normalizeLearnedDate(value) {
 
 function checkStreak() {
     data.lastLearnedDate = normalizeLearnedDate(data.lastLearnedDate);
+    if (data.streakFreezes === undefined || data.streakFreezes === null) data.streakFreezes = 1;
 
     if (data.lastLearnedDate) {
         const gap = daysBetweenKeys(data.lastLearnedDate, dayKey());
-        // Nur ein echter Aussetzer (>= 2 Tage) bricht die Serie.
         // gap < 0 = Systemuhr zurückgestellt -> Serie unangetastet lassen.
-        if (gap >= 2 && data.streak !== 0) {
+        // gap === 2 + Freeze in Reserve -> noch nicht zurücksetzen, Freeze wird
+        // erst beim heutigen Lernen in incrementStreak() verbraucht.
+        if (gap === 2 && data.streak !== 0 && (data.streakFreezes || 0) <= 0) {
+            data.streak = 0;
+            save();
+        } else if (gap > 2 && data.streak !== 0) {
             data.streak = 0;
             save();
         }
     }
     const streakEl = document.getElementById('streakCount');
     if (streakEl) streakEl.innerText = data.streak || 0;
+    updateFreezeUI();
+}
+
+function updateFreezeUI() {
+    const el = document.getElementById('freezeCount');
+    if (el) el.innerHTML = '<i class="fas fa-shield-alt"></i>&nbsp;' + (data.streakFreezes ?? 1);
 }
 
 /**
@@ -947,7 +962,15 @@ function incrementStreak() {
 
     if (last) {
         const gap = daysBetweenKeys(last, today);
-        data.streak = gap === 1 ? (data.streak || 0) + 1 : 1;
+        if (gap === 1) {
+            data.streak = (data.streak || 0) + 1;
+        } else if (gap === 2 && (data.streakFreezes || 0) > 0) {
+            data.streakFreezes--;
+            data.streak = (data.streak || 0) + 1;
+            setTimeout(() => showNotification('Streak-Freeze eingesetzt! Serie gerettet.', 'info'), 500);
+        } else {
+            data.streak = 1;
+        }
     } else {
         data.streak = 1;
     }
@@ -955,6 +978,7 @@ function incrementStreak() {
     data.lastLearnedDate = today;
     const streakEl = document.getElementById('streakCount');
     if (streakEl) streakEl.innerText = data.streak;
+    updateFreezeUI();
     save();
     return true;
 }
@@ -1644,6 +1668,67 @@ function closeMoveSheet() {
     movingItemType = null;
 }
 
+// =============================================
+// ACTION SHEET (⋯-Menü mit benannten Zeilen)
+// =============================================
+function openActionSheet(type, id, e) {
+    if (e) e.stopPropagation();
+    const sheet = document.getElementById('actionSheet');
+    const list = document.getElementById('actionSheetList');
+    const nav = document.getElementById('bottomNav');
+    const titleEl = document.getElementById('actionSheetTitle');
+    if (!sheet || !list) return;
+
+    const rows = [];
+    if (type === 'folder') {
+        const f = data.folders.find(x => x.id === id);
+        if (titleEl) titleEl.textContent = f ? f.name : 'Ordner';
+        rows.push(
+            { icon: 'fa-edit', label: 'Umbenennen', fn: () => openRenameFolder(id, null) },
+            { icon: 'fa-arrows-alt', label: 'Verschieben', fn: () => openMoveSheet(id, 'folder') },
+            { icon: 'fa-palette', label: 'Farbe ändern', fn: () => openDesignModal('folder', id, null) },
+            { icon: 'fa-share-alt', label: 'Teilen', fn: () => openShareModal(id, null) },
+            { icon: 'fa-trash', label: 'Löschen', fn: () => delFolder(null, id), color: 'var(--danger)' }
+        );
+    } else {
+        const c = data.cards.find(x => x.id === id);
+        if (titleEl) titleEl.textContent = c ? c.front : 'Karte';
+        rows.push(
+            { icon: 'fa-pen', label: 'Bearbeiten', fn: () => openEditCard(id, null) },
+            { icon: 'fa-arrows-alt', label: 'Verschieben', fn: () => openMoveSheet(id, 'card') },
+            { icon: 'fa-undo', label: 'Zurücksetzen (Box 1)', fn: () => resetCard(id) },
+            { icon: 'fa-palette', label: 'Farbe ändern', fn: () => openDesignModal('card', id, null) },
+            { icon: 'fa-trash', label: 'Löschen', fn: () => delCard(id), color: 'var(--danger)' }
+        );
+    }
+
+    list.innerHTML = '';
+    rows.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'folder-select-item';
+        div.setAttribute('role', 'button');
+        div.setAttribute('tabindex', '0');
+        div.innerHTML = `<i class="fas ${r.icon}"${r.color ? ` style="color:${r.color}"` : ''}></i> <span>${escapeHtml(r.label)}</span>`;
+        const run = () => { closeActionSheet(); r.fn(); };
+        div.addEventListener('click', run);
+        div.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); run(); }
+        });
+        list.appendChild(div);
+    });
+
+    if (nav) nav.classList.add('hidden-nav');
+    sheet.classList.add('show');
+}
+
+function closeActionSheet() {
+    const sheet = document.getElementById('actionSheet');
+    const nav = document.getElementById('bottomNav');
+    if (sheet) sheet.classList.remove('show');
+    const moveOpen = document.getElementById('moveBottomSheet')?.classList.contains('show');
+    if (nav && !moveOpen) nav.classList.remove('hidden-nav');
+}
+
 function executeMove(targetId) {
     // Zyklus-Schutz: Ordner darf nicht in sich selbst / eigenen Nachkommen verschoben werden
     if (movingItemId && movingItemType === 'folder') {
@@ -1910,11 +1995,12 @@ function renderManage(filter = '') {
             const safeId = escapeHtml(f.id);
             actionsHtml = `
                 <div class="item-actions">
-                    <i class="fas fa-edit action-icon" data-action="renamefolder" data-id="${safeId}" title="Umbenennen"></i>
-                    <i class="fas fa-arrows-alt action-icon" data-action="moveitem" data-type="folder" data-id="${safeId}" title="Verschieben"></i>
-                    <i class="fas fa-palette action-icon action-design" data-action="design" data-type="folder" data-id="${safeId}" title="Farbe"></i>
-                    <i class="fas fa-share-alt action-icon" style="color: var(--primary);" data-action="share" data-id="${safeId}" title="Teilen"></i>
-                    <i class="fas fa-trash action-icon action-del" data-action="delfolder" data-id="${safeId}" title="Löschen"></i>
+                    <i class="fas fa-edit action-icon more-only" role="button" tabindex="0" aria-label="Ordner umbenennen" data-action="renamefolder" data-id="${safeId}" title="Umbenennen"></i>
+                    <i class="fas fa-arrows-alt action-icon more-only" role="button" tabindex="0" aria-label="Ordner verschieben" data-action="moveitem" data-type="folder" data-id="${safeId}" title="Verschieben"></i>
+                    <i class="fas fa-palette action-icon action-design more-only" role="button" tabindex="0" aria-label="Ordnerfarbe" data-action="design" data-type="folder" data-id="${safeId}" title="Farbe"></i>
+                    <i class="fas fa-share-alt action-icon" role="button" tabindex="0" aria-label="Ordner teilen" style="color: var(--primary);" data-action="share" data-id="${safeId}" title="Teilen"></i>
+                    <i class="fas fa-trash action-icon action-del" role="button" tabindex="0" aria-label="Ordner löschen" data-action="delfolder" data-id="${safeId}" title="Löschen"></i>
+                    <i class="fas fa-ellipsis-h action-icon action-more" role="button" tabindex="0" aria-label="Menü öffnen" data-action="actionsheet" data-type="folder" data-id="${safeId}" title="Menü"></i>
                 </div>
             `;
         }
@@ -1964,11 +2050,12 @@ function renderManage(filter = '') {
             const safeId = escapeHtml(c.id);
             cardActionsHtml = `
                 <div class="item-actions">
-                    <i class="fas fa-arrows-alt action-icon" data-action="moveitem" data-type="card" data-id="${safeId}" title="Verschieben"></i>
-                    <i class="fas fa-undo action-icon" style="color:var(--warning)" data-action="reset" data-id="${safeId}" title="Zurücksetzen"></i>
-                    <i class="fas fa-palette action-icon action-design" data-action="design" data-type="card" data-id="${safeId}" title="Farbe"></i>
-                    <i class="fas fa-pen action-icon action-edit" data-action="edit" data-id="${safeId}" title="Bearbeiten"></i>
-                    <i class="fas fa-trash action-icon action-del" data-action="delcard" data-id="${safeId}" title="Löschen"></i>
+                    <i class="fas fa-arrows-alt action-icon more-only" role="button" tabindex="0" aria-label="Karte verschieben" data-action="moveitem" data-type="card" data-id="${safeId}" title="Verschieben"></i>
+                    <i class="fas fa-undo action-icon more-only" role="button" tabindex="0" aria-label="Karte zurücksetzen" style="color:var(--warning)" data-action="reset" data-id="${safeId}" title="Zurücksetzen"></i>
+                    <i class="fas fa-palette action-icon action-design more-only" role="button" tabindex="0" aria-label="Kartenfarbe" data-action="design" data-type="card" data-id="${safeId}" title="Farbe"></i>
+                    <i class="fas fa-pen action-icon action-edit" role="button" tabindex="0" aria-label="Karte bearbeiten" data-action="edit" data-id="${safeId}" title="Bearbeiten"></i>
+                    <i class="fas fa-trash action-icon action-del" role="button" tabindex="0" aria-label="Karte löschen" data-action="delcard" data-id="${safeId}" title="Löschen"></i>
+                    <i class="fas fa-ellipsis-h action-icon action-more" role="button" tabindex="0" aria-label="Menü öffnen" data-action="actionsheet" data-type="card" data-id="${safeId}" title="Menü"></i>
                 </div>
             `;
         }
@@ -2001,6 +2088,7 @@ function renderManage(filter = '') {
 
     list.appendChild(fragment);
     updateLearnSource();
+    updateDueBadge();
 }
 
 // Event Delegation für Action-Icons
@@ -2046,6 +2134,21 @@ document.addEventListener('click', function(e) {
         case 'reset':
             resetCard(id);
             break;
+        case 'actionsheet':
+            openActionSheet(type, id, e);
+            break;
+    }
+});
+
+// Tastatur-Zugang für Action-Icons & Nav-Items (Enter/Space löst Klick aus)
+document.addEventListener('keydown', function(e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.matches && e.target.matches('[data-action]')) {
+        e.preventDefault();
+        e.target.click();
+    }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.matches && e.target.matches('.nav-item')) {
+        e.preventDefault();
+        e.target.click();
     }
 });
 
@@ -2267,6 +2370,138 @@ function updateLearnSource() {
         
         if ([...scope.options].some(o => o.value === prevScope)) scope.value = prevScope;
     }
+    updateLearnMeta();
+    updateDueBadge();
+}
+
+// =============================================
+// PHASE 1: Presets, Tagesziel, Fälligkeits-Badge, Darstellung
+// =============================================
+
+function getDueCount(scopeId) {
+    try {
+        return getCardsForScope(scopeId).filter(isCardDue).length;
+    } catch (e) { return 0; }
+}
+
+function getTodayLearnedCount() {
+    try {
+        if (!data.activityLog || typeof data.activityLog !== 'object') return 0;
+        return data.activityLog[dayKey()] || 0;
+    } catch (e) { return 0; }
+}
+
+function getDailyGoal() {
+    const v = parseInt(safeLocalStorage('get', DAILY_GOAL_KEY) || '10', 10);
+    return (isNaN(v) || v < 1) ? 10 : Math.min(200, v);
+}
+
+function updateLearnMeta() {
+    const sel = document.getElementById('learnSource');
+    const dueEl = document.getElementById('learnDueInfo');
+    const timeEl = document.getElementById('learnTimeInfo');
+    const scopeId = sel ? sel.value : 'all';
+    if (dueEl) {
+        const pool = getCardsForScope(scopeId).length;
+        const due = getDueCount(scopeId);
+        const mins = Math.max(1, Math.ceil(due * 12 / 60));
+        dueEl.textContent = `${due} fällig • ${pool} gesamt`;
+        if (timeEl) timeEl.textContent = due > 0 ? `~${mins} Min` : 'Alles fällig-frei 🎉';
+    }
+    const goalInput = document.getElementById('dailyGoalInput');
+    const goal = getDailyGoal();
+    const clamped = Math.max(5, Math.min(50, goal));
+    if (goalInput && document.activeElement !== goalInput) goalInput.value = clamped;
+    if (goalInput && goalInput.style && goalInput.style.setProperty) goalInput.style.setProperty('--fill', ((clamped - 5) / 45 * 100) + '%');
+    const goalNumber = document.getElementById('dailyGoalNumber');
+    if (goalNumber && document.activeElement !== goalNumber) goalNumber.value = clamped;
+    const fill = document.getElementById('goalProgressFill');
+    const txt = document.getElementById('goalProgressText');
+    const done = getTodayLearnedCount();
+    if (fill) fill.style.width = Math.min(100, Math.round(done / goal * 100)) + '%';
+    if (txt) txt.textContent = `${done}/${goal}${done >= goal ? ' ✅' : ''}`;
+}
+
+function applyLearnPreset(name) {
+    const strategyEl = document.getElementById('learnStrategy');
+    const methodEl = document.getElementById('learnMethod');
+    const sourceEl = document.getElementById('learnSource');
+    if (!strategyEl || !methodEl) return;
+    if (name === 'quick') {
+        strategyEl.value = 'random';
+        methodEl.value = 'flip';
+        setDirection('mixed');
+    } else if (name === 'due') {
+        strategyEl.value = 'due';
+        methodEl.value = 'flip';
+    } else if (name === 'exam') {
+        strategyEl.value = 'hardest';
+        methodEl.value = 'type';
+        setDirection('mixed');
+    }
+    if (sourceEl) sourceEl.value = 'all';
+    saveLearnSettings();
+    updateLearnMeta();
+    showNotification('Preset übernommen – viel Erfolg!', 'success');
+}
+
+function updateDueBadge() {
+    const badge = document.getElementById('dueBadge');
+    if (!badge) return;
+    const due = data.cards.filter(isCardDue).length;
+    if (due > 0) {
+        badge.style.display = 'flex';
+        badge.textContent = due > 99 ? '99+' : String(due);
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function loadDisplayOptions() {
+    try {
+        const raw = safeLocalStorage('get', DISPLAY_KEY);
+        const opts = raw ? JSON.parse(raw) : {};
+        if (opts.fontSize === 'large') document.body.classList.add('font-large');
+        if (opts.dyslexia) document.body.classList.add('dyslexia');
+        if (opts.calm) document.body.classList.add('calm');
+        updateDisplayButtons(opts);
+    } catch (e) {}
+}
+
+function getDisplayOptions() {
+    try {
+        const raw = safeLocalStorage('get', DISPLAY_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+}
+
+function updateDisplayButtons(opts) {
+    opts = opts || getDisplayOptions();
+    const bN = document.getElementById('btnFontNormal');
+    const bL = document.getElementById('btnFontLarge');
+    const bD = document.getElementById('btnDyslexia');
+    const bC = document.getElementById('btnCalm');
+    if (bN) bN.classList.toggle('active', opts.fontSize !== 'large');
+    if (bL) bL.classList.toggle('active', opts.fontSize === 'large');
+    if (bD) bD.classList.toggle('active', !!opts.dyslexia);
+    if (bC) bC.classList.toggle('active', !!opts.calm);
+}
+
+function setDisplayOption(key, value) {
+    const opts = getDisplayOptions();
+    opts[key] = value;
+    safeLocalStorage('set', DISPLAY_KEY, JSON.stringify(opts));
+    document.body.classList.toggle('font-large', opts.fontSize === 'large');
+    updateDisplayButtons(opts);
+}
+
+function toggleDisplayFlag(key) {
+    const opts = getDisplayOptions();
+    opts[key] = !opts[key];
+    safeLocalStorage('set', DISPLAY_KEY, JSON.stringify(opts));
+    if (key === 'dyslexia') document.body.classList.toggle('dyslexia', !!opts[key]);
+    if (key === 'calm') document.body.classList.toggle('calm', !!opts[key]);
+    updateDisplayButtons(opts);
 }
 
 // =============================================
@@ -3515,9 +3750,14 @@ function init() {
     checkUrlImport();
     setupImportDropZone();
     loadLearnSettings();
+    loadDisplayOptions();
+    updateLearnMeta();
+    updateDueBadge();
     
     // Auto-Backup alle 5 Minuten
     setInterval(createAutoBackup, AUTO_BACKUP_INTERVAL);
+    // Fälligkeits-Badge regelmäßig auffrischen (Intervalle laufen ab)
+    setInterval(updateDueBadge, 60 * 1000);
     
     // FAB-Menü bei Klick außerhalb schließen
     document.addEventListener('click', (e) => {
@@ -3538,8 +3778,25 @@ function init() {
     // Lern-Einstellungen Änderungshörer
     ['learnSource', 'learnStrategy', 'learnMethod'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.addEventListener('change', saveLearnSettings);
+        if (el) el.addEventListener('change', () => { saveLearnSettings(); updateLearnMeta(); });
     });
+
+    // Tagesziel: links eintippen oder rechts Regler schieben (5–50 Karten)
+    const goalInput = document.getElementById('dailyGoalInput');
+    const goalNumber = document.getElementById('dailyGoalNumber');
+    const setGoal = (v) => {
+        v = Math.max(5, Math.min(50, parseInt(v, 10) || 10));
+        safeLocalStorage('set', DAILY_GOAL_KEY, String(v));
+        updateLearnMeta();
+    };
+    if (goalInput) {
+        goalInput.value = Math.max(5, Math.min(50, getDailyGoal()));
+        goalInput.addEventListener('input', () => setGoal(goalInput.value));
+    }
+    if (goalNumber) {
+        goalNumber.value = Math.max(5, Math.min(50, getDailyGoal()));
+        goalNumber.addEventListener('change', () => setGoal(goalNumber.value));
+    }
     
     // Statistik-Filter
     const statsScope = document.getElementById('statsScope');
