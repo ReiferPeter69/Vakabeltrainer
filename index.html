@@ -50,7 +50,12 @@
         <div id="manageContent" class="content-area active">
             <div class="card">
                 <div class="toolbar-row">
-                    <input type="text" id="searchBox" class="form-control" placeholder="Suchen..." style="flex:1;">
+                    <div class="search-input-wrapper" style="flex:1; display:flex; gap:6px; align-items:center; min-width:0;">
+                        <input type="text" id="searchBox" class="form-control" placeholder="Suchen in Karten & Ordnern..." style="flex:1; min-width:120px;">
+                        <button id="btnSearchScope" class="btn-secondary btn-search-scope active" type="button" onclick="toggleSearchScope()" title="Suchbereich: Alle Ordner (klicken für aktuellen Ordner)">
+                            <i class="fas fa-globe"></i> <span id="searchScopeText">Alle</span>
+                        </button>
+                    </div>
                     <button id="btnSelectMode" class="btn-select" onclick="toggleSelectMode()">
                         <i class="fas fa-check-square"></i> Auswählen
                     </button>
@@ -374,6 +379,9 @@
                             </div>
                         </div>
 
+                        <!-- Character-Level-Diff Fehleranalyse -->
+                        <div id="diffViewContainer" class="diff-view-container" style="display: none;"></div>
+
                         <div class="correct-answer-display">
                             <div class="correct-answer-label">Richtige Antwort</div>
                             <div class="correct-answer-text" id="correctAnswerText">-</div>
@@ -497,6 +505,18 @@
         </div>
     </div>
 
+    <!-- Rename Folder Modal -->
+    <div class="modal" id="renameFolderModal">
+        <div class="modal-content">
+            <h3>Ordner umbenennen</h3>
+            <input type="text" id="inpRenameFolder" class="form-control" style="margin: 15px 0;" placeholder="Neuer Name...">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="hideModal('renameFolderModal')">Abbrechen</button>
+                <button class="btn btn-primary" onclick="confirmRenameFolder()">Speichern</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal" id="cardModal">
         <div class="modal-content">
             <h3 id="cardModalTitle">Neue Karte</h3>
@@ -511,16 +531,87 @@
     </div>
 
     <div class="modal" id="importModal">
-        <div class="modal-content">
-            <h3>Massen-Import</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Format: Vorderseite;Rückseite;Hinweis</p>
-            <textarea id="inpImport" class="form-control no-wrap" style="height: 150px; margin-bottom: 10px;" placeholder="Haus;Casa;Gebäude&#10;Auto;Coche;&#10;..."></textarea>
+        <div class="modal-content import-modal-content">
+            <h3>Vokabeln importieren</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">Importiere ganze Dateien (.csv, .tsv, .txt, .json) oder füge Text ein.</p>
             
-            <div id="importFeedback" style="background: var(--bg-body); padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 10px; display: none;"></div>
+            <!-- Drag & Drop Zone -->
+            <div class="import-drop-zone" id="importDropZone">
+                <i class="fas fa-cloud-upload-alt import-drop-icon"></i>
+                <div class="import-drop-title">Datei hier ablegen oder <span class="browse-link">durchsuchen</span></div>
+                <div class="import-drop-sub">Unterstützt CSV, TSV, TXT, Quizlet/Anki-Dateien & JSON-Backups</div>
+                <input type="file" id="importFileInput" accept=".csv,.tsv,.txt,.json" hidden>
+            </div>
+
+            <div class="import-file-badge-row" id="importFileBadgeRow" style="display: none;">
+                <span class="file-name-badge" id="importLoadedFileName">datei.csv</span>
+                <button class="btn-icon-xs" type="button" onclick="clearImportFile()" title="Datei entfernen"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Optionen-Grid -->
+            <div class="import-options-grid">
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label class="form-label" style="font-size: 0.8rem; margin-bottom: 4px;">Trennzeichen</label>
+                    <select id="importDelimiter" class="form-control" onchange="onImportOptionsChanged()">
+                        <option value="auto">Automatisch erkennen</option>
+                        <option value=";">Semikolon ( ; )</option>
+                        <option value=",">Komma ( , )</option>
+                        <option value="&#9;">Tabulator ( Tab )</option>
+                        <option value="|">Pipe ( | )</option>
+                        <option value="->">Pfeil ( -&gt; )</option>
+                        <option value="=>">Pfeil ( =&gt; )</option>
+                        <option value="-">Bindestrich ( - )</option>
+                        <option value="=">Gleichheitszeichen ( = )</option>
+                        <option value=":">Doppelpunkt ( : )</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label class="form-label" style="font-size: 0.8rem; margin-bottom: 4px;">Ziel</label>
+                    <select id="importTargetOption" class="form-control" onchange="onImportOptionsChanged()">
+                        <option value="current">In aktuellen Ordner</option>
+                        <option value="new_folder">Neuer Ordner (Dateiname)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin: 8px 0;">
+                <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px; cursor:pointer; color: var(--text-muted);">
+                    <input type="checkbox" id="importSkipHeader" onchange="onImportOptionsChanged()"> Erste Zeile ist Kopfzeile (überspringen)
+                </label>
+                <button class="btn-text" type="button" onclick="toggleImportTextInput()" style="font-size:0.8rem; color:var(--primary); background:none; border:none; cursor:pointer;">
+                    <i class="fas fa-keyboard"></i> <span id="btnToggleInputText">Textfeld anzeigen</span>
+                </button>
+            </div>
+
+            <textarea id="inpImport" class="form-control no-wrap" style="height: 100px; margin-bottom: 10px; display: none;" placeholder="Haus;Casa;Gebäude&#10;Auto;Coche;&#10;..."></textarea>
+            
+            <!-- Live Preview -->
+            <div id="importPreviewContainer" style="display: none; margin-bottom: 12px;">
+                <div class="import-preview-header">
+                    <span id="importPreviewBadge" class="badge">0 Karten erkannt</span>
+                    <span id="importPreviewDetails" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+                </div>
+                <div class="import-preview-table-wrapper">
+                    <table class="import-preview-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Vorderseite</th>
+                                <th>Rückseite</th>
+                                <th>Hinweis</th>
+                                <th>Ordner</th>
+                            </tr>
+                        </thead>
+                        <tbody id="importPreviewTbody"></tbody>
+                    </table>
+                </div>
+            </div>
 
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="hideModal('importModal')">Abbrechen</button>
-                <button class="btn btn-warning" onclick="runImport()">Importieren</button>
+                <button class="btn btn-primary" id="btnExecuteImport" onclick="runImport()">
+                    <i class="fas fa-file-import"></i> Importieren
+                </button>
             </div>
         </div>
     </div>

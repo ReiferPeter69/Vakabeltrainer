@@ -1370,3 +1370,337 @@ select.form-control {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
+
+/* =============================================
+   7-TAGE-AKTIVITÄTS-CHART
+   ============================================= */
+.activity-section { margin-top: 20px; }
+.activity-section h3 {
+    font-size: 1rem; margin-bottom: 10px; color: var(--text-main);
+}
+.activity-chart {
+    display: flex; align-items: stretch; justify-content: space-between;
+    gap: 8px; height: 130px; padding: 15px 12px 10px;
+    background: var(--bg-body); border-radius: 12px;
+    border: 1px solid var(--border);
+}
+.activity-col {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+    gap: 4px; min-width: 0;
+}
+.activity-count {
+    font-size: 0.7rem; font-weight: bold; color: var(--text-muted);
+    min-height: 14px; line-height: 1;
+}
+.activity-bar {
+    width: 100%; max-width: 30px;
+    border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(to top, var(--primary), var(--primary-dark));
+    transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    min-height: 6px;
+}
+.activity-col.empty .activity-bar { opacity: 0.2; }
+.activity-label {
+    font-size: 0.7rem; color: var(--text-muted); line-height: 1;
+}
+
+/* Nav-Item: weicher Hintergrund-Übergang (statt nur Sprung) */
+.nav-item {
+    border-radius: 12px;
+    transition: color 0.2s, background 0.2s, transform 0.2s;
+    padding: 4px 6px;
+}
+
+/* =============================================
+   RESPONSIVE: DESKTOP (≥900px)
+   Bottom-Nav bleibt unten – nur mehr Platz & größere Karten
+   ============================================= */
+@media (min-width: 900px) {
+    .container { max-width: 960px; }
+
+    /* Größere Karten-Texte auf großen Screens */
+    .card-text { font-size: 2rem; }
+    .flashcard { height: 380px; }
+
+    /* Performance-Grid: mehr Luft */
+    .performance-grid { gap: 14px; }
+}
+
+/* =============================================
+   ERWEITERTE FEATURES & OPTIMIERUNGEN
+   ============================================= */
+
+/* Suchleiste Scope-Button */
+.btn-search-scope {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg-body);
+    color: var(--text-main);
+    transition: all 0.2s ease;
+}
+.btn-search-scope.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Suche: Hervorhebung von Treffern */
+.search-highlight {
+    background: rgba(245, 158, 11, 0.25);
+    color: inherit;
+    padding: 1px 3px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+[data-theme="dark"] .search-highlight {
+    background: rgba(245, 158, 11, 0.4);
+    color: #fef08a;
+}
+
+/* Ordner-Badge auf Suchtreffern */
+.item-folder-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: var(--primary-light);
+    color: var(--primary);
+    margin-left: 6px;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.item-folder-badge:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+.item-sub-translation {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Datei-Dropzone für Import */
+.import-modal-content {
+    max-width: 600px;
+    width: 94%;
+}
+.import-drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 24px 16px;
+    text-align: center;
+    background: var(--bg-body);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+}
+.import-drop-zone:hover,
+.import-drop-zone.dragover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+.import-drop-icon {
+    font-size: 2.2rem;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+.import-drop-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+.import-drop-title .browse-link {
+    color: var(--primary);
+    text-decoration: underline;
+}
+.import-drop-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+.import-file-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.file-name-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.btn-icon-xs {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+}
+.btn-icon-xs:hover {
+    color: var(--danger);
+}
+
+.import-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+/* Import-Vorschau */
+.import-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.import-preview-table-wrapper {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-card);
+}
+.import-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+}
+.import-preview-table th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-body);
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+}
+.import-preview-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Character-Level Diff */
+.diff-view-container {
+    background: var(--bg-body);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 14px;
+    text-align: left;
+}
+.diff-row {
+    margin-bottom: 8px;
+}
+.diff-row:last-child {
+    margin-bottom: 0;
+}
+.diff-row-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+.diff-chars {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.4;
+    word-break: break-all;
+}
+.diff-char {
+    display: inline-block;
+    padding: 2px 4px;
+    border-radius: 4px;
+    min-width: 10px;
+    text-align: center;
+}
+.diff-char.correct {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+}
+.diff-char.wrong {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    text-decoration: line-through;
+}
+.diff-char.missing {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning);
+    border-bottom: 2px solid var(--warning);
+}
+.diff-char.extra {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    text-decoration: line-through;
+}
+.diff-char.space {
+    opacity: 0.4;
+}
+.diff-legend {
+    display: flex;
+    gap: 12px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+}
+
+/* Multiple Choice Tastatur-Ziffern-Badges */
+.mc-key-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin-right: 8px;
+    border: 1px solid var(--border);
+}
+.mc-option.correct .mc-key-badge {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    border-color: transparent;
+}
+.mc-option.wrong .mc-key-badge {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    border-color: transparent;
+}
+

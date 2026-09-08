@@ -96,6 +96,19 @@ let selectedIds = new Set();
 // Edit Card State
 let editingCardId = null;
 
+// Search Scope State ('global' oder 'current')
+let searchScope = 'global';
+
+// Quick Move & Rename State
+let movingItemId = null;
+let movingItemType = null;
+let renamingFolderId = null;
+
+// File Import State
+let importedFileContent = '';
+let importedFileName = '';
+let importParsedResult = null;
+
 // Gamification State
 let comboCount = 0; // Aufeinanderfolgende richtige Antworten
 let lastAnswerTime = 0;
@@ -570,18 +583,131 @@ function levenshtein(a, b) {
  * @param {string} target - Zieltext
  * @returns {boolean} Ob der Suchbegriff zum Zieltext passt (Fuzzy)
  */
+/**
+ * Intelligente Wort- und Token-basierte Suche mit Levenshtein-Toleranz
+ */
+function smartSearchMatch(query, text) {
+    if (!query) return true;
+    if (!text) return false;
+    
+    const q = query.toLowerCase().trim();
+    const t = text.toLowerCase();
+    
+    // Direkter Substring-Treffer
+    if (t.includes(q)) return true;
+    
+    const qTokens = q.split(/\s+/).filter(Boolean);
+    if (qTokens.length === 0) return true;
+    
+    // Zieltext in Wörter zerlegen
+    const tWords = t.split(/[\s,.;:!?/\\()\-–—_+*"~\[\]{}]+/).filter(Boolean);
+    
+    // Jedes Token muss zu mindestens einem Wort passen
+    return qTokens.every(tok => {
+        if (t.includes(tok)) return true;
+        const maxDist = tok.length <= 3 ? 0 : (tok.length <= 6 ? 1 : 2);
+        return tWords.some(w => {
+            if (w.includes(tok)) return true;
+            if (Math.abs(w.length - tok.length) > maxDist) return false;
+            return levenshtein(tok, w) <= maxDist;
+        });
+    });
+}
+
 function fuzzyMatch(input, target) {
-    if (!input || !target) return false;
+    return smartSearchMatch(input, target);
+}
+
+/**
+ * Hebt Suchbegriffe im Text mittels <mark> hervor
+ */
+function highlightMatch(text, query) {
+    if (!text || !query) return escapeHtml(text);
+    const qTokens = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    if (qTokens.length === 0) return escapeHtml(text);
     
-    const normalizedInput = input.toLowerCase().trim();
-    const normalizedTarget = target.toLowerCase().trim();
+    const escaped = escapeHtml(text);
+    const pattern = new RegExp('(' + qTokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+    return escaped.replace(pattern, '<mark class="search-highlight">$1</mark>');
+}
+
+/**
+ * Character-Level-Diff für Fehleranalyse im Tipp-Modus (LCS-Algorithmus)
+ */
+function computeCharDiff(inputStr, targetStr) {
+    const s1 = inputStr || '';
+    const s2 = targetStr || '';
+    const m = s1.length;
+    const n = s2.length;
     
-    // Exakter Match
-    if (normalizedTarget.includes(normalizedInput)) return true;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (s1[i - 1].toLowerCase() === s2[j - 1].toLowerCase()) {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+            } else {
+                dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
+    }
     
-    // Fuzzy-Match: Toleriere 1-2 Fehler abhängig von der Länge
-    const maxDistance = Math.max(1, Math.floor(normalizedTarget.length / 4));
-    return levenshtein(normalizedInput, normalizedTarget) <= maxDistance;
+    let i = m, j = n;
+    const inputDiff = [];
+    const targetDiff = [];
+    
+    while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && s1[i - 1].toLowerCase() === s2[j - 1].toLowerCase()) {
+            inputDiff.unshift({ char: s1[i - 1], status: 'correct' });
+            targetDiff.unshift({ char: s2[j - 1], status: 'correct' });
+            i--; j--;
+        } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+            targetDiff.unshift({ char: s2[j - 1], status: 'missing' });
+            j--;
+        } else if (i > 0) {
+            inputDiff.unshift({ char: s1[i - 1], status: 'wrong' });
+            i--;
+        }
+    }
+    
+    const renderChars = (arr) => arr.map(item => {
+        const displayChar = item.char === ' ' ? '␣' : escapeHtml(item.char);
+        const spaceClass = item.char === ' ' ? ' space' : '';
+        return `<span class="diff-char ${item.status}${spaceClass}" title="${item.status}">${displayChar}</span>`;
+    }).join('');
+    
+    return {
+        inputHtml: renderChars(inputDiff),
+        targetHtml: renderChars(targetDiff)
+    };
+}
+
+function isDescendantOf(childId, ancestorId) {
+    if (!childId || !ancestorId) return false;
+    let curr = data.folders.find(f => f.id === childId);
+    while (curr && curr.parentId) {
+        if (curr.parentId === ancestorId) return true;
+        curr = data.folders.find(f => f.id === curr.parentId);
+    }
+    return false;
+}
+
+function toggleSearchScope() {
+    searchScope = (searchScope === 'global') ? 'current' : 'global';
+    const btn = document.getElementById('btnSearchScope');
+    const txt = document.getElementById('searchScopeText');
+    if (btn && txt) {
+        if (searchScope === 'global') {
+            btn.classList.add('active');
+            txt.textContent = 'Alle';
+            btn.title = 'Suchbereich: Alle Ordner (klicken für aktuellen Ordner)';
+        } else {
+            btn.classList.remove('active');
+            txt.textContent = 'Ordner';
+            btn.title = 'Suchbereich: Aktueller Ordner (klicken für alle Ordner)';
+        }
+    }
+    const searchBox = document.getElementById('searchBox');
+    renderManage(searchBox ? searchBox.value : '');
 }
 
 // =============================================
@@ -962,7 +1088,7 @@ async function delCard(id) {
 }
 
 async function delFolder(e, id) {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     const confirmed = await showConfirm('Ordner und Inhalt löschen?');
     if (confirmed) {
         const deletedItems = [];
@@ -976,12 +1102,19 @@ async function delFolder(e, id) {
 
         triggerUndoToast("Ordner gelöscht", { type: 'bulk', items: deletedItems });
 
+        const folderObj = data.folders.find(f => f.id === id);
         const rec = (fid) => {
             data.cards = data.cards.filter(c => c.folderId !== fid);
             data.folders.filter(f => f.parentId === fid).forEach(s => rec(s.id));
             data.folders = data.folders.filter(f => f.id !== fid);
         };
         rec(id);
+        
+        // Verhindere verwaiste curFolder-Navigation
+        if (curFolder === id || isDescendantOf(curFolder, id)) {
+            curFolder = (folderObj && folderObj.parentId) || null;
+        }
+        
         save();
         renderManage();
     }
@@ -1000,13 +1133,18 @@ async function bulkDeleteSelected() {
         const folder = data.folders.find(f => f.id === id);
         if (folder) {
             const collectRecursive = (fid) => {
-                data.folders.filter(f => f.id === fid).forEach(f => deletedItems.push({...f}));
+                const fObj = data.folders.find(f => f.id === fid);
+                if (fObj) deletedItems.push({...fObj});
                 data.cards.filter(c => c.folderId === fid).forEach(c => deletedItems.push({...c}));
                 data.folders.filter(f => f.parentId === fid).forEach(subFolder => {
                     collectRecursive(subFolder.id);
                 });
             };
             collectRecursive(id);
+        } else {
+            // Ausgewählte Karte zur Löschung und zum Undo-Stack erfassen
+            const card = data.cards.find(c => c.id === id);
+            if (card) deletedItems.push({...card});
         }
     });
     
@@ -1022,6 +1160,9 @@ async function bulkDeleteSelected() {
                     data.folders = data.folders.filter(f => f.id !== fid);
                 };
                 rec(id);
+                if (curFolder === id || isDescendantOf(curFolder, id)) {
+                    curFolder = folder.parentId || null;
+                }
             } else {
                 data.cards = data.cards.filter(c => c.id !== id);
             }
@@ -1188,7 +1329,8 @@ function shareAsLink() {
             return;
         }
         
-        const url = window.location.origin + window.location.pathname + '?import=' + base64;
+        const baseHref = window.location.href.split('?')[0];
+        const url = baseHref + '?import=' + base64;
         
         const shareLinkInput = document.getElementById('shareLinkInput');
         const shareLinkContainer = document.getElementById('shareLinkContainer');
@@ -1440,7 +1582,10 @@ function getItemColor(item, type) {
 // =============================================
 // MOVE BOTTOM SHEET
 // =============================================
-function openMoveSheet() {
+function openMoveSheet(singleItemId = null, singleItemType = null) {
+    movingItemId = singleItemId;
+    movingItemType = singleItemType;
+
     const sheet = document.getElementById('moveBottomSheet');
     const nav = document.getElementById('bottomNav');
     const list = document.getElementById('moveFolderList');
@@ -1448,7 +1593,6 @@ function openMoveSheet() {
     if (!sheet || !list) return;
     
     list.innerHTML = '';
-
     if (nav) nav.classList.add('hidden-nav');
     
     const optRoot = document.createElement('div');
@@ -1457,10 +1601,24 @@ function openMoveSheet() {
     optRoot.addEventListener('click', () => executeMove(null));
     list.appendChild(optRoot);
 
+    const isExcluded = (fid) => {
+        if (movingItemId && movingItemType === 'folder') {
+            if (fid === movingItemId) return true;
+            // Ziel ist Nachkomme des zu verschiebenden Ordners -> Zyklus verhindern
+            if (isDescendantOf(fid, movingItemId)) return true;
+        }
+        if (selectedIds.has(fid)) return true;
+        // Bulk: Nachkommen selektierter Ordner ebenfalls ausschließen
+        for (const selId of selectedIds) {
+            if (data.folders.find(f => f.id === selId) && isDescendantOf(fid, selId)) return true;
+        }
+        return false;
+    };
+
     const renderFolderOptions = (parentId, level) => {
         const children = data.folders.filter(f => f.parentId === parentId);
         children.forEach(f => {
-            if (selectedIds.has(f.id)) return;
+            if (isExcluded(f.id)) return;
 
             const div = document.createElement('div');
             div.className = 'folder-select-item';
@@ -1482,19 +1640,86 @@ function closeMoveSheet() {
     const nav = document.getElementById('bottomNav');
     if (sheet) sheet.classList.remove('show');
     if (nav) nav.classList.remove('hidden-nav');
+    movingItemId = null;
+    movingItemType = null;
 }
 
 function executeMove(targetId) {
-    data.folders.forEach(f => { if (selectedIds.has(f.id)) f.parentId = targetId; });
-    data.cards.forEach(c => { if (selectedIds.has(c.id)) c.folderId = targetId; });
+    // Zyklus-Schutz: Ordner darf nicht in sich selbst / eigenen Nachkommen verschoben werden
+    if (movingItemId && movingItemType === 'folder') {
+        if (targetId === movingItemId || isDescendantOf(targetId, movingItemId)) {
+            showNotification('Ordner kann nicht in sich selbst verschoben werden!', 'warning');
+            return;
+        }
+    } else if (!movingItemId) {
+        for (const selId of selectedIds) {
+            if (data.folders.find(f => f.id === selId) && (targetId === selId || isDescendantOf(targetId, selId))) {
+                showNotification('Ordner kann nicht in sich selbst verschoben werden!', 'warning');
+                return;
+            }
+        }
+    }
+    if (movingItemId) {
+        if (movingItemType === 'folder') {
+            const f = data.folders.find(fold => fold.id === movingItemId);
+            if (f) f.parentId = targetId;
+        } else if (movingItemType === 'card') {
+            const c = data.cards.find(card => card.id === movingItemId);
+            if (c) c.folderId = targetId;
+        }
+        movingItemId = null;
+        movingItemType = null;
+    } else {
+        data.folders.forEach(f => { if (selectedIds.has(f.id)) f.parentId = targetId; });
+        data.cards.forEach(c => { if (selectedIds.has(c.id)) c.folderId = targetId; });
+        selectedIds.clear();
+        isSelectMode = false;
+        updateSelectionUI();
+    }
 
     save();
-    selectedIds.clear();
-    isSelectMode = false;
-    updateSelectionUI();
     renderManage();
     closeMoveSheet();
-    showNotification('Elemente verschoben!', 'success');
+    showNotification('Verschoben!', 'success');
+}
+
+function openRenameFolder(id, e) {
+    if (e) e.stopPropagation();
+    const folder = data.folders.find(f => f.id === id);
+    if (!folder) return;
+    renamingFolderId = id;
+    const inp = document.getElementById('inpRenameFolder');
+    if (inp) inp.value = folder.name;
+    showModal('renameFolderModal');
+    setTimeout(() => inp && inp.focus(), 50);
+}
+
+function confirmRenameFolder() {
+    if (!renamingFolderId) return;
+    const inp = document.getElementById('inpRenameFolder');
+    const newName = inp ? inp.value.trim() : '';
+    if (!newName) {
+        showNotification('Bitte einen Ordnernamen eingeben!', 'warning');
+        return;
+    }
+    const folder = data.folders.find(f => f.id === renamingFolderId);
+    if (folder) {
+        const exists = data.folders.some(f => 
+            f.id !== renamingFolderId &&
+            (f.parentId || '') === (folder.parentId || '') &&
+            f.name.toLowerCase() === newName.toLowerCase()
+        );
+        if (exists) {
+            showNotification('Ein Ordner mit diesem Namen existiert hier bereits!', 'warning');
+            return;
+        }
+        folder.name = newName;
+        save();
+        renderManage();
+        showNotification('Ordner umbenannt!', 'success');
+    }
+    hideModal('renameFolderModal');
+    renamingFolderId = null;
 }
 
 // =============================================
@@ -1585,7 +1810,9 @@ function renderManage(filter = '') {
     const bc = document.getElementById('breadcrumbContainer'); 
     if (bc) bc.innerHTML = '';
 
-    if (curFolder) {
+    const isSearching = filter.trim() !== '';
+
+    if (curFolder && !isSearching) {
         let path = [], curr = data.folders.find(f => f.id === curFolder);
         while (curr) { path.unshift(curr); curr = data.folders.find(f => f.id === curr.parentId); }
         const home = document.createElement('span'); 
@@ -1623,28 +1850,54 @@ function renderManage(filter = '') {
         liBack.addEventListener('click', () => setFolder(parentId));
         fragment.appendChild(liBack);
 
+    } else if (isSearching) {
+        const titleEl = document.getElementById('currentFolderTitle');
+        if (titleEl) titleEl.textContent = searchScope === 'global' ? 'Globale Suche' : 'Suche (aktueller Ordner)';
+        if (bc) {
+            bc.innerHTML = `<span style="color: var(--primary);"><i class="fas fa-search"></i> Treffer für "${escapeHtml(filter)}"</span>`;
+        }
     } else {
         const titleEl = document.getElementById('currentFolderTitle');
         if (titleEl) titleEl.textContent = 'Startseite';
     }
 
-    // Fuzzy-Suche für Ordner und Karten
-    const filterLower = filter.toLowerCase();
-    const subs = data.folders.filter(f => {
-        if (filter === '') return true;
-        return fuzzyMatch(filterLower, f.name);
-    }).filter(f => f.parentId === curFolder);
-    
-    const cards = data.cards.filter(c => {
-        if (filter === '') return true;
-        return fuzzyMatch(filterLower, c.front) || fuzzyMatch(filterLower, c.back);
-    }).filter(c => c.folderId === curFolder);
+    let subs = [];
+    let cards = [];
+
+    if (!isSearching) {
+        subs = data.folders.filter(f => f.parentId === curFolder);
+        cards = data.cards.filter(c => c.folderId === curFolder);
+    } else {
+        if (searchScope === 'global') {
+            subs = data.folders.filter(f => smartSearchMatch(filter, f.name));
+            cards = data.cards.filter(c => 
+                smartSearchMatch(filter, c.front) || 
+                smartSearchMatch(filter, c.back) || 
+                (c.hint && smartSearchMatch(filter, c.hint))
+            );
+        } else {
+            subs = data.folders.filter(f => f.parentId === curFolder && smartSearchMatch(filter, f.name));
+            cards = data.cards.filter(c => c.folderId === curFolder && (
+                smartSearchMatch(filter, c.front) || 
+                smartSearchMatch(filter, c.back) || 
+                (c.hint && smartSearchMatch(filter, c.hint))
+            ));
+        }
+    }
 
     const folderStatsEl = document.getElementById('folderStats');
     if (folderStatsEl) folderStatsEl.textContent = `${subs.length} Ordner, ${cards.length} Karten`;
     
     const emptyState = document.getElementById('emptyState');
-    if (emptyState) emptyState.classList.toggle('hidden', subs.length > 0 || cards.length > 0);
+    if (emptyState) {
+        emptyState.classList.toggle('hidden', subs.length > 0 || cards.length > 0);
+        const emptyP = emptyState.querySelector('p');
+        if (emptyP) {
+            emptyP.textContent = (isSearching && subs.length === 0 && cards.length === 0) 
+                ? `Keine Treffer für "${escapeHtml(filter)}"` 
+                : 'Hier ist es noch leer.';
+        }
+    }
 
     subs.forEach(f => {
         const isSelected = selectedIds.has(f.id);
@@ -1657,6 +1910,8 @@ function renderManage(filter = '') {
             const safeId = escapeHtml(f.id);
             actionsHtml = `
                 <div class="item-actions">
+                    <i class="fas fa-edit action-icon" data-action="renamefolder" data-id="${safeId}" title="Umbenennen"></i>
+                    <i class="fas fa-arrows-alt action-icon" data-action="moveitem" data-type="folder" data-id="${safeId}" title="Verschieben"></i>
                     <i class="fas fa-palette action-icon action-design" data-action="design" data-type="folder" data-id="${safeId}" title="Farbe"></i>
                     <i class="fas fa-share-alt action-icon" style="color: var(--primary);" data-action="share" data-id="${safeId}" title="Teilen"></i>
                     <i class="fas fa-trash action-icon action-del" data-action="delfolder" data-id="${safeId}" title="Löschen"></i>
@@ -1664,15 +1919,19 @@ function renderManage(filter = '') {
             `;
         }
 
+        const displayName = isSearching ? highlightMatch(f.name, filter) : escapeHtml(f.name);
+
         li.innerHTML = `
             <div class="selection-checkbox" data-action="select" data-id="${escapeHtml(f.id)}">
                 ${isSelected ? '<i class="fas fa-check"></i>' : ''}
             </div>
             <div class="item-icon" style="background: ${colorInfo.bg}; color: ${colorInfo.color};"><i class="fas fa-folder"></i></div>
-            <div class="item-content"><div class="item-title">${escapeHtml(f.name)}</div></div>
+            <div class="item-content"><div class="item-title">${displayName}</div></div>
+            ${f.color ? `<span class="color-indicator" style="background:${colorInfo.color}" title="${escapeHtml(colorInfo.name)}"></span>` : ''}
             ${actionsHtml}
         `;
         li.addEventListener('click', (e) => {
+            if (e.target.closest('[data-action]')) return;
             if (isSelectMode) toggleSelection(f.id, e);
             else setFolder(f.id);
         });
@@ -1685,7 +1944,6 @@ function renderManage(filter = '') {
         li.className = `list-item ${isSelected ? 'selected' : ''}`;
         const colorInfo = getItemColor(c, 'card');
         
-        // Nächste Wiederholung berechnen
         let dueInfo = '';
         if (c.lastLearnedAt) {
             const nextReview = c.lastLearnedAt + (LEITNER_INTERVALS[c.box || 1] || LEITNER_INTERVALS[1]);
@@ -1694,11 +1952,19 @@ function renderManage(filter = '') {
             dueInfo = `<div class="card-due-info">Neu</div>`;
         }
 
+        let folderBadgeHtml = '';
+        if (isSearching && searchScope === 'global') {
+            const fObj = data.folders.find(f => f.id === c.folderId);
+            const fName = fObj ? fObj.name : 'Startseite';
+            folderBadgeHtml = `<span class="item-folder-badge" data-action="gotofolder" data-id="${escapeHtml(c.folderId || '')}" title="Zu '${escapeHtml(fName)}' springen"><i class="fas fa-folder"></i> ${escapeHtml(fName)}</span>`;
+        }
+
         let cardActionsHtml = '';
         if (!isSelectMode) {
             const safeId = escapeHtml(c.id);
             cardActionsHtml = `
                 <div class="item-actions">
+                    <i class="fas fa-arrows-alt action-icon" data-action="moveitem" data-type="card" data-id="${safeId}" title="Verschieben"></i>
                     <i class="fas fa-undo action-icon" style="color:var(--warning)" data-action="reset" data-id="${safeId}" title="Zurücksetzen"></i>
                     <i class="fas fa-palette action-icon action-design" data-action="design" data-type="card" data-id="${safeId}" title="Farbe"></i>
                     <i class="fas fa-pen action-icon action-edit" data-action="edit" data-id="${safeId}" title="Bearbeiten"></i>
@@ -1707,16 +1973,28 @@ function renderManage(filter = '') {
             `;
         }
 
+        const displayFront = isSearching ? highlightMatch(c.front, filter) : escapeHtml(c.front);
+        const displayBack = isSearching ? highlightMatch(c.back, filter) : escapeHtml(c.back);
+
         li.innerHTML = `
             <div class="selection-checkbox" data-action="select" data-id="${escapeHtml(c.id)}">
                 ${isSelected ? '<i class="fas fa-check"></i>' : ''}
             </div>
             <div class="item-icon" style="background: ${colorInfo.bg}; color: ${colorInfo.color};"><i class="fas fa-sticky-note"></i></div>
-            <div class="item-content"><div class="item-title">${escapeHtml(c.front)}</div><div style="font-size:0.8rem; color:var(--text-muted)">Box ${c.box || 1}</div>${dueInfo}</div>
+            <div class="item-content">
+                <div class="item-title">${displayFront}${folderBadgeHtml}</div>
+                <div class="item-sub-translation"><i class="fas fa-arrow-right" style="font-size: 0.65rem; opacity: 0.6;"></i> ${displayBack}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top: 2px;">Box ${c.box || 1}${c.hint ? ` • <span title="Hinweis"><i class="fas fa-lightbulb"></i> ${escapeHtml(c.hint)}</span>` : ''}</div>
+                ${dueInfo}
+            </div>
+            ${c.color ? `<span class="color-indicator" style="background:${colorInfo.color}" title="${escapeHtml(colorInfo.name)}"></span>` : ''}
             ${cardActionsHtml}
         `;
         if (isSelectMode) {
-            li.addEventListener('click', (e) => toggleSelection(c.id, e));
+            li.addEventListener('click', (e) => {
+                if (e.target.closest('[data-action]')) return;
+                toggleSelection(c.id, e);
+            });
         }
         fragment.appendChild(li);
     });
@@ -1749,6 +2027,18 @@ document.addEventListener('click', function(e) {
             break;
         case 'edit':
             openEditCard(id, e);
+            break;
+        case 'renamefolder':
+            openRenameFolder(id, e);
+            break;
+        case 'moveitem':
+            openMoveSheet(id, type);
+            break;
+        case 'gotofolder':
+            e.stopPropagation();
+            setFolder(id || null);
+            const sb = document.getElementById('searchBox');
+            if (sb) sb.value = '';
             break;
         case 'select':
             toggleSelection(id, e);
@@ -1984,7 +2274,38 @@ function updateLearnSource() {
 // =============================================
 let sessionActive = false;
 
-function setDirection(dir) {
+function saveLearnSettings() {
+    const s = {
+        source: document.getElementById('learnSource')?.value || 'all',
+        strategy: document.getElementById('learnStrategy')?.value || 'leitner',
+        method: document.getElementById('learnMethod')?.value || 'flip',
+        dir: session.dir || 'mixed'
+    };
+    safeLocalStorage('set', LEARN_SETTINGS_KEY, JSON.stringify(s));
+}
+
+function loadLearnSettings() {
+    try {
+        const str = safeLocalStorage('get', LEARN_SETTINGS_KEY);
+        if (!str) return;
+        const s = JSON.parse(str);
+        if (s.method) {
+            const el = document.getElementById('learnMethod');
+            if (el) el.value = s.method;
+        }
+        if (s.strategy) {
+            const el = document.getElementById('learnStrategy');
+            if (el) el.value = s.strategy;
+        }
+        if (s.dir) setDirection(s.dir, false);
+        if (s.source) {
+            const el = document.getElementById('learnSource');
+            if (el && [...el.options].some(o => o.value === s.source)) el.value = s.source;
+        }
+    } catch (e) {}
+}
+
+function setDirection(dir, shouldSave = true) {
     session.dir = dir;
     const mix = document.getElementById('btnMix');
     const front = document.getElementById('btnFront');
@@ -1992,6 +2313,7 @@ function setDirection(dir) {
     if (mix) mix.classList.toggle('active', dir === 'mixed');
     if (front) front.classList.toggle('active', dir === 'front');
     if (back) back.classList.toggle('active', dir === 'back');
+    if (shouldSave) saveLearnSettings();
 }
 
 function startSession() {
@@ -2172,17 +2494,43 @@ function checkType() {
         document.getElementById('btnNextType').classList.remove('hidden');
     } else {
         handleAnswer(false);
-        startCorrection();
+        startCorrection(answer);
     }
 }
 
-function startCorrection() {
+function startCorrection(userAnswer = '') {
     correctionMode = true;
     playFailSound();
     document.getElementById('normalInputArea').style.display = 'none';
     document.getElementById('correctionArea').style.display = 'block';
     document.getElementById('correctAnswerText').textContent = session.a;
     document.getElementById('correctionSuccess').style.display = 'none';
+    
+    // Character-Level-Diff anzeigen
+    const diffContainer = document.getElementById('diffViewContainer');
+    if (diffContainer) {
+        if (userAnswer) {
+            const diff = computeCharDiff(userAnswer, session.a);
+            diffContainer.innerHTML = `
+                <div class="diff-row">
+                    <div class="diff-row-label">Deine Eingabe:</div>
+                    <div class="diff-chars">${diff.inputHtml}</div>
+                </div>
+                <div class="diff-row" style="margin-top: 8px;">
+                    <div class="diff-row-label">Erwartet:</div>
+                    <div class="diff-chars">${diff.targetHtml}</div>
+                </div>
+                <div class="diff-legend">
+                    <span><span style="color: var(--success); font-weight:bold;">■</span> Richtig</span>
+                    <span><span style="color: var(--danger); text-decoration: line-through; font-weight:bold;">■</span> Falsch / Zu viel</span>
+                    <span><span style="color: var(--warning); border-bottom: 2px solid var(--warning); font-weight:bold;">■</span> Fehlt</span>
+                </div>
+            `;
+            diffContainer.style.display = 'block';
+        } else {
+            diffContainer.style.display = 'none';
+        }
+    }
     
     const cInput = document.getElementById('correctionInput');
     cInput.value = '';
@@ -2205,7 +2553,8 @@ function confirmCorrection() {
     correctionMode = false;
     document.getElementById('correctionSuccess').style.display = 'block';
     playSuccessSound();
-    session.retryCorrectCount++;
+    // session.retryCorrectCount wird NICHT hier erhöht, sondern erst bei der
+    // echten Karten-Wiederholung in handleAnswer(true), um Doppelzählung zu vermeiden.
     document.getElementById('btnNextType').classList.remove('hidden');
 }
 
@@ -2221,13 +2570,17 @@ function showMcCard() {
     
     setupHint('btnHintMc', 'hintMc');
     
-    // Distraktoren aus anderen Karten generieren
+    // Distraktoren vorzugsweise aus demselben Ordner wählen
     const options = new Set([session.a]);
-    const pool = data.cards.filter(c => c.id !== session.current.id);
+    const currentFolderId = session.current.folderId;
+    const sameFolderPool = data.cards.filter(c => c.id !== session.current.id && c.folderId === currentFolderId);
+    const allPool = data.cards.filter(c => c.id !== session.current.id);
     const maxOptions = Math.min(4, data.cards.length);
+    
     let guard = 0;
     while (options.size < maxOptions && guard < 100) {
         guard++;
+        const pool = (sameFolderPool.length >= 3 && guard < 50) ? sameFolderPool : allPool;
         const pick = pool[Math.floor(Math.random() * pool.length)];
         if (!pick) break;
         const val = session.curDir === 'back' ? pick.front : pick.back;
@@ -2239,10 +2592,11 @@ function showMcCard() {
     container.innerHTML = '';
     document.getElementById('btnNextMc').classList.add('hidden');
     
-    shuffled.forEach(opt => {
+    shuffled.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.className = 'mc-option';
-        btn.textContent = opt;
+        btn.innerHTML = `<span class="mc-key-badge">${idx + 1}</span> <span>${escapeHtml(opt)}</span>`;
+        btn.dataset.val = opt;
         btn.addEventListener('click', () => {
             if (session.answered) return;
             session.answered = true;
@@ -2250,7 +2604,7 @@ function showMcCard() {
             
             document.querySelectorAll('.mc-option').forEach(b => {
                 b.disabled = true;
-                if (b.textContent === session.a) b.classList.add('correct');
+                if (b.dataset.val === session.a) b.classList.add('correct');
             });
             if (!correct) btn.classList.add('wrong');
             
@@ -2270,7 +2624,15 @@ function handleAnswer(correct) {
     const isFirstTry = !session.repeatedCards.has(card.id);
     
     if (correct) {
-        card.box = Math.min(oldBox + 1, MAX_LEITNER_BOX);
+        if (isFirstTry) {
+            card.box = Math.min(oldBox + 1, MAX_LEITNER_BOX);
+            session.firstTryCorrect++;
+        } else {
+            // WICHTIGER LEITNER-FIX: Wiederholte Karten in derselben Session
+            // bleiben zur Festigung in Box 1 und steigen NICHT sofort in Box 2 auf!
+            card.box = 1;
+            session.retryCorrectCount++;
+        }
         comboCount++;
         playSuccessSound();
         if (comboCount >= 2) showComboBadge(comboCount, oldBox, card.box);
@@ -2279,8 +2641,7 @@ function handleAnswer(correct) {
             launchConfetti();
             session.masteredCount++;
         }
-        if (isFirstTry) session.firstTryCorrect++;
-        else session.retryCorrectCount++;
+        data.totalCorrect = (data.totalCorrect || 0) + 1;
     } else {
         card.box = 1;
         comboCount = 0;
@@ -2293,10 +2654,17 @@ function handleAnswer(correct) {
         } else {
             session.retryWrongCount++;
         }
+        data.totalWrong = (data.totalWrong || 0) + 1;
     }
     
     card.lastLearnedAt = Date.now();
     data.totalReviews = (data.totalReviews || 0) + 1;
+    
+    // Aktivitäts-Log für 7-Tage-Chart
+    if (!data.activityLog || typeof data.activityLog !== 'object') data.activityLog = {};
+    const dk = dayKey();
+    data.activityLog[dk] = (data.activityLog[dk] || 0) + 1;
+    
     save();
 }
 
@@ -2377,10 +2745,22 @@ function closeSummary() {
 // SPRACHAUSGABE (TEXT-TO-SPEECH)
 // =============================================
 function guessLang(text) {
-    if (/[äöüß]/i.test(text)) return 'de-DE';
-    if (/[ñ¿¡áéíóú]/i.test(text)) return 'es-ES';
-    if (/[àèìòùç]/i.test(text)) return 'fr-FR';
-    if (/[àèìòù]/i.test(text)) return 'it-IT';
+    if (!text) return 'de-DE';
+    const t = text.trim();
+    if (/[äöüß]/i.test(t)) return 'de-DE';
+    if (/[ñ¿¡áéíóú]/i.test(t)) return 'es-ES';
+    if (/[àèìòùçœ]/i.test(t)) return 'fr-FR';
+    
+    const lower = t.toLowerCase();
+    const deWords = /\b(der|die|das|ein|eine|einer|eines|einem|einen|und|oder|aber|nicht|ist|sind|war|werden|haben|sein|schule|haus|buch|zeit|mann|frau|kind|tag|jahr|hallo|danke|bitte)\b/i;
+    if (deWords.test(lower)) return 'de-DE';
+    
+    const esWords = /\b(el|la|los|las|un|una|unos|unas|pero|es|son|fue|estar|tener|hacer|gracias|hola|adios)\b/i;
+    if (esWords.test(lower)) return 'es-ES';
+    
+    const frWords = /\b(le|la|les|un|une|des|mais|est|sont|avoir|faire|merci|bonjour)\b/i;
+    if (frWords.test(lower)) return 'fr-FR';
+    
     return 'en-US';
 }
 
@@ -2504,40 +2884,397 @@ function importData(input) {
     reader.readAsText(file);
 }
 
-function runImport() {
-    const text = document.getElementById('inpImport').value.trim();
-    if (!text) {
-        showNotification('Keine Daten zum Importieren!', 'warning');
+function detectDelimiter(lines) {
+    const candidateDelims = ['\t', ';', '|', '->', '=>', '=', ',', ':'];
+    const counts = {};
+    candidateDelims.forEach(d => counts[d] = 0);
+    
+    const sample = lines.slice(0, 15);
+    for (const line of sample) {
+        if (!line.trim()) continue;
+        candidateDelims.forEach(d => {
+            if (line.includes(d)) {
+                const parts = parseCsvLine(line, d);
+                if (parts.length >= 2 && parts[0] && parts[1]) counts[d]++;
+            }
+        });
+    }
+    
+    let best = ';';
+    let max = 0;
+    const priority = ['\t', ';', '|', '->', '=>', '=', ',', ':'];
+    priority.forEach(d => {
+        if (counts[d] > max) {
+            max = counts[d];
+            best = d;
+        }
+    });
+    return best;
+}
+
+function parseCsvLine(line, delimiter) {
+    if (!line.includes('"')) {
+        return line.split(delimiter).map(p => p.trim());
+    }
+    
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    let i = 0;
+    const dLen = delimiter.length;
+    
+    while (i < line.length) {
+        if (line[i] === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+                current += '"';
+                i += 2;
+                continue;
+            }
+            inQuotes = !inQuotes;
+            i++;
+            continue;
+        }
+        
+        if (!inQuotes && line.substr(i, dLen) === delimiter) {
+            result.push(current.trim());
+            current = '';
+            i += dLen;
+            continue;
+        }
+        
+        current += line[i];
+        i++;
+    }
+    result.push(current.trim());
+    return result;
+}
+
+function parseCardImportData(rawText, delimiterOption = 'auto', skipHeader = false, targetOption = 'current', targetFolderId = curFolder, fileName = '') {
+    const text = (rawText || '').trim();
+    if (!text) return null;
+    
+    // 1. JSON-Unterstützung
+    if ((text.startsWith('{') && text.endsWith('}')) || (text.startsWith('[') && text.endsWith(']'))) {
+        try {
+            const parsed = JSON.parse(text);
+            if (Array.isArray(parsed)) {
+                const cardsToAdd = [];
+                parsed.forEach(item => {
+                    const front = item.front || item.vorderseite || item.question || item.q || '';
+                    const back = item.back || item.rueckseite || item.answer || item.a || '';
+                    const hint = item.hint || item.hinweis || '';
+                    const box = Math.min(5, Math.max(1, parseInt(item.box, 10) || 1));
+                    if (front && back) {
+                        cardsToAdd.push({ front, back, hint, box, folderName: item.folder || item.ordner || null });
+                    }
+                });
+                return {
+                    format: 'json-array',
+                    cards: cardsToAdd,
+                    delimiter: 'JSON',
+                    count: cardsToAdd.length,
+                    skipped: 0
+                };
+            }
+            if (parsed.cards && Array.isArray(parsed.cards)) {
+                const cardsToAdd = parsed.cards.map(c => ({
+                    front: c.front,
+                    back: c.back,
+                    hint: c.hint || '',
+                    box: c.box || 1,
+                    folderName: (parsed.folders && parsed.folders.find(f => f.id === c.folderId)?.name) || null
+                })).filter(c => c.front && c.back);
+                
+                return {
+                    format: 'json-backup',
+                    cards: cardsToAdd,
+                    delimiter: 'JSON',
+                    count: cardsToAdd.length,
+                    skipped: 0
+                };
+            }
+        } catch (jsonErr) {}
+    }
+    
+    // 2. CSV / TSV / Delimited Text
+    const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    if (rawLines.length === 0) return null;
+    
+    const activeDelim = delimiterOption === 'auto' ? detectDelimiter(rawLines) : delimiterOption;
+    
+    const firstLineLower = rawLines[0].toLowerCase();
+    const hasHeaderKeywords = firstLineLower.includes('vorderseite') || 
+                              firstLineLower.includes('front') || 
+                              firstLineLower.includes('question') ||
+                              firstLineLower.includes('term');
+    const actualSkipHeader = skipHeader || hasHeaderKeywords;
+    
+    const startIndex = actualSkipHeader ? 1 : 0;
+    const cards = [];
+    let skipped = actualSkipHeader ? 1 : 0;
+    
+    const baseFolderName = fileName ? fileName.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ').trim() : 'Neuer Ordner';
+    
+    for (let i = startIndex; i < rawLines.length; i++) {
+        const line = rawLines[i];
+        const parts = parseCsvLine(line, activeDelim);
+        
+        let front = (parts[0] || '').replace(/^["']|["']$/g, '').trim();
+        let back = (parts[1] || '').replace(/^["']|["']$/g, '').trim();
+        let hint = (parts[2] || '').replace(/^["']|["']$/g, '').trim();
+        let box = 1;
+        let folderName = null;
+        
+        if (parts.length >= 4 && !isNaN(parseInt(parts[3], 10))) {
+            box = Math.min(5, Math.max(1, parseInt(parts[3], 10)));
+        }
+        if (parts.length >= 5 && parts[4]) {
+            folderName = parts[4].replace(/^["']|["']$/g, '').trim();
+        }
+        
+        if (!front || !back) {
+            skipped++;
+            continue;
+        }
+        
+        cards.push({
+            front,
+            back,
+            hint,
+            box,
+            folderName: folderName || (targetOption === 'new_folder' ? baseFolderName : null)
+        });
+    }
+    
+    return {
+        format: 'delimited',
+        cards,
+        delimiter: activeDelim,
+        count: cards.length,
+        skipped,
+        baseFolderName
+    };
+}
+
+function setupImportDropZone() {
+    const dropZone = document.getElementById('importDropZone');
+    const fileInput = document.getElementById('importFileInput');
+    if (!dropZone || !fileInput) return;
+    
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    ['dragenter', 'dragover'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('dragover');
+        });
+    });
+    
+    ['dragleave', 'drop'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
+        });
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        const file = e.dataTransfer && e.dataTransfer.files[0];
+        if (file) handleImportFile(file);
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) handleImportFile(file);
+    });
+    
+    const inpImport = document.getElementById('inpImport');
+    if (inpImport) {
+        inpImport.addEventListener('input', () => {
+            importedFileContent = inpImport.value;
+            importedFileName = '';
+            onImportOptionsChanged();
+        });
+    }
+}
+
+function handleImportFile(file) {
+    importedFileName = file.name;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        importedFileContent = e.target.result;
+        const badgeRow = document.getElementById('importFileBadgeRow');
+        const badgeName = document.getElementById('importLoadedFileName');
+        if (badgeRow && badgeName) {
+            badgeName.textContent = file.name;
+            badgeRow.style.display = 'flex';
+        }
+        const targetOpt = document.getElementById('importTargetOption');
+        if (targetOpt && targetOpt.options[1]) {
+            const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+            targetOpt.options[1].textContent = `Neuer Ordner ("${cleanName}")`;
+        }
+        onImportOptionsChanged();
+    };
+    reader.readAsText(file);
+}
+
+function clearImportFile() {
+    importedFileContent = '';
+    importedFileName = '';
+    importParsedResult = null;
+    const fileInput = document.getElementById('importFileInput');
+    if (fileInput) fileInput.value = '';
+    const badgeRow = document.getElementById('importFileBadgeRow');
+    if (badgeRow) badgeRow.style.display = 'none';
+    const previewContainer = document.getElementById('importPreviewContainer');
+    if (previewContainer) previewContainer.style.display = 'none';
+    const inp = document.getElementById('inpImport');
+    if (inp) inp.value = '';
+}
+
+function toggleImportTextInput() {
+    const inp = document.getElementById('inpImport');
+    const btn = document.getElementById('btnToggleInputText');
+    if (!inp) return;
+    const isHidden = inp.style.display === 'none';
+    inp.style.display = isHidden ? 'block' : 'none';
+    if (btn) btn.textContent = isHidden ? 'Textfeld verbergen' : 'Textfeld anzeigen';
+    if (isHidden) inp.focus();
+}
+
+function onImportOptionsChanged() {
+    const delim = document.getElementById('importDelimiter')?.value || 'auto';
+    const skipHeader = document.getElementById('importSkipHeader')?.checked || false;
+    const targetOpt = document.getElementById('importTargetOption')?.value || 'current';
+    
+    const content = importedFileContent || document.getElementById('inpImport')?.value || '';
+    if (!content.trim()) {
+        const previewContainer = document.getElementById('importPreviewContainer');
+        if (previewContainer) previewContainer.style.display = 'none';
+        importParsedResult = null;
         return;
     }
     
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-    let added = 0, skipped = 0;
+    importParsedResult = parseCardImportData(content, delim, skipHeader, targetOpt, curFolder, importedFileName);
+    updateImportPreview();
+}
+
+function updateImportPreview() {
+    const previewContainer = document.getElementById('importPreviewContainer');
+    const badge = document.getElementById('importPreviewBadge');
+    const details = document.getElementById('importPreviewDetails');
+    const tbody = document.getElementById('importPreviewTbody');
     
-    lines.forEach(line => {
-        const parts = line.split(';').map(p => p.trim());
-        const front = parts[0];
-        const back = parts[1];
-        const hint = parts[2] || '';
-        
-        if (!front || !back) { skipped++; return; }
-        
-        const exists = data.cards.some(c =>
-            c.folderId === curFolder &&
-            c.front.toLowerCase() === front.toLowerCase() &&
-            c.back.toLowerCase() === back.toLowerCase()
+    if (!previewContainer || !importParsedResult) {
+        if (previewContainer) previewContainer.style.display = 'none';
+        return;
+    }
+    
+    const res = importParsedResult;
+    previewContainer.style.display = 'block';
+    
+    const delimDisplay = res.delimiter === '\t' ? 'Tab' : (res.delimiter === 'JSON' ? 'JSON' : `"${res.delimiter}"`);
+    if (badge) badge.textContent = `${res.count} Karten erkannt`;
+    if (details) details.textContent = `Trennzeichen: ${delimDisplay} ${res.skipped > 0 ? `(${res.skipped} übersprungen)` : ''}`;
+    
+    if (tbody) {
+        tbody.innerHTML = '';
+        const sample = res.cards.slice(0, 5);
+        sample.forEach((c, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="color: var(--text-muted);">${idx + 1}</td>
+                <td><strong>${escapeHtml(c.front)}</strong></td>
+                <td>${escapeHtml(c.back)}</td>
+                <td style="color: var(--text-muted);">${c.hint ? escapeHtml(c.hint) : '-'}</td>
+                <td><span class="badge" style="font-size: 0.7rem;">${c.folderName ? escapeHtml(c.folderName) : 'Aktuell'}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        if (res.cards.length > 5) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="5" style="text-align: center; color: var(--text-muted); font-style: italic;">... und ${res.cards.length - 5} weitere Karten</td>`;
+            tbody.appendChild(tr);
+        }
+    }
+}
+
+function runImport() {
+    onImportOptionsChanged();
+    if (!importParsedResult || importParsedResult.cards.length === 0) {
+        showNotification('Keine gültigen Karten zum Importieren gefunden!', 'warning');
+        return;
+    }
+    
+    const res = importParsedResult;
+    const targetOpt = document.getElementById('importTargetOption')?.value || 'current';
+    let targetFolderId = curFolder;
+    
+    if (targetOpt === 'new_folder' && res.baseFolderName) {
+        let existingFolder = data.folders.find(f => 
+            f.name.toLowerCase() === res.baseFolderName.toLowerCase() && 
+            (f.parentId || null) === curFolder
         );
-        if (exists) { skipped++; return; }
+        if (!existingFolder) {
+            const newFid = genId();
+            data.folders.push({
+                id: newFid,
+                name: res.baseFolderName,
+                parentId: curFolder
+            });
+            targetFolderId = newFid;
+        } else {
+            targetFolderId = existingFolder.id;
+        }
+    }
+    
+    const folderCache = {};
+    let added = 0;
+    let skipped = 0;
+    
+    res.cards.forEach(c => {
+        let destFid = targetFolderId;
+        if (c.folderName && targetOpt !== 'new_folder') {
+            if (!folderCache[c.folderName]) {
+                let f = data.folders.find(fold => fold.name.toLowerCase() === c.folderName.toLowerCase());
+                if (!f) {
+                    f = { id: genId(), name: c.folderName, parentId: curFolder };
+                    data.folders.push(f);
+                }
+                folderCache[c.folderName] = f.id;
+            }
+            destFid = folderCache[c.folderName];
+        }
         
-        data.cards.push({ id: genId(), front, back, hint, box: 1, folderId: curFolder, createdAt: Date.now() });
+        const exists = data.cards.some(existing => 
+            existing.folderId === destFid &&
+            existing.front.toLowerCase() === c.front.toLowerCase() &&
+            existing.back.toLowerCase() === c.back.toLowerCase()
+        );
+        if (exists) {
+            skipped++;
+            return;
+        }
+        
+        data.cards.push({
+            id: genId(),
+            front: c.front,
+            back: c.back,
+            hint: c.hint || '',
+            box: c.box || 1,
+            folderId: destFid,
+            createdAt: Date.now()
+        });
         added++;
     });
     
     save();
     renderManage();
     hideModal('importModal');
-    document.getElementById('inpImport').value = '';
-    showNotification(`${added} Karten importiert${skipped > 0 ? `, ${skipped} übersprungen` : ''}!`, 'success');
+    clearImportFile();
+    showNotification(`${added} Karten erfolgreich importiert${skipped > 0 ? ` (${skipped} Duplikate übersprungen)` : ''}!`, 'success');
 }
 
 async function resetAll() {
@@ -2594,8 +3331,16 @@ function renderStats() {
     const ttmEl = document.getElementById('perfTimeToMaster');
     if (ttmEl) {
         const unmastered = cards.filter(c => (c.box || 1) < MAX_LEITNER_BOX).length;
-        // 1+3+7+14 = 25 Tage Intervall-Summe bis Box 5
-        ttmEl.textContent = cards.length === 0 ? '--' : (unmastered === 0 ? 'Fertig! 🎉' : `~${unmastered * 25} Tage`);
+        if (cards.length === 0) {
+            ttmEl.textContent = '--';
+        } else if (unmastered === 0) {
+            ttmEl.textContent = 'Fertig! 🎉';
+        } else if (unmastered <= 20) {
+            ttmEl.textContent = '~25-30 Tage';
+        } else {
+            const estDays = Math.round(25 + (unmastered - 20) * 0.4);
+            ttmEl.textContent = `~${estDays} Tage`;
+        }
     }
     
     const todayEl = document.getElementById('perfMasteredToday');
@@ -2768,6 +3513,8 @@ function init() {
     loadData();
     renderManage();
     checkUrlImport();
+    setupImportDropZone();
+    loadLearnSettings();
     
     // Auto-Backup alle 5 Minuten
     setInterval(createAutoBackup, AUTO_BACKUP_INTERVAL);
@@ -2788,6 +3535,12 @@ function init() {
         searchBox.addEventListener('input', (e) => renderManage(e.target.value));
     }
     
+    // Lern-Einstellungen Änderungshörer
+    ['learnSource', 'learnStrategy', 'learnMethod'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', saveLearnSettings);
+    });
+    
     // Statistik-Filter
     const statsScope = document.getElementById('statsScope');
     if (statsScope) statsScope.addEventListener('change', renderStats);
@@ -2797,6 +3550,14 @@ function init() {
     if (inpFolder) {
         inpFolder.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') addFolder();
+        });
+    }
+
+    // Enter im Rename-Modal
+    const inpRenameFolder = document.getElementById('inpRenameFolder');
+    if (inpRenameFolder) {
+        inpRenameFolder.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') confirmRenameFolder();
         });
     }
     
@@ -2809,3 +3570,4 @@ function init() {
 }
 
 init();
+
