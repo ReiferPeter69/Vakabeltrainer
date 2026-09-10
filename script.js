@@ -2705,7 +2705,11 @@ function skipType() {
     const feedback = document.getElementById('typeFeedback');
     if (feedback) {
         feedback.style.display = 'block';
-        feedback.innerHTML = '<span style="color: var(--text-muted);">Übersprungen – kommt später nochmal.</span>';
+        feedback.innerHTML = `<span style="color: var(--text-muted);">Übersprungen – kommt später nochmal.</span>
+            <div class="correct-answer-display" style="margin-top:10px;">
+                <div class="correct-answer-label">Richtige Antwort</div>
+                <div class="correct-answer-text">${escapeHtml(session.a)}</div>
+            </div>`;
     }
     const checkBtn = document.getElementById('btnCheckType');
     if (checkBtn) checkBtn.style.display = 'none';
