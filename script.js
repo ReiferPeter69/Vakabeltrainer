@@ -633,56 +633,6 @@ function highlightMatch(text, query) {
     return escaped.replace(pattern, '<mark class="search-highlight">$1</mark>');
 }
 
-/**
- * Character-Level-Diff für Fehleranalyse im Tipp-Modus (LCS-Algorithmus)
- */
-function computeCharDiff(inputStr, targetStr) {
-    const s1 = inputStr || '';
-    const s2 = targetStr || '';
-    const m = s1.length;
-    const n = s2.length;
-    
-    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-    for (let i = 1; i <= m; i++) {
-        for (let j = 1; j <= n; j++) {
-            if (s1[i - 1].toLowerCase() === s2[j - 1].toLowerCase()) {
-                dp[i][j] = dp[i - 1][j - 1] + 1;
-            } else {
-                dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
-            }
-        }
-    }
-    
-    let i = m, j = n;
-    const inputDiff = [];
-    const targetDiff = [];
-    
-    while (i > 0 || j > 0) {
-        if (i > 0 && j > 0 && s1[i - 1].toLowerCase() === s2[j - 1].toLowerCase()) {
-            inputDiff.unshift({ char: s1[i - 1], status: 'correct' });
-            targetDiff.unshift({ char: s2[j - 1], status: 'correct' });
-            i--; j--;
-        } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
-            targetDiff.unshift({ char: s2[j - 1], status: 'missing' });
-            j--;
-        } else if (i > 0) {
-            inputDiff.unshift({ char: s1[i - 1], status: 'wrong' });
-            i--;
-        }
-    }
-    
-    const renderChars = (arr) => arr.map(item => {
-        const displayChar = item.char === ' ' ? '␣' : escapeHtml(item.char);
-        const spaceClass = item.char === ' ' ? ' space' : '';
-        return `<span class="diff-char ${item.status}${spaceClass}" title="${item.status}">${displayChar}</span>`;
-    }).join('');
-    
-    return {
-        inputHtml: renderChars(inputDiff),
-        targetHtml: renderChars(targetDiff)
-    };
-}
-
 function isDescendantOf(childId, ancestorId) {
     if (!childId || !ancestorId) return false;
     let curr = data.folders.find(f => f.id === childId);
@@ -2723,49 +2673,42 @@ function checkType() {
     const correct = normIn === normTarget || levenshtein(normIn, normTarget) <= tolerance;
     
     if (correct) {
+        session.answered = true;
         feedback.innerHTML = '<span style="color: var(--success); font-weight: bold;">✓ Richtig!</span>';
         input.disabled = true;
         handleAnswer(true);
         document.getElementById('btnNextType').classList.remove('hidden');
     } else {
         handleAnswer(false);
-        startCorrection(answer);
+        startCorrection();
     }
 }
 
-function startCorrection(userAnswer = '') {
+/**
+ * Überspringen: zählt als nicht gewusst (Box 1 + Wiederholung am Ende),
+ * ohne Korrektur-Phase – die Karte kommt später in der Session nochmal.
+ */
+function skipType() {
+    if (!sessionActive || session.method !== 'type' || correctionMode || session.answered) return;
+    session.answered = true;
+    handleAnswer(false);
+    const input = document.getElementById('typeInput');
+    if (input) input.disabled = true;
+    const feedback = document.getElementById('typeFeedback');
+    if (feedback) {
+        feedback.style.display = 'block';
+        feedback.innerHTML = '<span style="color: var(--text-muted);">Übersprungen – kommt später nochmal.</span>';
+    }
+    document.getElementById('btnNextType').classList.remove('hidden');
+}
+
+function startCorrection() {
     correctionMode = true;
     playFailSound();
     document.getElementById('normalInputArea').style.display = 'none';
     document.getElementById('correctionArea').style.display = 'block';
     document.getElementById('correctAnswerText').textContent = session.a;
     document.getElementById('correctionSuccess').style.display = 'none';
-    
-    // Character-Level-Diff anzeigen
-    const diffContainer = document.getElementById('diffViewContainer');
-    if (diffContainer) {
-        if (userAnswer) {
-            const diff = computeCharDiff(userAnswer, session.a);
-            diffContainer.innerHTML = `
-                <div class="diff-row">
-                    <div class="diff-row-label">Deine Eingabe:</div>
-                    <div class="diff-chars">${diff.inputHtml}</div>
-                </div>
-                <div class="diff-row" style="margin-top: 8px;">
-                    <div class="diff-row-label">Erwartet:</div>
-                    <div class="diff-chars">${diff.targetHtml}</div>
-                </div>
-                <div class="diff-legend">
-                    <span><span style="color: var(--success); font-weight:bold;">■</span> Richtig</span>
-                    <span><span style="color: var(--danger); text-decoration: line-through; font-weight:bold;">■</span> Falsch / Zu viel</span>
-                    <span><span style="color: var(--warning); border-bottom: 2px solid var(--warning); font-weight:bold;">■</span> Fehlt</span>
-                </div>
-            `;
-            diffContainer.style.display = 'block';
-        } else {
-            diffContainer.style.display = 'none';
-        }
-    }
     
     const cInput = document.getElementById('correctionInput');
     cInput.value = '';
@@ -3700,12 +3643,15 @@ function dismissInstall() {
 document.addEventListener('keydown', (e) => {
     if (!sessionActive) return;
     
-    // Eingabefelder: Enter prüft die Antwort
+    // Eingabefelder: Enter prüft die Antwort, Esc überspringt (Tipp-Modus)
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         if (e.key === 'Enter' && session.method === 'type') {
             e.preventDefault();
             if (correctionMode) confirmCorrection();
             else checkType();
+        } else if (e.key === 'Escape' && session.method === 'type' && !correctionMode) {
+            e.preventDefault();
+            skipType();
         }
         return;
     }

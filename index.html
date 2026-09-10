@@ -399,6 +399,7 @@
                     <input type="text" id="typeInput" class="form-control input-centered" placeholder="Antwort..." autocomplete="off">
                     <div id="typeFeedback" class="feedback-row" style="display: none;"></div>
                     <button class="btn btn-primary btn-check-type" id="btnCheckType" onclick="checkType()">Prüfen</button>
+                    <button class="btn btn-outline" id="btnSkipType" onclick="skipType()" style="margin-top:8px;">Weiß nicht – überspringen</button>
                 </div>
 
                 <!-- Korrektur-Bereich (wird bei falscher Antwort angezeigt) -->
@@ -412,9 +413,6 @@
                                 <div class="correction-subtitle">Tippe die korrekte Antwort ein, um weiterzumachen</div>
                             </div>
                         </div>
-
-                        <!-- Character-Level-Diff Fehleranalyse -->
-                        <div id="diffViewContainer" class="diff-view-container" style="display: none;"></div>
 
                         <div class="correct-answer-display">
                             <div class="correct-answer-label">Richtige Antwort</div>
