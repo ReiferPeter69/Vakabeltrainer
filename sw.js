@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vokabeltrainer-ultra-v3';
+const CACHE_NAME = 'vokabeltrainer-ultra-v4';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -44,6 +44,50 @@ self.addEventListener('fetch', (event) => {
   // Nur GET-Anfragen cachen
   if (event.request.method !== 'GET') return;
 
+  // Kern-Dateien ändern sich bei jedem Deploy -> IMMER zuerst Netzwerk,
+  // Cache nur als Offline-Fallback. Sonst sieht man Updates nie
+  // (Cache-First würde alte App-Shell ewig ausliefern).
+  const url = new URL(event.request.url);
+  const isCoreFile =
+    event.request.mode === 'navigate' ||
+    url.pathname.endsWith('/index.html') ||
+    url.pathname.endsWith('/script.js') ||
+    url.pathname.endsWith('/style.css') ||
+    url.pathname.endsWith('/manifest.json');
+
+  if (isCoreFile) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const cacheable =
+            response &&
+            response.status === 200 &&
+            (response.type === 'basic' || response.type === 'cors');
+          if (cacheable) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cached) => {
+            if (cached) return cached;
+            if (event.request.mode === 'navigate') {
+              return caches.match('./index.html');
+            }
+            return new Response('Offline – Diese Ressource ist nicht im Cache.', {
+              status: 503,
+              statusText: 'Service Unavailable'
+            });
+          });
+        })
+    );
+    return;
+  }
+
+  // Rest (Icons, CDN): Cache-First wie bisher
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
