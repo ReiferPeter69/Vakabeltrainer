@@ -2645,6 +2645,10 @@ function showTypeCard() {
     document.getElementById('correctionArea').style.display = 'none';
     document.getElementById('typeFeedback').style.display = 'none';
     document.getElementById('btnNextType').classList.add('hidden');
+    const checkBtn = document.getElementById('btnCheckType');
+    if (checkBtn) checkBtn.style.display = '';
+    const skipBtn = document.getElementById('btnSkipType');
+    if (skipBtn) skipBtn.style.display = '';
     
     const input = document.getElementById('typeInput');
     input.value = '';
@@ -2677,6 +2681,10 @@ function checkType() {
         feedback.innerHTML = '<span style="color: var(--success); font-weight: bold;">✓ Richtig!</span>';
         input.disabled = true;
         handleAnswer(true);
+        const checkBtn = document.getElementById('btnCheckType');
+        if (checkBtn) checkBtn.style.display = 'none';
+        const skipBtn = document.getElementById('btnSkipType');
+        if (skipBtn) skipBtn.style.display = 'none';
         document.getElementById('btnNextType').classList.remove('hidden');
     } else {
         handleAnswer(false);
@@ -2699,6 +2707,10 @@ function skipType() {
         feedback.style.display = 'block';
         feedback.innerHTML = '<span style="color: var(--text-muted);">Übersprungen – kommt später nochmal.</span>';
     }
+    const checkBtn = document.getElementById('btnCheckType');
+    if (checkBtn) checkBtn.style.display = 'none';
+    const skipBtn = document.getElementById('btnSkipType');
+    if (skipBtn) skipBtn.style.display = 'none';
     document.getElementById('btnNextType').classList.remove('hidden');
 }
 
